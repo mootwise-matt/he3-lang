@@ -1,0 +1,15 @@
+domain app.hello;
+
+import app.utils.*;
+
+class Program {
+  function main(): integer {
+    let greeter = new Greeter();
+    let message = greeter.createGreeting("He³ Developer");
+    
+    print(message);
+    print("Welcome to the He³ programming language!");
+    
+    return 0;
+  }
+}

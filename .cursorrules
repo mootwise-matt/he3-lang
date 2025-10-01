@@ -1,0 +1,69 @@
+# He³ (Helium-3) Programming Language - Global Rules
+
+## Project Context
+- **Language**: He³ - Pascal-inspired, object-oriented programming language
+- **Target**: Cross-platform bytecode execution (ARM, Apple Silicon, Intel)
+- **License**: Apache 2.0
+- **Architecture**: Compiler → Bytecode → Virtual Machine
+
+## ⚠️ ARCHIVE FOLDER WARNING
+- **`archive/` folder contains OLD VERSION only**
+- **DO NOT use archive code for active development**
+- **Archive is for REFERENCE ONLY**
+- **Current project starts fresh from root directory**
+
+## Documentation References
+- **Language Spec**: See `docs/language/` for syntax, grammar, and type system
+- **Bytecode Format**: See `docs/bytecode/` for VM opcodes and object files
+- **VM Design**: See `docs/vm/` for virtual machine architecture and memory model
+- **Exporters**: See `docs/exporter/` for C transpiler, LLVM, and native assembly
+- **Historical Reference**: See `archive/README.md` for old implementation
+
+## Key Design Principles
+- Everything inherits from `System.Object` (unified object model)
+- 64-bit by default with UTF-8 string support
+- Memory safety with nullable types (`T?`) and no raw pointers
+- Explicit modularity with domain + crowd security boundaries
+- Async/await concurrency and safe error handling (Option/Result)
+- Cross-platform portability and modern tooling support
+
+## When providing assistance:
+1. **NEVER suggest using archive code** - Always work with fresh implementation
+2. **Read relevant docs first** - Check `docs/` for current context
+3. **Follow established patterns** - Maintain consistency with current design
+4. **Consider architecture** - Respect current design decisions
+5. **Include proper error handling** - Always validate inputs
+6. **Add appropriate documentation** - Update current docs when needed
+
+## He³ Language Features
+- Classes with inheritance, interfaces, and properties
+- Built-in types: `System.Int64`, `System.Float64`, `System.Boolean`, `System.String`
+- Generic types: `System.Task<T>`, `System.Option<T>`, `System.Result<T,E>`
+- Nullable types: `T?` (sugar for `Option<T>`)
+- Async/await: `async function` and `await` expressions
+- Pattern matching: `match` statements for Option/Result
+- Method calls: `obj.method()` and virtual dispatch
+- Field access: `obj.field` and property access
+- NEW operator for object creation
+
+## Build Process
+- **Always use root binaries**: `./he3` and `./he3vm` from project root
+- **Build directory binaries are intermediate**: Don't use `build/he3` or `build/he3vm` directly
+- **Automatic installation**: `make` automatically copies binaries to root
+- **After any build**: Root binaries are automatically updated
+- **File extensions**: `.he3` (source), `.ohe3` (object), `.bx` (bytecode), `.helium3` (modules)
+
+## Code Quality Standards
+- Use C99 with modern features
+- Follow snake_case naming convention
+- Include comprehensive error checking
+- Write tests for new features
+- Document public APIs
+- Maintain cross-platform compatibility
+
+## Testing Workflow
+- **ALWAYS test ALL examples after changes**: Run comprehensive test of all examples in `/examples/` folder
+- **Test both compilation and execution**: Verify both `.he3` compilation and `.bx` VM execution
+- **Test before committing**: Never ask to commit/push without verifying ALL examples run correctly
+- **Use debug mode when needed**: `./he3 -debug example.he3` for troubleshooting
+- **Comprehensive test command**: `for example in examples/*.he3; do ./he3 "$example" && ./he3vm "${example%.he3}.bx"; done`

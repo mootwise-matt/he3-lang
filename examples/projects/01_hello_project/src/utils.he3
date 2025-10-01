@@ -1,0 +1,32 @@
+domain app.utils;
+
+class Greeter {
+  function createGreeting(name: string): string {
+    return "Hello, " + name + "!";
+  }
+  
+  function createFarewell(name: string): string {
+    return "Goodbye, " + name + "!";
+  }
+}
+
+class StringUtils {
+  static function capitalize(str: string): string {
+    if (str.length == 0) {
+      return str;
+    }
+    
+    let first = str.charAt(0).toUpperCase();
+    let rest = str.substring(1);
+    
+    return first + rest;
+  }
+  
+  static function reverse(str: string): string {
+    let result = "";
+    for (let i = str.length - 1; i >= 0; i--) {
+      result = result + str.charAt(i);
+    }
+    return result;
+  }
+}

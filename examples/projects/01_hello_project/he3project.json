@@ -1,0 +1,19 @@
+{
+  "name": "hello-project",
+  "version": "1.0.0",
+  "type": "executable",
+  "entryPoint": "src/main.he3",
+  "domains": [
+    "app.hello",
+    "app.utils"
+  ],
+  "dependencies": [],
+  "security": {
+    "keys": {}
+  },
+  "build": {
+    "output": "build/hello-project.bx",
+    "optimize": false,
+    "debug": true
+  }
+}

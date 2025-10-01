@@ -1,0 +1,43 @@
+# Build artifacts
+build/
+*.o
+*.bx
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Temporary files
+tmp/
+*.tmp
+*.temp
+debug_*.c
+test_*.he3
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage reports
+coverage/
+*.gcov
+*.gcno
+*.gcda
+
+# Profiling
+*.prof
+*.gprof
+
+# Backup files
+*.bak
+*.backup
