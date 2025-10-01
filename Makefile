@@ -15,6 +15,12 @@ RESOLVER_SOURCES = $(SRCDIR)/compiler/resolver/resolver.c
 EMITTER_SOURCES = $(SRCDIR)/compiler/emitter/emitter.c
 COMMON_SOURCES = $(SRCDIR)/compiler/common/common.c
 
+# IR and bytecode source files
+IR_SOURCES = $(SRCDIR)/compiler/ir/ir.c
+BYTECODE_SOURCES = $(SRCDIR)/vm/bytecode/bytecode.c
+IR_TO_BYTECODE_SOURCES = $(SRCDIR)/compiler/emitter/ir_to_bytecode.c
+AST_TO_IR_SOURCES = $(SRCDIR)/compiler/emitter/ast_to_ir.c
+
 # Test source files
 TEST_SOURCES = $(TESTDIR)/lexer_test.c $(TESTDIR)/parser_test.c
 
@@ -26,17 +32,28 @@ RESOLVER_OBJECTS = $(BUILDDIR)/resolver.o
 EMITTER_OBJECTS = $(BUILDDIR)/emitter.o
 COMMON_OBJECTS = $(BUILDDIR)/common.o
 
+# IR and bytecode object files
+IR_OBJECTS = $(BUILDDIR)/ir.o
+BYTECODE_OBJECTS = $(BUILDDIR)/bytecode.o
+IR_TO_BYTECODE_OBJECTS = $(BUILDDIR)/ir_to_bytecode.o
+AST_TO_IR_OBJECTS = $(BUILDDIR)/ast_to_ir.o
+
 # Test executables
 LEXER_TEST = $(BUILDDIR)/lexer_test
 LEXER_REGRESSION_TEST = $(BUILDDIR)/lexer_regression_test
 PARSER_TEST = $(BUILDDIR)/parser_test
 PARSER_COMPREHENSIVE_TEST = $(BUILDDIR)/parser_comprehensive_test
 PARSER_REGRESSION_TEST = $(BUILDDIR)/parser_regression_test
+IR_BYTECODE_TEST = $(BUILDDIR)/ir_bytecode_test
+AST_TO_IR_TEST = $(BUILDDIR)/ast_to_ir_test
+STATEMENT_TRANSLATION_TEST = $(BUILDDIR)/statement_translation_test
+METHOD_TRANSLATION_TEST = $(BUILDDIR)/method_translation_test
+ERROR_RECOVERY_TEST = $(BUILDDIR)/error_recovery_test
 
 # Main compiler executable
 HE3_COMPILER = $(BUILDDIR)/he3
 
-.PHONY: all clean test lexer-test parser-test setup
+.PHONY: all clean test lexer-test parser-test ir-bytecode-test ast-to-ir-test statement-translation-test method-translation-test error-recovery-test setup
 
 # Default target
 all: setup $(HE3_COMPILER)
@@ -67,6 +84,22 @@ $(BUILDDIR)/emitter.o: $(EMITTER_SOURCES)
 
 # Build common utilities
 $(BUILDDIR)/common.o: $(COMMON_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Build IR
+$(BUILDDIR)/ir.o: $(IR_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Build bytecode
+$(BUILDDIR)/bytecode.o: $(BYTECODE_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Build IR to bytecode translator
+$(BUILDDIR)/ir_to_bytecode.o: $(IR_TO_BYTECODE_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Build AST to IR translator
+$(BUILDDIR)/ast_to_ir.o: $(AST_TO_IR_SOURCES)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Build lexer test
@@ -101,12 +134,38 @@ $(BUILDDIR)/ast.o: $(AST_SOURCES)
 $(PARSER_REGRESSION_TEST): $(TESTDIR)/parser_regression_test.c $(PARSER_OBJECTS) $(LEXER_OBJECTS)
 	$(CC) $(CFLAGS) $(INCLUDES) $< $(PARSER_OBJECTS) $(LEXER_OBJECTS) -o $@
 
+# Build IR and bytecode test
+$(IR_BYTECODE_TEST): $(TESTDIR)/ir_bytecode_test.c $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS)
+	$(CC) $(CFLAGS) $(INCLUDES) $< $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) -o $@
+
+# Build AST to IR test
+$(AST_TO_IR_TEST): $(TESTDIR)/ast_to_ir_test.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS)
+	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) -o $@
+
+# Build statement translation test
+$(STATEMENT_TRANSLATION_TEST): $(TESTDIR)/statement_translation_test.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS)
+	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) -o $@
+
+# Build method translation test
+$(METHOD_TRANSLATION_TEST): $(TESTDIR)/method_translation_test.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS)
+	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) -o $@
+
+# Build error recovery test
+$(ERROR_RECOVERY_TEST): $(TESTDIR)/error_recovery_test.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS)
+	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) -o $@
+
 # Build main compiler
 $(HE3_COMPILER): src/compiler/main.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
 
+# Clean target
+clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf $(BUILDDIR)
+	@echo "Clean complete"
+
 # Test targets
-test: lexer-test lexer-regression-test parser-comprehensive-test
+test: lexer-test lexer-regression-test parser-comprehensive-test ir-bytecode-test ast-to-ir-test statement-translation-test method-translation-test error-recovery-test
 
 lexer-test: $(LEXER_TEST)
 	@echo "Running lexer tests..."
@@ -128,6 +187,26 @@ parser-regression-test: $(PARSER_REGRESSION_TEST)
 	@echo "Running parser regression tests..."
 	@$(PARSER_REGRESSION_TEST)
 
+ir-bytecode-test: $(IR_BYTECODE_TEST)
+	@echo "Running IR and bytecode tests..."
+	@$(IR_BYTECODE_TEST)
+
+ast-to-ir-test: $(AST_TO_IR_TEST)
+	@echo "Running AST to IR tests..."
+	@$(AST_TO_IR_TEST)
+
+statement-translation-test: $(STATEMENT_TRANSLATION_TEST)
+	@echo "Running statement translation tests..."
+	@$(STATEMENT_TRANSLATION_TEST)
+
+method-translation-test: $(METHOD_TRANSLATION_TEST)
+	@echo "Running method translation tests..."
+	@$(METHOD_TRANSLATION_TEST)
+
+error-recovery-test: $(ERROR_RECOVERY_TEST)
+	@echo "Running error recovery tests..."
+	@$(ERROR_RECOVERY_TEST)
+
 # Test targets
 test: test-examples
 	@echo "Running all tests..."
@@ -140,9 +219,6 @@ test-examples:
 	done
 	@echo "All examples passed!"
 
-# Clean build artifacts
-clean:
-	rm -rf $(BUILDDIR)
 
 # Development targets
 dev: clean all test

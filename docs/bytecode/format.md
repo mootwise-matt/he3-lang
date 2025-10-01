@@ -4,6 +4,14 @@
 
 **Note**: The bytecode format and virtual machine are currently in the design phase. The compiler generates AST but does not yet emit bytecode. This document describes the planned bytecode format.
 
+## Related Documentation
+
+- **[.helium Module Format](helium-module-format.md)** - Complete module file format specification
+- **[Object Model](../vm/object-model.md)** - Runtime object representation and memory management
+- **[Memory Management](../vm/memory-management.md)** - Garbage collection and memory safety
+- **[Instruction Set](instruction-set.md)** - Complete bytecode instruction set reference
+- **[Opcode Reference](opcodes.md)** - Quick opcode reference
+
 (Adapted from He3 bytecode-specification.md)
 
 ## Header

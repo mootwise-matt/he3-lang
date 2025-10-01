@@ -38,6 +38,10 @@ Token parser_consume(Parser* parser, TokenKind kind, const char* message) {
     }
     
     parser_error_at_current(parser, message);
+    
+    // Try to recover by synchronizing
+    parser_synchronize(parser);
+    
     return parser->current; // Return current token on error
 }
 
@@ -72,7 +76,19 @@ void parser_error_at_current(Parser* parser, const char* message) {
     parser->panic_mode = true;
     parser->had_error = true;
     
-    fprintf(stderr, "Parse error at line %d: %s\n", parser->current.line, message);
+    // Get token context
+    const char* token_text = "";
+    if (parser->current.start && parser->current.len > 0) {
+        token_text = parser->current.start;
+    }
+    
+    fprintf(stderr, "Parse error at line %d, column %d: %s\n", 
+            parser->current.line, parser->current.col, message);
+    
+    if (parser->current.kind != TK_EOF) {
+        fprintf(stderr, "  Found: '%.*s' (token type %d)\n", 
+                (int)parser->current.len, token_text, parser->current.kind);
+    }
 }
 
 void parser_error_at_previous(Parser* parser, const char* message) {
@@ -80,24 +96,44 @@ void parser_error_at_previous(Parser* parser, const char* message) {
     parser->panic_mode = true;
     parser->had_error = true;
     
-    fprintf(stderr, "Parse error at line %d: %s\n", parser->previous.line, message);
+    // Get token context
+    const char* token_text = "";
+    if (parser->previous.start && parser->previous.len > 0) {
+        token_text = parser->previous.start;
+    }
+    
+    fprintf(stderr, "Parse error at line %d, column %d: %s\n", 
+            parser->previous.line, parser->previous.col, message);
+    
+    fprintf(stderr, "  After: '%.*s' (token type %d)\n", 
+            (int)parser->previous.len, token_text, parser->previous.kind);
 }
 
 void parser_synchronize(Parser* parser) {
     parser->panic_mode = false;
     
     while (!parser_is_at_end(parser)) {
-        if (parser->previous.kind == TK_SEMICOLON) return;
+        // If we just consumed a semicolon, we're at a statement boundary
+        if (parser->previous.kind == TK_SEMICOLON) {
+            return;
+        }
         
+        // Look for statement-starting keywords to synchronize at
         switch (parser->current.kind) {
             case TK_CLASS:
+            case TK_RECORD:
+            case TK_ENUM:
+            case TK_INTERFACE:
             case TK_FUNCTION:
+            case TK_PROCEDURE:
             case TK_VAR:
             case TK_LET:
             case TK_IF:
             case TK_WHILE:
             case TK_FOR:
             case TK_RETURN:
+            case TK_DOMAIN:
+            case TK_IMPORT:
                 return;
             default:
                 break;
@@ -253,8 +289,9 @@ Ast* parse_compilation_unit(Parser* parser) {
                 ast_add_child(compunit, interface);
             }
         } else {
-            // Skip unexpected tokens
-            parser_advance(parser);
+            // Unexpected token - report error and synchronize
+            parser_error_at_current(parser, "Expected declaration (domain, import, class, record, enum, or interface)");
+            parser_synchronize(parser);
         }
     }
     
@@ -443,8 +480,24 @@ Ast* parse_statement(Parser* parser) {
         return parse_for_statement(parser);
     } else if (parser_match(parser, TK_RETURN)) {
         return parse_return_statement(parser);
+    } else if (parser_match(parser, TK_MATCH)) {
+        return parse_match_statement(parser);
     } else {
-        return parse_expression_statement(parser);
+        // Try to parse as expression statement
+        Ast* expr = parse_expression(parser);
+        if (expr) {
+            Ast* stmt = ast_create_node(AST_EXPR_STMT);
+            if (stmt) {
+                ast_add_child(stmt, expr);
+            }
+            parser_consume(parser, TK_SEMICOLON, "Expected ';' after expression");
+            return stmt;
+        } else {
+            // If expression parsing failed, report error and synchronize
+            parser_error_at_current(parser, "Expected statement");
+            parser_synchronize(parser);
+            return NULL;
+        }
     }
 }
 
