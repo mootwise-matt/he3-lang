@@ -21,6 +21,14 @@ BYTECODE_SOURCES = $(SRCDIR)/vm/bytecode/bytecode.c
 IR_TO_BYTECODE_SOURCES = $(SRCDIR)/compiler/emitter/ir_to_bytecode.c
 AST_TO_IR_SOURCES = $(SRCDIR)/compiler/emitter/ast_to_ir.c
 
+# VM source files
+VM_SOURCES = $(SRCDIR)/vm/vm.c
+VM_LOADER_SOURCES = $(SRCDIR)/vm/loader/bytecode_loader.c
+VM_EXECUTION_SOURCES = $(SRCDIR)/vm/execution/stack.c $(SRCDIR)/vm/execution/interpreter.c
+VM_MEMORY_SOURCES = $(SRCDIR)/vm/memory/heap.c
+VM_OBJECT_SOURCES = $(SRCDIR)/vm/objects/object.c
+VM_MAIN_SOURCES = $(SRCDIR)/vm/main.c
+
 # Test source files
 TEST_SOURCES = $(TESTDIR)/lexer_test.c $(TESTDIR)/parser_test.c
 
@@ -38,6 +46,13 @@ BYTECODE_OBJECTS = $(BUILDDIR)/bytecode.o
 IR_TO_BYTECODE_OBJECTS = $(BUILDDIR)/ir_to_bytecode.o
 AST_TO_IR_OBJECTS = $(BUILDDIR)/ast_to_ir.o
 
+# VM object files
+VM_OBJECTS = $(BUILDDIR)/vm.o
+VM_LOADER_OBJECTS = $(BUILDDIR)/bytecode_loader.o
+VM_EXECUTION_OBJECTS = $(BUILDDIR)/stack.o $(BUILDDIR)/interpreter.o
+VM_MEMORY_OBJECTS = $(BUILDDIR)/heap.o
+VM_OBJECT_OBJECTS = $(BUILDDIR)/object.o
+
 # Test executables
 LEXER_TEST = $(BUILDDIR)/lexer_test
 LEXER_REGRESSION_TEST = $(BUILDDIR)/lexer_regression_test
@@ -49,14 +64,17 @@ AST_TO_IR_TEST = $(BUILDDIR)/ast_to_ir_test
 STATEMENT_TRANSLATION_TEST = $(BUILDDIR)/statement_translation_test
 METHOD_TRANSLATION_TEST = $(BUILDDIR)/method_translation_test
 ERROR_RECOVERY_TEST = $(BUILDDIR)/error_recovery_test
+MEMORY_TEST = $(BUILDDIR)/memory_test
+OBJECT_TEST = $(BUILDDIR)/object_test
 
-# Main compiler executable
+# Main executables
 HE3_COMPILER = $(BUILDDIR)/he3
+HE3VM = $(BUILDDIR)/he3vm
 
-.PHONY: all clean test lexer-test parser-test ir-bytecode-test ast-to-ir-test statement-translation-test method-translation-test error-recovery-test setup
+.PHONY: all clean test lexer-test parser-test ir-bytecode-test ast-to-ir-test statement-translation-test method-translation-test error-recovery-test memory-test object-test setup
 
 # Default target
-all: setup $(HE3_COMPILER)
+all: setup $(HE3_COMPILER) $(HE3VM)
 
 # Setup build directory
 setup:
@@ -207,6 +225,45 @@ error-recovery-test: $(ERROR_RECOVERY_TEST)
 	@echo "Running error recovery tests..."
 	@$(ERROR_RECOVERY_TEST)
 
+memory-test: $(MEMORY_TEST)
+	@echo "Running memory management tests..."
+	@$(MEMORY_TEST)
+
+object-test: $(OBJECT_TEST)
+	@echo "Running object system tests..."
+	@$(OBJECT_TEST)
+
+# VM build rules
+$(BUILDDIR)/vm.o: $(VM_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/bytecode_loader.o: $(VM_LOADER_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/stack.o: $(SRCDIR)/vm/execution/stack.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/interpreter.o: $(SRCDIR)/vm/execution/interpreter.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/heap.o: $(VM_MEMORY_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/object.o: $(VM_OBJECT_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Memory test executable
+$(MEMORY_TEST): $(SRCDIR)/vm/memory/memory_test.c $(VM_MEMORY_OBJECTS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+
+# Object test executable
+$(OBJECT_TEST): tmp/object_test.c $(VM_OBJECT_OBJECTS) $(VM_MEMORY_OBJECTS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+
+# VM executable
+$(HE3VM): $(VM_MAIN_SOURCES) $(VM_OBJECTS) $(VM_LOADER_OBJECTS) $(VM_EXECUTION_OBJECTS) $(VM_MEMORY_OBJECTS) $(VM_OBJECT_OBJECTS) $(BYTECODE_OBJECTS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+
 # Test targets
 test: test-examples
 	@echo "Running all tests..."
@@ -224,10 +281,12 @@ test-examples:
 dev: clean all test
 	@echo "Development build complete!"
 
-# Install compiler (copy to root)
-install: $(HE3_COMPILER)
+# Install executables (copy to root)
+install: $(HE3_COMPILER) $(HE3VM)
 	cp $(HE3_COMPILER) ./he3
+	cp $(HE3VM) ./he3vm
 	@echo "Compiler installed to ./he3"
+	@echo "VM installed to ./he3vm"
 
 # Help target
 help:

@@ -265,3 +265,21 @@ size_t bytecode_writer_get_aligned_size(BytecodeWriter* writer, size_t alignment
 void bytecode_writer_print_hex(BytecodeWriter* writer);
 void bytecode_writer_print_disassembly(BytecodeWriter* writer);
 const char* opcode_to_string(OpCode opcode);
+
+// Bytecode instruction structure (for compatibility with include/bytecode.h)
+typedef struct {
+    uint8_t opcode;
+    uint8_t operand_count;
+    union {
+        int64_t i64_operand;
+        double f64_operand;
+        uint32_t u32_operand;
+        uint16_t u16_operand;
+        uint8_t u8_operand;
+    } operands[4]; // Maximum 4 operands per instruction
+} BytecodeInstruction;
+
+// Compatibility functions
+const char* bytecode_get_opcode_name(uint8_t opcode);
+uint8_t bytecode_get_operand_count(uint8_t opcode);
+void bytecode_format_instruction(const BytecodeInstruction* instr, char* buffer, size_t buffer_size);

@@ -1,11 +1,14 @@
 # VM Design (Merged)
 
 ## Model
-- Stack-based interpreter.
-- Registers: PC, SP, FP.
+- **Stack-based interpreter** with PC, SP, FP registers.
 - Each frame stores locals + operand stack.
-- Security manager for module authentication.
-- Event manager for cross-thread communication.
+- **Memory management** with generational garbage collection (✅ **IMPLEMENTED**).
+- **Object system** with classes, methods, and fields (✅ **IMPLEMENTED**).
+- **Bytecode loader** for .bx executable files (✅ **IMPLEMENTED**).
+- **Cross-platform execution** on ARM, Apple Silicon, Intel (✅ **IMPLEMENTED**).
+- Security manager for module authentication (🔄 **PLANNED**).
+- Event manager for cross-thread communication (🔄 **PLANNED**).
 
 ## Linking & Dynamic Linking
 - `.ohe3` files carry imports.

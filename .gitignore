@@ -6,6 +6,12 @@ build/
 *.dll
 *.so
 *.dylib
+he3
+he3vm
+
+# Debug symbols
+*.dSYM/
+debug_test.dSYM/
 
 # Temporary files
 tmp/

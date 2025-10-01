@@ -71,9 +71,17 @@ A modern, object-oriented programming language with Pascal roots and Java/C#-sty
   - Graceful error handling
 
 ### 🔄 **In Progress**
-- **Virtual Machine** (`src/vm/`) - Basic structure complete, execution engine planned
 - **Type Resolution** - Planned
 - **Semantic Analysis** - Planned
+- **VM Integration** - Connect compiler pipeline to VM execution
+
+### ✅ **Virtual Machine Implementation**
+- **Core VM Engine** (`src/vm/`) - Complete
+  - Bytecode loader and interpreter
+  - Stack-based execution model
+  - Memory management with generational GC
+  - Object system with classes, methods, and fields
+  - Cross-platform execution support
 
 ### 📋 **Planned Features**
 - **Pattern Matching**: `match` statements with `when` clauses
@@ -114,8 +122,12 @@ he3/
 │   │   ├── emitter/       # AST to IR, IR to Bytecode ✅
 │   │   ├── tests/         # Comprehensive test suite ✅
 │   │   └── main.c         # Compiler entry point ✅
-│   ├── vm/                # Virtual Machine
-│   │   └── bytecode/      # Bytecode writer ✅
+│   ├── vm/                # Virtual Machine ✅
+│   │   ├── bytecode/      # Bytecode writer ✅
+│   │   ├── execution/     # Interpreter and stack ✅
+│   │   ├── memory/        # Heap and GC ✅
+│   │   ├── objects/       # Object system ✅
+│   │   └── loader/        # Bytecode loader ✅
 │   └── include/           # Shared headers ✅
 ├── examples/              # Example programs ✅
 │   ├── standalone/        # Single-file examples
@@ -126,23 +138,30 @@ he3/
 
 ## 🚀 **Quick Start**
 
-### **Build the Compiler**
+### **Build the Compiler and VM**
 ```bash
 git clone https://github.com/your-username/he3-lang.git
 cd he3-lang
 make
 ```
 
-### **Compile a Program**
+### **Compile and Run a Program**
 ```bash
 # Compile to bytecode
 ./he3 examples/standalone/01_hello.he3
+
+# Run the bytecode
+./he3vm 01_hello.bx
 
 # Show tokens
 ./he3 --tokens examples/standalone/01_hello.he3
 
 # Show AST
 ./he3 --ast examples/standalone/01_hello.he3
+
+# VM debugging options
+./he3vm -o -c program.bx  # Show object system and classes
+./he3vm -m -r program.bx  # Show memory statistics and regions
 
 # Run comprehensive tests
 make test

@@ -220,89 +220,7 @@ bool bytecode_writer_resolve_relocations(BytecodeWriter* writer) {
     return true;
 }
 
-// String table functions
-StringTable* string_table_create(void) {
-    StringTable* table = malloc(sizeof(StringTable));
-    if (!table) return NULL;
-    
-    table->count = 0;
-    table->total_size = 0;
-    table->entries = NULL;
-    table->data = NULL;
-    
-    return table;
-}
-
-void string_table_destroy(StringTable* table) {
-    if (!table) return;
-    
-    if (table->entries) free(table->entries);
-    if (table->data) free(table->data);
-    
-    free(table);
-}
-
-uint32_t string_table_add_string(StringTable* table, const char* str) {
-    if (!table || !str) return 0;
-    return string_table_add_string_with_length(table, str, strlen(str));
-}
-
-uint32_t string_table_add_string_with_length(StringTable* table, const char* str, size_t length) {
-    if (!table || !str) return 0;
-    
-    // Check if string already exists
-    for (uint32_t i = 0; i < table->count; i++) {
-        if (table->entries[i].length == length &&
-            memcmp(table->data + table->entries[i].offset, str, length) == 0) {
-            return i + 1; // Return 1-based ID
-        }
-    }
-    
-    // Add new string
-    uint32_t new_offset = table->total_size;
-    size_t new_total_size = table->total_size + length + 1; // +1 for null terminator
-    
-    // Reallocate data buffer
-    char* new_data = realloc(table->data, new_total_size);
-    if (!new_data) return 0;
-    
-    // Reallocate entries array
-    StringEntry* new_entries = realloc(table->entries, sizeof(StringEntry) * (table->count + 1));
-    if (!new_entries) {
-        free(new_data);
-        return 0;
-    }
-    
-    table->data = new_data;
-    table->entries = new_entries;
-    
-    // Copy string data
-    memcpy(table->data + new_offset, str, length);
-    table->data[new_offset + length] = '\0';
-    
-    // Add entry
-    table->entries[table->count].offset = new_offset;
-    table->entries[table->count].length = length;
-    table->entries[table->count].hash = 0; // TODO: Calculate hash
-    
-    table->total_size = new_total_size;
-    return ++table->count; // Return 1-based ID
-}
-
-const char* string_table_get_string(StringTable* table, uint32_t id) {
-    if (!table || id == 0 || id > table->count) return NULL;
-    return table->data + table->entries[id - 1].offset;
-}
-
-uint32_t string_table_get_count(StringTable* table) {
-    if (!table) return 0;
-    return table->count;
-}
-
-uint32_t string_table_get_total_size(StringTable* table) {
-    if (!table) return 0;
-    return table->total_size;
-}
+// String table functions are implemented in bytecode_loader.c
 
 // Relocation table functions
 RelocationTable* relocation_table_create(void) {
@@ -553,5 +471,169 @@ const char* opcode_to_string(OpCode opcode) {
         case OP_CROWD_VERIFY: return "CROWD_VERIFY";
         case OP_HALT: return "HALT";
         default: return "UNKNOWN";
+    }
+}
+
+// Function to get operand count for opcode
+uint8_t bytecode_get_operand_count(uint8_t opcode) {
+    switch (opcode) {
+        // Stack operations
+        case OP_PUSH_I64:
+        case OP_PUSH_F64:
+        case OP_PUSH_BOOL:
+        case OP_PUSH_STR:
+            return 1;
+        case OP_PUSH_NULL:
+        case OP_POP:
+        case OP_DUP:
+        case OP_SWAP:
+            return 0;
+            
+        // Local variable operations
+        case OP_LOAD_LOCAL:
+        case OP_STORE_LOCAL:
+        case OP_LOAD_LOCAL_0:
+        case OP_LOAD_LOCAL_1:
+        case OP_LOAD_LOCAL_2:
+        case OP_LOAD_LOCAL_3:
+        case OP_STORE_LOCAL_0:
+        case OP_STORE_LOCAL_1:
+        case OP_STORE_LOCAL_2:
+        case OP_STORE_LOCAL_3:
+            return 0;
+            
+        // Argument operations
+        case OP_LOAD_ARG:
+        case OP_LOAD_ARG_0:
+        case OP_LOAD_ARG_1:
+        case OP_LOAD_ARG_2:
+        case OP_LOAD_ARG_3:
+            return 0;
+            
+        // Field operations
+        case OP_LOAD_FIELD:
+        case OP_STORE_FIELD:
+        case OP_LOAD_STATIC:
+        case OP_STORE_STATIC:
+            return 1;
+            
+        // Array operations
+        case OP_LOAD_ARRAY:
+        case OP_STORE_ARRAY:
+        case OP_ARRAY_LENGTH:
+        case OP_NEW_ARRAY:
+            return 0;
+            
+        // Arithmetic operations
+        case OP_ADD:
+        case OP_SUB:
+        case OP_MUL:
+        case OP_DIV:
+        case OP_MOD:
+        case OP_NEG:
+            return 0;
+            
+        // Comparison operations
+        case OP_EQ:
+        case OP_NE:
+        case OP_LT:
+        case OP_LE:
+        case OP_GT:
+        case OP_GE:
+            return 0;
+            
+        // Logical operations
+        case OP_AND:
+        case OP_OR:
+        case OP_NOT:
+            return 0;
+            
+        // Control flow operations
+        case OP_JMP:
+        case OP_JMPF:
+        case OP_JMPT:
+        case OP_JMP_EQ:
+        case OP_JMP_NE:
+        case OP_JMP_LT:
+        case OP_JMP_LE:
+        case OP_JMP_GT:
+        case OP_JMP_GE:
+            return 1;
+        case OP_CALL:
+        case OP_CALLV:
+        case OP_CALLI:
+            return 1;
+        case OP_RETURN:
+        case OP_RETURN_VAL:
+            return 0;
+            
+        // Object operations
+        case OP_NEW:
+        case OP_BOX:
+        case OP_UNBOX:
+            return 1;
+            
+        // Type operations
+        case OP_CAST:
+        case OP_INSTANCEOF:
+        case OP_IS_NULL:
+        case OP_IS_NOT_NULL:
+        case OP_GET_TYPE:
+        case OP_GET_TYPE_NAME:
+            return 1;
+            
+        // Async operations
+        case OP_SPAWN:
+        case OP_AWAIT:
+        case OP_YIELD:
+            return 0;
+            
+        // Security operations
+        case OP_SECURITY_CHECK:
+        case OP_DOMAIN_ENTER:
+        case OP_DOMAIN_EXIT:
+        case OP_CROWD_VERIFY:
+            return 0;
+            
+        // System operations
+        case OP_HALT:
+            return 0;
+            
+        default:
+            return 0;
+    }
+}
+
+// Function to get opcode name for debugging
+const char* bytecode_get_opcode_name(uint8_t opcode) {
+    return opcode_to_string((OpCode)opcode);
+}
+
+// Function to format instruction for debugging
+void bytecode_format_instruction(const BytecodeInstruction* instr, char* buffer, size_t buffer_size) {
+    if (!instr || !buffer || buffer_size == 0) {
+        if (buffer && buffer_size > 0) {
+            buffer[0] = '\0';
+        }
+        return;
+    }
+    
+    const char* opcode_name = bytecode_get_opcode_name(instr->opcode);
+    int written = snprintf(buffer, buffer_size, "%s", opcode_name);
+    
+    if (written < 0 || (size_t)written >= buffer_size) {
+        return;
+    }
+    
+    size_t remaining = buffer_size - written;
+    char* current = buffer + written;
+    
+    for (uint8_t i = 0; i < instr->operand_count && remaining > 0; i++) {
+        int result = snprintf(current, remaining, " %lld", (long long)instr->operands[i].i64_operand);
+        if (result < 0 || (size_t)result >= remaining) {
+            break;
+        }
+        current += result;
+        remaining -= result;
     }
 }

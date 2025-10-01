@@ -38,3 +38,8 @@ to native code via a transpiler or LLVM.
 - [Architecture](compiler/architecture.md)
 - [Module Contracts](compiler/module-contracts.md)
 - [Testing](compiler/testing.md)
+
+## Development Guidelines
+- **Temporary Code**: All temporary test files, debug code, and experimental implementations must be placed in the `/tmp/` folder, which is excluded from git
+- **Clean Codebase**: Keep the main codebase clean and production-ready
+- **Documentation**: Update documentation for all new features and changes
