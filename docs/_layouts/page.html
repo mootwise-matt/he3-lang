@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+    <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+    
+    <style>
+        .github-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #24292e;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        .github-link:hover {
+            background: #0366d6;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .breadcrumb {
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        
+        .breadcrumb a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            margin: 0 0 10px 0;
+            color: #24292e;
+        }
+        
+        .page-content {
+            line-height: 1.6;
+        }
+        
+        .page-content h1, .page-content h2, .page-content h3 {
+            color: #0366d6;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .page-content code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        .page-content pre {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid #e1e4e8;
+        }
+        
+        .page-content pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        .footer {
+            margin-top: 60px;
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid #e1e4e8;
+            color: #586069;
+        }
+    </style>
+</head>
+<body>
+    <a href="https://github.com/mootwise-matt/he3-lang" class="github-link" target="_blank">
+        📁 View on GitHub
+    </a>
+    
+    <div class="content">
+        <nav class="breadcrumb">
+            <a href="/">Home</a> 
+            {% if page.collection %}
+                > <a href="/{{ page.collection }}/">{{ page.collection | capitalize }}</a>
+            {% endif %}
+            {% if page.title %}
+                > {{ page.title }}
+            {% endif %}
+        </nav>
+        
+        <div class="page-header">
+            <h1>{{ page.title | default: site.title }}</h1>
+        </div>
+        
+        <div class="page-content">
+            {{ content }}
+        </div>
+        
+        <div class="footer">
+            <p>
+                <strong>He³ (Helium-3) Programming Language</strong><br>
+                <a href="https://github.com/mootwise-matt/he3-lang" target="_blank">View Source Code</a> • 
+                <a href="https://github.com/mootwise-matt/he3-lang/issues" target="_blank">Report Issues</a> • 
+                <a href="https://github.com/mootwise-matt/he3-lang/discussions" target="_blank">Join Discussions</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,3 +1,9 @@
+---
+layout: default
+title: He³ (Helium-3) Programming Language
+description: A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax
+---
+
 # He³ (Helium-3) Programming Language
 
 <div align="center">
@@ -9,7 +15,7 @@
 
 **A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax**
 
-[Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [Contributing](#-contributing)
+[![View on GitHub](https://img.shields.io/badge/View%20on-GitHub-black?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [Contributing](#-contributing)
 
 </div>
 
@@ -112,7 +118,7 @@ Interpreter → Execution
 
 ### **Installation**
 ```bash
-git clone https://github.com/your-username/he3-lang.git
+git clone https://github.com/mootwise-matt/he3-lang.git
 cd he3-lang
 make
 ```
@@ -163,6 +169,11 @@ class Program {
 
 ### **Virtual Machine Documentation**
 - [**VM Design**](vm/design.md) - Virtual machine architecture
+
+### **Source Code**
+- [**GitHub Repository**](https://github.com/mootwise-matt/he3-lang) - Complete source code
+- [**Browse Source**](https://github.com/mootwise-matt/he3-lang/tree/main/src) - Source code structure
+- [**Issues & Discussions**](https://github.com/mootwise-matt/he3-lang/issues) - Bug reports and feature requests
 - [**Memory Management**](vm/memory-management.md) - Heap, GC, and memory safety
 - [**Object Model**](vm/object-model.md) - Object system and method dispatch
 - [**Bytecode Format**](bytecode/format.md) - Instruction set and file format
@@ -295,8 +306,8 @@ This project is licensed under the **Apache License 2.0** - see the [LICENSE](..
 
 **He³** - *Where modern language design meets cross-platform execution*
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/your-username/he3-lang)
-[![Issues](https://img.shields.io/badge/Issues-Report%20Bug-red?style=for-the-badge&logo=github)](https://github.com/your-username/he3-lang/issues)
-[![Discussions](https://img.shields.io/badge/Discussions-Community-blue?style=for-the-badge&logo=github)](https://github.com/your-username/he3-lang/discussions)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang)
+[![Issues](https://img.shields.io/badge/Issues-Report%20Bug-red?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang/issues)
+[![Discussions](https://img.shields.io/badge/Discussions-Community-blue?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang/discussions)
 
 </div>

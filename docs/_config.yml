@@ -1,0 +1,100 @@
+# GitHub Pages Configuration for He³ Documentation
+
+title: He³ (Helium-3) Programming Language
+description: A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax
+author: He³ Development Team
+email: mootwise-matt@github.com
+
+# GitHub repository
+github:
+  username: mootwise-matt
+  repository: he3-lang
+
+# Site settings
+baseurl: ""
+url: "https://mootwise-matt.github.io"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .sass-cache
+  - .jekyll-cache
+  - .jekyll-metadata
+
+# Include files
+include:
+  - _pages
+
+# Collections
+collections:
+  language:
+    output: true
+    permalink: /:collection/:name/
+  compiler:
+    output: true
+    permalink: /:collection/:name/
+  vm:
+    output: true
+    permalink: /:collection/:name/
+  bytecode:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "language"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "compiler"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "vm"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "bytecode"
+    values:
+      layout: "page"
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Language
+    url: /language/
+  - title: Compiler
+    url: /compiler/
+  - title: VM
+    url: /vm/
+  - title: Bytecode
+    url: /bytecode/
+  - title: GitHub
+    url: https://github.com/mootwise-matt/he3-lang
+    external: true

@@ -9,6 +9,8 @@ domain/crowd-based modular security.
 He³ compiles to portable **bytecode (`.bx`)** executed by the **He³ VM**, and can be exported
 to native code via a transpiler or LLVM.
 
+**[📁 View Source Code on GitHub](https://github.com/mootwise-matt/he3-lang)**
+
 ---
 
 ## 📖 Sections
