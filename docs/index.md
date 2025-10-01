@@ -15,7 +15,12 @@ description: A modern, object-oriented programming language with Pascal roots an
 
 **A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax**
 
-[![View on GitHub](https://img.shields.io/badge/View%20on-GitHub-black?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [Contributing](#-contributing)
+### Navigation
+[![View on GitHub](https://img.shields.io/badge/View%20on-GitHub-black?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang) • 
+[Quick Start](#-quick-start) • 
+[Documentation](#-documentation) • 
+[Examples](#-examples) • 
+[Contributing](#-contributing)
 
 </div>
 
@@ -193,14 +198,14 @@ class Program {
 ## 🧪 Examples
 
 ### **Standalone Examples**
-- [**Hello World**](../examples/standalone/01_hello.he3) - Basic program structure
-- [**Calculator**](../examples/standalone/02_calculator.he3) - Object-oriented programming
-- [**Security Events**](../examples/standalone/03_security_events.he3) - Module security
+- [**Hello World**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/01_hello.he3) - Basic program structure
+- [**Calculator**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/02_calculator.he3) - Object-oriented programming
+- [**Security Events**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/03_security_events.he3) - Module security
 
 ### **Project Examples**
-- [**Hello Project**](../examples/projects/01_hello_project/) - Multi-file project structure
-  - `main.he3` - Main program entry point
-  - `utils.he3` - Utility functions
+- [**Hello Project**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/projects/01_hello_project) - Multi-file project structure
+  - [main.he3](https://github.com/mootwise-matt/he3-lang/blob/main/examples/projects/01_hello_project/src/main.he3) - Main program entry point
+  - [utils.he3](https://github.com/mootwise-matt/he3-lang/blob/main/examples/projects/01_hello_project/src/utils.he3) - Utility functions
   - `he3project.json` - Project configuration
 
 ## 🛠️ Development Status
@@ -303,7 +308,7 @@ We welcome contributions! Here's how to get started:
 
 ## 📄 License
 
-This project is licensed under the **Apache License 2.0** - see the [LICENSE](../LICENSE) file for details.
+This project is licensed under the **Apache License 2.0** - see the [LICENSE](https://github.com/mootwise-matt/he3-lang/blob/main/LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
