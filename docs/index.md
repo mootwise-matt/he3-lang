@@ -273,7 +273,11 @@ make error-recovery-test
 
 We welcome contributions! Here's how to get started:
 
-1. **Fork the repository**
+**[📁 View Source Code on GitHub](https://github.com/mootwise-matt/he3-lang)** • **[🐛 Report Issues](https://github.com/mootwise-matt/he3-lang/issues)** • **[💬 Join Discussions](https://github.com/mootwise-matt/he3-lang/discussions)**
+
+### **Getting Started**
+
+1. **Fork the repository** from [GitHub](https://github.com/mootwise-matt/he3-lang)
 2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
 3. **Make your changes** following our coding standards
 4. **Add tests** for new functionality
@@ -281,6 +285,14 @@ We welcome contributions! Here's how to get started:
 6. **Commit your changes** (`git commit -m 'Add amazing feature'`)
 7. **Push to the branch** (`git push origin feature/amazing-feature`)
 8. **Open a Pull Request**
+
+### **Browse Source Code**
+- **[📁 Complete Repository](https://github.com/mootwise-matt/he3-lang)** - Full source code
+- **[🔧 Compiler Source](https://github.com/mootwise-matt/he3-lang/tree/main/src/compiler)** - Lexer, parser, AST, IR, emitter
+- **[🖥️ VM Source](https://github.com/mootwise-matt/he3-lang/tree/main/src/vm)** - Virtual machine, memory management, object system
+- **[📚 Documentation](https://github.com/mootwise-matt/he3-lang/tree/main/docs)** - All documentation files
+- **[📝 Examples](https://github.com/mootwise-matt/he3-lang/tree/main/examples)** - Sample He³ programs
+- **[⚙️ Build System](https://github.com/mootwise-matt/he3-lang/blob/main/Makefile)** - Makefile and build configuration
 
 ### **Development Guidelines**
 - **Temporary Code**: All test files and debug code go in `/tmp/` (excluded from git)

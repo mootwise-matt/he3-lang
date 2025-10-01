@@ -11,6 +11,13 @@ to native code via a transpiler or LLVM.
 
 **[📁 View Source Code on GitHub](https://github.com/mootwise-matt/he3-lang)**
 
+### **Quick Links**
+- **[🔧 Compiler Source](https://github.com/mootwise-matt/he3-lang/tree/main/src/compiler)** - Lexer, parser, AST, IR, emitter
+- **[🖥️ VM Source](https://github.com/mootwise-matt/he3-lang/tree/main/src/vm)** - Virtual machine, memory management, object system
+- **[📝 Examples](https://github.com/mootwise-matt/he3-lang/tree/main/examples)** - Sample He³ programs
+- **[🐛 Report Issues](https://github.com/mootwise-matt/he3-lang/issues)** - Bug reports and feature requests
+- **[💬 Join Discussions](https://github.com/mootwise-matt/he3-lang/discussions)** - Community discussions
+
 ---
 
 ## 📖 Sections
