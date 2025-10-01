@@ -2,7 +2,7 @@
 
 ## 🚀 Implementation Status
 
-**Note**: The bytecode format and virtual machine are currently in the design phase. The compiler generates AST but does not yet emit bytecode. This document describes the planned bytecode format.
+**✅ IMPLEMENTED**: The shared bytecode format is now fully implemented and integrated with the VM. The compiler and VM use unified structures defined in `src/include/bytecode_format.h` and `src/include/opcodes.h`. This document describes the implemented bytecode format.
 
 ## Related Documentation
 

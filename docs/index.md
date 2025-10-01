@@ -210,6 +210,7 @@ class Program {
 - **Object System** - Classes, methods, fields, and inheritance
 - **Bytecode Loader** - .bx file loading and module management
 - **Cross-Platform** - ARM, Apple Silicon, Intel support
+- **Shared Bytecode Format** - Unified format between compiler and VM
 
 #### **Language Features**
 - **Domain System** - Secure module boundaries
@@ -220,8 +221,12 @@ class Program {
 - **Constructors** - Parameterized object construction
 
 ### 🔄 **In Progress**
+- **Bytecode Writer** - Update compiler to generate shared bytecode format
+- **Compiler-VM Pipeline** - Connect compiler output to VM execution
+- **End-to-End Testing** - Complete source-to-execution pipeline
+
+### 📋 **Next Phase**
 - **Type Resolution** - Semantic analysis and type checking
-- **VM Integration** - Connect compiler pipeline to VM execution
 - **Method Execution** - Complete method call handling
 - **Field Access** - Field value storage and retrieval
 

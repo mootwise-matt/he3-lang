@@ -1,5 +1,9 @@
 # Opcode Reference
 
+## 🚀 Implementation Status
+
+**✅ IMPLEMENTED**: The complete instruction set is now implemented with 100+ opcodes covering all He³ language features. All opcodes are defined in `src/include/opcodes.h` with comprehensive utilities in `src/vm/bytecode/opcode_utils.c`.
+
 ## Stack Operations
 - `PUSH_I64 <i64>` — push integer.
 - `PUSH_BOOL <u8>` — push boolean.

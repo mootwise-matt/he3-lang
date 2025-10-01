@@ -3,8 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Magic number for He³ bytecode files
-#define BYTECODE_MAGIC 0x42583031 // "BX01"
+// Magic number is now defined in bytecode_format.h
 
 // Bytecode loader functions
 BytecodeFile* bytecode_load_file(const char* filename) {
@@ -26,10 +25,6 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     
     // Initialize bytecode file
     memset(bytecode_file, 0, sizeof(BytecodeFile));
-    bytecode_file->filename = malloc(strlen(filename) + 1);
-    if (bytecode_file->filename) {
-        strcpy(bytecode_file->filename, filename);
-    }
     
     // Read header
     if (fread(&bytecode_file->header, sizeof(BytecodeHeader), 1, file) != 1) {
@@ -40,7 +35,7 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     }
     
     // Validate header
-    if (!bytecode_validate_header(&bytecode_file->header)) {
+    if (!validate_magic(bytecode_file->header.magic)) {
         fprintf(stderr, "Invalid bytecode header\n");
         bytecode_destroy_file(bytecode_file);
         fclose(file);
@@ -72,11 +67,11 @@ BytecodeFile* bytecode_load_file(const char* filename) {
             return NULL;
         }
         
-        bytecode_file->string_table->size = bytecode_file->header.string_table_size;
+        bytecode_file->string_table->total_size = bytecode_file->header.string_table_size;
     }
     
     // Read type table
-    if (bytecode_file->header.type_count > 0) {
+    if (bytecode_file->header.type_table_size > 0) {
         fseek(file, bytecode_file->header.type_table_offset, SEEK_SET);
         bytecode_file->type_table = type_table_create();
         if (!bytecode_file->type_table) {
@@ -85,15 +80,22 @@ BytecodeFile* bytecode_load_file(const char* filename) {
             return NULL;
         }
         
-        bytecode_file->type_table->count = bytecode_file->header.type_count;
-        bytecode_file->type_table->entries = malloc(sizeof(TypeEntry) * bytecode_file->header.type_count);
+        // Read type table header
+        if (fread(&bytecode_file->type_table->count, sizeof(uint32_t), 1, file) != 1) {
+            fprintf(stderr, "Failed to read type table header\n");
+            bytecode_destroy_file(bytecode_file);
+            fclose(file);
+            return NULL;
+        }
+        
+        bytecode_file->type_table->entries = malloc(sizeof(TypeEntry) * bytecode_file->type_table->count);
         if (!bytecode_file->type_table->entries) {
             bytecode_destroy_file(bytecode_file);
             fclose(file);
             return NULL;
         }
         
-        if (fread(bytecode_file->type_table->entries, sizeof(TypeEntry), bytecode_file->header.type_count, file) != bytecode_file->header.type_count) {
+        if (fread(bytecode_file->type_table->entries, sizeof(TypeEntry), bytecode_file->type_table->count, file) != bytecode_file->type_table->count) {
             fprintf(stderr, "Failed to read type table\n");
             bytecode_destroy_file(bytecode_file);
             fclose(file);
@@ -102,7 +104,7 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     }
     
     // Read method table
-    if (bytecode_file->header.method_count > 0) {
+    if (bytecode_file->header.method_table_size > 0) {
         fseek(file, bytecode_file->header.method_table_offset, SEEK_SET);
         bytecode_file->method_table = method_table_create();
         if (!bytecode_file->method_table) {
@@ -111,15 +113,22 @@ BytecodeFile* bytecode_load_file(const char* filename) {
             return NULL;
         }
         
-        bytecode_file->method_table->count = bytecode_file->header.method_count;
-        bytecode_file->method_table->entries = malloc(sizeof(MethodEntry) * bytecode_file->header.method_count);
+        // Read method table header
+        if (fread(&bytecode_file->method_table->count, sizeof(uint32_t), 1, file) != 1) {
+            fprintf(stderr, "Failed to read method table header\n");
+            bytecode_destroy_file(bytecode_file);
+            fclose(file);
+            return NULL;
+        }
+        
+        bytecode_file->method_table->entries = malloc(sizeof(MethodEntry) * bytecode_file->method_table->count);
         if (!bytecode_file->method_table->entries) {
             bytecode_destroy_file(bytecode_file);
             fclose(file);
             return NULL;
         }
         
-        if (fread(bytecode_file->method_table->entries, sizeof(MethodEntry), bytecode_file->header.method_count, file) != bytecode_file->header.method_count) {
+        if (fread(bytecode_file->method_table->entries, sizeof(MethodEntry), bytecode_file->method_table->count, file) != bytecode_file->method_table->count) {
             fprintf(stderr, "Failed to read method table\n");
             bytecode_destroy_file(bytecode_file);
             fclose(file);
@@ -170,9 +179,7 @@ void bytecode_destroy_file(BytecodeFile* file) {
         free(file->bytecode);
     }
     
-    if (file->filename) {
-        free(file->filename);
-    }
+    // filename field removed from shared format
     
     free(file);
 }
@@ -185,9 +192,9 @@ StringTable* string_table_create(void) {
     }
     
     table->data = NULL;
-    table->size = 0;
+    table->total_size = 0;
     table->entries = NULL;
-    table->entry_count = 0;
+    table->count = 0;
     
     return table;
 }
@@ -207,7 +214,7 @@ void string_table_destroy(StringTable* table) {
 }
 
 const char* string_table_get(StringTable* table, uint32_t index) {
-    if (!table || !table->data || index >= table->size) {
+    if (!table || !table->data || index >= table->count) {
         return NULL;
     }
     
@@ -311,13 +318,13 @@ bool bytecode_validate_header(const BytecodeHeader* header) {
         return false;
     }
     
-    if (header->magic != BYTECODE_MAGIC) {
-        fprintf(stderr, "Invalid magic number: 0x%08X\n", header->magic);
+    if (!validate_magic(header->magic)) {
+        fprintf(stderr, "Invalid magic number: %.4s\n", header->magic);
         return false;
     }
     
-    if (header->version != 1) {
-        fprintf(stderr, "Unsupported version: %u\n", header->version);
+    if (header->version_major != BYTECODE_VERSION_MAJOR) {
+        fprintf(stderr, "Unsupported version: %u.%u\n", header->version_major, header->version_minor);
         return false;
     }
     
@@ -325,7 +332,7 @@ bool bytecode_validate_header(const BytecodeHeader* header) {
 }
 
 const char* bytecode_get_domain_name(BytecodeFile* file) {
-    if (!file || !file->string_table || file->header.domain_name_offset >= file->string_table->size) {
+    if (!file || !file->string_table || file->header.domain_name_offset >= file->string_table->total_size) {
         return "unknown";
     }
     
@@ -338,12 +345,12 @@ void bytecode_print_info(BytecodeFile* file) {
         return;
     }
     
-    printf("Bytecode file: %s\n", file->filename ? file->filename : "unknown");
-    printf("  Magic: 0x%08X\n", file->header.magic);
-    printf("  Version: %u\n", file->header.version);
+    printf("Bytecode file: unknown\n");
+    printf("  Magic: %.4s\n", file->header.magic);
+    printf("  Version: %u.%u\n", file->header.version_major, file->header.version_minor);
     printf("  Domain: %s\n", bytecode_get_domain_name(file));
-    printf("  Types: %u\n", file->header.type_count);
-    printf("  Methods: %u\n", file->header.method_count);
+    printf("  Types: %u\n", file->type_table ? file->type_table->count : 0);
+    printf("  Methods: %u\n", file->method_table ? file->method_table->count : 0);
     printf("  String table size: %u\n", file->header.string_table_size);
     printf("  Bytecode size: %u\n", file->header.bytecode_size);
 }

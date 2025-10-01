@@ -72,8 +72,8 @@ int vm_load_bytecode(VM* vm, const char* filename) {
     
     printf("Loaded bytecode file: %s\n", filename);
     printf("Domain: %s\n", bytecode_get_domain_name(vm->bytecode));
-    printf("Methods: %u\n", vm->bytecode->header.method_count);
-    printf("Types: %u\n", vm->bytecode->header.type_count);
+    printf("Methods: %u\n", vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
+    printf("Types: %u\n", vm->bytecode->type_table ? vm->bytecode->type_table->count : 0);
     
     return 1;
 }

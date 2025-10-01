@@ -27,6 +27,8 @@ VM_LOADER_SOURCES = $(SRCDIR)/vm/loader/bytecode_loader.c
 VM_EXECUTION_SOURCES = $(SRCDIR)/vm/execution/stack.c $(SRCDIR)/vm/execution/interpreter.c
 VM_MEMORY_SOURCES = $(SRCDIR)/vm/memory/heap.c
 VM_OBJECT_SOURCES = $(SRCDIR)/vm/objects/object.c
+VM_BYTECODE_FILE_SOURCES = $(SRCDIR)/vm/bytecode/bytecode_file.c
+VM_OPCODE_UTILS_SOURCES = $(SRCDIR)/vm/bytecode/opcode_utils.c
 VM_MAIN_SOURCES = $(SRCDIR)/vm/main.c
 
 # Test source files
@@ -52,6 +54,8 @@ VM_LOADER_OBJECTS = $(BUILDDIR)/bytecode_loader.o
 VM_EXECUTION_OBJECTS = $(BUILDDIR)/stack.o $(BUILDDIR)/interpreter.o
 VM_MEMORY_OBJECTS = $(BUILDDIR)/heap.o
 VM_OBJECT_OBJECTS = $(BUILDDIR)/object.o
+VM_BYTECODE_FILE_OBJECTS = $(BUILDDIR)/bytecode_file.o
+VM_OPCODE_UTILS_OBJECTS = $(BUILDDIR)/opcode_utils.o
 
 # Test executables
 LEXER_TEST = $(BUILDDIR)/lexer_test
@@ -240,6 +244,12 @@ $(BUILDDIR)/vm.o: $(VM_SOURCES)
 $(BUILDDIR)/bytecode_loader.o: $(VM_LOADER_SOURCES)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
+$(BUILDDIR)/bytecode_file.o: $(VM_BYTECODE_FILE_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/opcode_utils.o: $(VM_OPCODE_UTILS_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
 $(BUILDDIR)/stack.o: $(SRCDIR)/vm/execution/stack.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
@@ -261,7 +271,7 @@ $(OBJECT_TEST): tmp/object_test.c $(VM_OBJECT_OBJECTS) $(VM_MEMORY_OBJECTS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
 
 # VM executable
-$(HE3VM): $(VM_MAIN_SOURCES) $(VM_OBJECTS) $(VM_LOADER_OBJECTS) $(VM_EXECUTION_OBJECTS) $(VM_MEMORY_OBJECTS) $(VM_OBJECT_OBJECTS) $(BYTECODE_OBJECTS)
+$(HE3VM): $(VM_MAIN_SOURCES) $(VM_OBJECTS) $(VM_LOADER_OBJECTS) $(VM_EXECUTION_OBJECTS) $(VM_MEMORY_OBJECTS) $(VM_OBJECT_OBJECTS) $(VM_BYTECODE_FILE_OBJECTS) $(VM_OPCODE_UTILS_OBJECTS) $(BYTECODE_OBJECTS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
 
 # Test targets

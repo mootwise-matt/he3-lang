@@ -7,6 +7,8 @@
 - **Object system** with classes, methods, and fields (✅ **IMPLEMENTED**).
 - **Bytecode loader** for .bx executable files (✅ **IMPLEMENTED**).
 - **Cross-platform execution** on ARM, Apple Silicon, Intel (✅ **IMPLEMENTED**).
+- **Shared bytecode format** with unified compiler-VM structures (✅ **IMPLEMENTED**).
+- **Comprehensive instruction set** with 100+ opcodes (✅ **IMPLEMENTED**).
 - Security manager for module authentication (🔄 **PLANNED**).
 - Event manager for cross-thread communication (🔄 **PLANNED**).
 

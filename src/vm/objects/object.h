@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "../../include/bytecode_format.h"
 
 // Forward declarations
 struct Class;
@@ -57,17 +58,7 @@ typedef struct Method {
     struct Method* next;        // Linked list
 } Method;
 
-// Method table for virtual dispatch
-typedef struct MethodTable {
-    uint32_t count;             // Number of methods
-    struct Method* entries;     // Method entries
-} MethodTable;
-
-// Field table for field access
-typedef struct FieldTable {
-    uint32_t field_count;       // Number of fields
-    struct Field* fields;       // Field entries
-} FieldTable;
+// Method table and Field table are now defined in bytecode_format.h
 
 // Interface information
 typedef struct Interface {

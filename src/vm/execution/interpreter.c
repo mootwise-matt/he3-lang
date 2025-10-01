@@ -12,13 +12,14 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
     
     switch (opcode) {
         // Stack operations
-        case OP_PUSH_I64:
+        case OP_PUSH_INT64:
             return op_push_i64(vm, *(int64_t*)operands);
-        case OP_PUSH_F64:
+        case OP_PUSH_FLOAT64:
             return op_push_f64(vm, *(double*)operands);
-        case OP_PUSH_BOOL:
-            return op_push_bool(vm, *(bool*)operands);
-        case OP_PUSH_STR:
+        case OP_PUSH_TRUE:
+        case OP_PUSH_FALSE:
+            return op_push_bool(vm, opcode == OP_PUSH_TRUE);
+        case OP_PUSH_STRING:
             return op_push_str(vm, *(uint32_t*)operands);
         case OP_PUSH_NULL:
             return op_push_null(vm);
@@ -72,21 +73,21 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
             return op_not(vm);
             
         // Control flow operations
-        case OP_JMP:
+        case OP_JUMP:
             return op_jmp(vm, *(int32_t*)operands);
-        case OP_JMP_IF:
+        case OP_JUMP_IF_TRUE:
             return op_jmp_if(vm, *(int32_t*)operands);
-        case OP_JMP_IF_FALSE:
+        case OP_JUMP_IF_FALSE:
             return op_jmp_if_false(vm, *(int32_t*)operands);
         case OP_CALL:
             return op_call(vm, *(uint32_t*)operands);
-        case OP_RET:
+        case OP_RETURN:
             return op_ret(vm);
-        case OP_RET_VAL:
+        case OP_RETURN_VALUE:
             return op_ret_val(vm);
             
         // Object operations
-        case OP_NEW:
+        case OP_NEW_OBJECT:
             return op_new(vm, *(uint32_t*)operands);
         case OP_LOAD_FIELD:
             return op_load_field(vm, *(uint32_t*)operands);
@@ -94,30 +95,29 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
             return op_store_field(vm, *(uint32_t*)operands);
             
         // Array operations
-        case OP_LOAD_INDEX:
+        case OP_LOAD_ARRAY:
             return op_load_index(vm);
-        case OP_STORE_INDEX:
+        case OP_STORE_ARRAY:
             return op_store_index(vm);
-        case OP_ARRAY_LEN:
+        case OP_ARRAY_LENGTH:
             return op_array_len(vm);
         case OP_NEW_ARRAY:
             return op_new_array(vm, *(uint32_t*)operands);
             
         // String operations
-        case OP_STR_CONCAT:
+        case OP_STRING_CONCAT:
             return op_str_concat(vm);
-        case OP_STR_LEN:
+        case OP_STRING_LENGTH:
             return op_str_len(vm);
             
         // Type operations
-        case OP_TYPE_CHECK:
+        case OP_IS_INSTANCE_OF:
             return op_type_check(vm, *(uint32_t*)operands);
-        case OP_TYPE_CAST:
+        case OP_CAST:
             return op_type_cast(vm, *(uint32_t*)operands);
             
         // System operations
-        case OP_HALT:
-            return op_halt(vm);
+        // OP_HALT not defined in shared format
             
         default:
             return INTERPRET_INVALID_OPCODE;
@@ -135,7 +135,7 @@ InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
         uint8_t opcode = bytecode[ip++];
         
         // Get operand count for this opcode
-        uint8_t operand_count = bytecode_get_operand_count(opcode);
+        uint8_t operand_count = opcode_get_operand_count(opcode);
         uint8_t operands[16] = {0}; // Max 16 bytes for operands
         
         // Read operands
@@ -850,5 +850,5 @@ bool is_logical_opcode(uint8_t opcode) {
 }
 
 bool is_control_flow_opcode(uint8_t opcode) {
-    return opcode >= OP_JMP && opcode <= OP_RET_VAL;
+    return opcode >= OP_JUMP && opcode <= OP_RETURN_VALUE;
 }

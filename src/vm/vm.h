@@ -3,11 +3,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "../include/bytecode.h"
+#include "../include/bytecode_format.h"
+#include "../include/opcodes.h"
 
 // Forward declarations
 struct VM;
-struct BytecodeFile;
 struct Value;
 struct Stack;
 struct Heap;
@@ -64,7 +64,7 @@ typedef struct ExecutionContext {
 
 // VM Main Structure
 typedef struct VM {
-    struct BytecodeFile* bytecode;  // Loaded bytecode
+    BytecodeFile* bytecode;  // Loaded bytecode
     struct Stack* stack;            // Operand stack
     struct ExecutionContext* context; // Execution context
     struct Heap* heap;              // Memory heap
