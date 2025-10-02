@@ -157,44 +157,44 @@ class Program {
 ## 📚 Documentation
 
 ### **Language Reference**
-- [**Language Overview**](language/overview.md) - Core concepts and design philosophy
-- [**Syntax Guide**](language/syntax.md) - Complete syntax reference
-- [**Type System**](language/typesystem.md) - Types, generics, and type safety
-- [**Object-Oriented Features**](language/oo.md) - Classes, interfaces, inheritance
-- [**Async Programming**](language/async.md) - Concurrency and async patterns
-- [**Error Handling**](language/errors.md) - Option/Result types and error management
-- [**Security Model**](language/security.md) - Module boundaries and cryptographic keys
-- [**Event System**](language/events.md) - Cross-thread communication
+- [**Language Overview**](/language/overview/) - Core concepts and design philosophy
+- [**Syntax Guide**](/language/syntax/) - Complete syntax reference
+- [**Type System**](/language/typesystem/) - Types, generics, and type safety
+- [**Object-Oriented Features**](/language/oo/) - Classes, interfaces, inheritance
+- [**Async Programming**](/language/async/) - Concurrency and async patterns
+- [**Error Handling**](/language/errors/) - Option/Result types and error management
+- [**Security Model**](/language/security/) - Module boundaries and cryptographic keys
+- [**Event System**](/language/events/) - Cross-thread communication
 
 ### **Compiler Documentation**
-- [**Project Guide**](compiler/project-guide.md) - Project structure and build process
-- [**Architecture**](compiler/architecture.md) - Compiler design and components
-- [**Module Contracts**](compiler/module-contracts.md) - Module system and dependencies
-- [**Testing Guide**](compiler/testing.md) - Testing strategies and tools
+- [**Project Guide**](/compiler/project-guide/) - Project structure and build process
+- [**Architecture**](/compiler/architecture/) - Compiler design and components
+- [**Module Contracts**](/compiler/module-contracts/) - Module system and dependencies
+- [**Testing Guide**](/compiler/testing/) - Testing strategies and tools
 
 ### **Virtual Machine Documentation**
-- [**VM Design**](vm/design.md) - Virtual machine architecture
-- [**Module Registry**](vm/module-registry.md) - Runtime class discovery and registration system
+- [**VM Design**](/vm/design/) - Virtual machine architecture
+- [**Module Registry**](/vm/module-registry/) - Runtime class discovery and registration system
 
 ### **Source Code**
 - [**GitHub Repository**](https://github.com/mootwise-matt/he3-lang) - Complete source code
 - [**Browse Source**](https://github.com/mootwise-matt/he3-lang/tree/main/src) - Source code structure
 - [**Issues & Discussions**](https://github.com/mootwise-matt/he3-lang/issues) - Bug reports and feature requests
-- [**Memory Management**](vm/memory-management.md) - Heap, GC, and memory safety
-- [**Object Model**](vm/object-model.md) - Object system and method dispatch
-- [**Bytecode Format**](bytecode/format.md) - Instruction set and file format
-- [**VM Roadmap**](vm/roadmap.md) - Development phases and future plans
+- [**Memory Management**](/vm/memory-management/) - Heap, GC, and memory safety
+- [**Object Model**](/vm/object-model/) - Object system and method dispatch
+- [**Bytecode Format**](/bytecode/format/) - Instruction set and file format
+- [**VM Roadmap**](/vm/roadmap/) - Development phases and future plans
 
 ### **Bytecode Reference**
-- [**Instruction Set**](bytecode/instruction-set.md) - Complete opcode reference
-- [**Object Files**](bytecode/objects.md) - .ohe3 object file format
-- [**Module Format**](bytecode/helium-module-format.md) - .helium3 module format
-- [**Examples**](bytecode/examples.md) - Bytecode examples and patterns
+- [**Instruction Set**](/bytecode/instruction-set/) - Complete opcode reference
+- [**Object Files**](/bytecode/objects/) - .ohe3 object file format
+- [**Module Format**](/bytecode/helium-module-format/) - .helium3 module format
+- [**Examples**](/bytecode/examples/) - Bytecode examples and patterns
 
 ### **Exporters**
-- [**C Transpiler**](exporter/c-transpiler.md) - C code generation
-- [**LLVM Backend**](exporter/llvm.md) - LLVM IR generation
-- [**Native Assembly**](exporter/native.md) - Direct assembly output
+- [**C Transpiler**](/exporter/c-transpiler/) - C code generation
+- [**LLVM Backend**](/exporter/llvm/) - LLVM IR generation
+- [**Native Assembly**](/exporter/native/) - Direct assembly output
 
 ## 🧪 Examples
 
