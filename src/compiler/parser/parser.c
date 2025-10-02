@@ -149,12 +149,7 @@ Ast* create_ast_node(AstKind kind) {
 }
 
 Ast* create_ast_literal(TokenKind token_kind, Token token) {
-    printf("DEBUG: create_ast_literal - token_kind=%d (%s), token.kind=%d (%s)\n", 
-           token_kind, token_kind_to_string(token_kind),
-           token.kind, token_kind_to_string(token.kind));
-    
     // Check if this is an invalid call
-    printf("DEBUG: Checking token_kind %d against TK_ASSIGN %d\n", token_kind, TK_ASSIGN);
     if (token_kind == TK_ASSIGN) {
         printf("ERROR: create_ast_literal called with TK_ASSIGN! This should not happen.\n");
         printf("       Token content: '%.*s'\n", token.len, token.start);
@@ -185,15 +180,11 @@ Ast* create_ast_literal(TokenKind token_kind, Token token) {
             break;
         case TK_STRING:
             // Copy string value
-            printf("DEBUG: Creating string literal from token: '%.*s'\n", token.len, token.start);
             node->text = malloc(token.len + 1);
             if (node->text) {
                 strncpy((char*)node->text, token.start, token.len);
                 ((char*)node->text)[token.len] = '\0';
                 node->literal.string_offset = 0;
-                printf("DEBUG: String literal created: '%s'\n", node->text);
-            } else {
-                printf("DEBUG: Failed to allocate memory for string literal\n");
             }
             break;
         case TK_TRUE:
@@ -584,19 +575,12 @@ Ast* parse_expression(Parser* parser) {
 }
 
 Ast* parse_assignment(Parser* parser) {
-    printf("DEBUG: parse_assignment - current token: %d (%s)\n", 
-           parser->current.kind, token_kind_to_string(parser->current.kind));
-    
     Ast* expr = parse_or_expression(parser);
     
     if (parser_match(parser, TK_ASSIGN)) {
-        printf("DEBUG: Matched TK_ASSIGN, parsing value\n");
         Ast* value = parse_assignment(parser);
         
         if (expr && value) {
-            printf("DEBUG: Created assignment: %s = %s\n", 
-                   expr->identifier ? expr->identifier : "unknown",
-                   value->identifier ? value->identifier : "unknown");
             return create_ast_assignment(expr, value);
         }
     }
@@ -736,52 +720,39 @@ Ast* finish_call_expression(Parser* parser, Ast* callee) {
 }
 
 Ast* parse_primary_expression(Parser* parser) {
-    printf("DEBUG: parse_primary_expression - current token: %d (%s)\n", 
-           parser->current.kind, token_kind_to_string(parser->current.kind));
-    
     if (parser_match(parser, TK_FALSE)) {
-        printf("DEBUG: Matched TK_FALSE\n");
         return create_ast_literal(TK_FALSE, parser->previous);
     }
     if (parser_match(parser, TK_TRUE)) {
-        printf("DEBUG: Matched TK_TRUE\n");
         return create_ast_literal(TK_TRUE, parser->previous);
     }
     if (parser_match(parser, TK_NULL)) {
-        printf("DEBUG: Matched TK_NULL\n");
         return create_ast_literal(TK_NULL, parser->previous);
     }
     
     if (parser_match(parser, TK_INT)) {
-        printf("DEBUG: Matched TK_INT\n");
         return create_ast_literal(TK_INT, parser->previous);
     }
     if (parser_match(parser, TK_FLOAT)) {
-        printf("DEBUG: Matched TK_FLOAT\n");
         return create_ast_literal(TK_FLOAT, parser->previous);
     }
     if (parser_match(parser, TK_STRING)) {
-        printf("DEBUG: Found string literal: '%.*s'\n", parser->previous.len, parser->previous.start);
         return create_ast_literal(TK_STRING, parser->previous);
     }
     
     if (parser_match(parser, TK_IDENTIFIER)) {
-        printf("DEBUG: Matched TK_IDENTIFIER\n");
         return create_ast_identifier(parser->previous);
     }
     
     if (parser_match(parser, TK_LPAREN)) {
-        printf("DEBUG: Matched TK_LPAREN\n");
         Ast* expr = parse_expression(parser);
         parser_consume(parser, TK_RPAREN, "Expected ')' after expression");
         return expr;
     }
     
-    printf("DEBUG: No match found, current token: %d (%s)\n", 
-           parser->current.kind, token_kind_to_string(parser->current.kind));
     parser_error_at_current(parser, "Expected expression");
-        return NULL;
-    }
+    return NULL;
+}
     
 Ast* parse_type(Parser* parser) {
     if (parser_match(parser, TK_INTEGER) || parser_match(parser, TK_FLOAT_TYPE) ||
