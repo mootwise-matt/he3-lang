@@ -564,12 +564,19 @@ Ast* parse_expression(Parser* parser) {
 }
 
 Ast* parse_assignment(Parser* parser) {
+    printf("DEBUG: parse_assignment - current token: %d (%s)\n", 
+           parser->current.kind, token_kind_to_string(parser->current.kind));
+    
     Ast* expr = parse_or_expression(parser);
     
     if (parser_match(parser, TK_ASSIGN)) {
+        printf("DEBUG: Matched TK_ASSIGN, parsing value\n");
         Ast* value = parse_assignment(parser);
         
         if (expr && value) {
+            printf("DEBUG: Created assignment: %s = %s\n", 
+                   expr->identifier ? expr->identifier : "unknown",
+                   value->identifier ? value->identifier : "unknown");
             return create_ast_assignment(expr, value);
         }
     }
@@ -709,25 +716,49 @@ Ast* finish_call_expression(Parser* parser, Ast* callee) {
 }
 
 Ast* parse_primary_expression(Parser* parser) {
-    if (parser_match(parser, TK_FALSE)) return create_ast_literal(TK_FALSE, parser->previous);
-    if (parser_match(parser, TK_TRUE)) return create_ast_literal(TK_TRUE, parser->previous);
-    if (parser_match(parser, TK_NULL)) return create_ast_literal(TK_NULL, parser->previous);
+    printf("DEBUG: parse_primary_expression - current token: %d (%s)\n", 
+           parser->current.kind, token_kind_to_string(parser->current.kind));
     
-    if (parser_match(parser, TK_INT)) return create_ast_literal(TK_INT, parser->previous);
-    if (parser_match(parser, TK_FLOAT)) return create_ast_literal(TK_FLOAT, parser->previous);
+    if (parser_match(parser, TK_FALSE)) {
+        printf("DEBUG: Matched TK_FALSE\n");
+        return create_ast_literal(TK_FALSE, parser->previous);
+    }
+    if (parser_match(parser, TK_TRUE)) {
+        printf("DEBUG: Matched TK_TRUE\n");
+        return create_ast_literal(TK_TRUE, parser->previous);
+    }
+    if (parser_match(parser, TK_NULL)) {
+        printf("DEBUG: Matched TK_NULL\n");
+        return create_ast_literal(TK_NULL, parser->previous);
+    }
+    
+    if (parser_match(parser, TK_INT)) {
+        printf("DEBUG: Matched TK_INT\n");
+        return create_ast_literal(TK_INT, parser->previous);
+    }
+    if (parser_match(parser, TK_FLOAT)) {
+        printf("DEBUG: Matched TK_FLOAT\n");
+        return create_ast_literal(TK_FLOAT, parser->previous);
+    }
     if (parser_match(parser, TK_STRING)) {
         printf("DEBUG: Found string literal: '%.*s'\n", parser->previous.len, parser->previous.start);
         return create_ast_literal(TK_STRING, parser->previous);
     }
     
-    if (parser_match(parser, TK_IDENTIFIER)) return create_ast_identifier(parser->previous);
+    if (parser_match(parser, TK_IDENTIFIER)) {
+        printf("DEBUG: Matched TK_IDENTIFIER\n");
+        return create_ast_identifier(parser->previous);
+    }
     
     if (parser_match(parser, TK_LPAREN)) {
+        printf("DEBUG: Matched TK_LPAREN\n");
         Ast* expr = parse_expression(parser);
         parser_consume(parser, TK_RPAREN, "Expected ')' after expression");
         return expr;
     }
     
+    printf("DEBUG: No match found, current token: %d (%s)\n", 
+           parser->current.kind, token_kind_to_string(parser->current.kind));
     parser_error_at_current(parser, "Expected expression");
     return NULL;
 }
@@ -736,7 +767,16 @@ Ast* parse_type(Parser* parser) {
     if (parser_match(parser, TK_INTEGER) || parser_match(parser, TK_FLOAT_TYPE) ||
         parser_match(parser, TK_BOOLEAN) || parser_match(parser, TK_STRING_TYPE) ||
         parser_match(parser, TK_VOID) || parser_match(parser, TK_OBJECT)) {
-        return create_ast_literal(parser->previous.kind, parser->previous);
+        // Create a type node instead of a literal node
+        Ast* type_node = ast_create(AST_TYPE, NULL, parser->previous.line, parser->previous.col);
+        if (type_node) {
+            type_node->identifier = malloc(parser->previous.len + 1);
+            if (type_node->identifier) {
+                strncpy(type_node->identifier, parser->previous.start, parser->previous.len);
+                type_node->identifier[parser->previous.len] = '\0';
+            }
+        }
+        return type_node;
     }
     
     if (parser_match(parser, TK_IDENTIFIER)) {

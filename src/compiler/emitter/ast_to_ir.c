@@ -1114,35 +1114,31 @@ IRValue ast_to_ir_create_literal_value(Ast* ast) {
     // Determine literal type based on the literal values
     printf("DEBUG: ast_to_ir_create_literal_value - checking literal values\n");
     
-    // Check which literal value is set
-    if (ast->literal.int_value != 0 || ast->literal.float_value != 0.0 || 
-        ast->literal.bool_value || ast->literal.string_offset != 0) {
-        // Determine type based on what's set
-        if (ast->literal.string_offset != 0 || ast->text) {
-            // String literal
-            printf("DEBUG: Creating STRING literal: %s\n", ast->text);
-            value.type = IR_VALUE_STRING;
-            value.data.string_id = (uint32_t)(uintptr_t)ast->text;
-            return value;
-        } else if (ast->literal.float_value != 0.0) {
-            // Float literal
-            printf("DEBUG: Creating FLOAT literal: %f\n", ast->literal.float_value);
-            value.type = IR_VALUE_F64;
-            value.data.f64 = ast->literal.float_value;
-            return value;
-        } else if (ast->literal.bool_value) {
-            // Boolean literal
-            printf("DEBUG: Creating TRUE literal\n");
-            value.type = IR_VALUE_BOOL;
-            value.data.boolean = true;
-            return value;
-        } else {
-            // Integer literal
-            printf("DEBUG: Creating INT literal: %lld\n", ast->literal.int_value);
-            value.type = IR_VALUE_I64;
-            value.data.i64 = ast->literal.int_value;
-            return value;
-        }
+    // Check which literal value is set - prioritize by type
+    if (ast->text && ast->text[0] != '\0') {
+        // String literal (has text content)
+        printf("DEBUG: Creating STRING literal: %s\n", ast->text);
+        value.type = IR_VALUE_STRING;
+        value.data.string_id = (uint32_t)(uintptr_t)ast->text;
+        return value;
+    } else if (ast->literal.float_value != 0.0) {
+        // Float literal
+        printf("DEBUG: Creating FLOAT literal: %f\n", ast->literal.float_value);
+        value.type = IR_VALUE_F64;
+        value.data.f64 = ast->literal.float_value;
+        return value;
+    } else if (ast->literal.bool_value) {
+        // Boolean literal
+        printf("DEBUG: Creating TRUE literal\n");
+        value.type = IR_VALUE_BOOL;
+        value.data.boolean = true;
+        return value;
+    } else if (ast->literal.int_value != 0) {
+        // Integer literal
+        printf("DEBUG: Creating INT literal: %lld\n", ast->literal.int_value);
+        value.type = IR_VALUE_I64;
+        value.data.i64 = ast->literal.int_value;
+        return value;
     } else {
         // Default to integer 0
         printf("DEBUG: Creating default INT literal: 0\n");
