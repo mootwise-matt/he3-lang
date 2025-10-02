@@ -543,7 +543,25 @@ bool module_registry_discover_methods_from_module(ModuleRegistry* registry, uint
         registry_entry->type_id = method_entry->type_id;
         registry_entry->method_name = strdup(method_name);
         registry_entry->signature = signature ? strdup(signature) : NULL;
-        registry_entry->method_info = NULL; // Will be created when needed
+        
+        // Create the method info structure
+        Method* method_info = malloc(sizeof(Method));
+        if (method_info) {
+            method_info->name = strdup(method_name);
+            method_info->signature = signature ? strdup(signature) : NULL;
+            method_info->bytecode = NULL; // TODO: Extract bytecode from method entry
+            method_info->bytecode_size = 0; // TODO: Extract bytecode size from method entry
+            method_info->local_count = 0; // TODO: Extract from method entry
+            method_info->param_count = 0; // TODO: Extract from method entry
+            method_info->is_static = false; // TODO: Determine from method flags
+            method_info->is_virtual = false; // TODO: Determine from method flags
+            method_info->is_abstract = false; // TODO: Determine from method flags
+            method_info->is_private = false; // TODO: Determine from method flags
+            method_info->is_protected = false; // TODO: Determine from method flags
+            method_info->is_public = true; // Default to public
+            method_info->next = NULL;
+        }
+        registry_entry->method_info = method_info;
         registry_entry->next = NULL;
         
         method_registry_register_method(registry_entry);

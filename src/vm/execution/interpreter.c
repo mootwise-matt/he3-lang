@@ -709,14 +709,15 @@ InterpretResult op_call_virtual(VM* vm, uint32_t method_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    // TODO: Implement actual method execution
-    // For now, just push a default return value
-    Value result = value_create_i64(0);
-    if (!stack_push(vm->stack, result)) {
-        return INTERPRET_STACK_OVERFLOW;
+    // Get the method information
+    Method* method_info = method_entry->method_info;
+    if (!method_info) {
+        printf("Runtime error: Method info not available for method %u\n", method_id);
+        return INTERPRET_RUNTIME_ERROR;
     }
     
-    return INTERPRET_OK;
+    // Execute the method bytecode
+    return execute_method_bytecode(vm, method_info, object);
 }
 
 InterpretResult op_call_static(VM* vm, uint32_t method_id) {
@@ -734,14 +735,16 @@ InterpretResult op_call_static(VM* vm, uint32_t method_id) {
     printf("DEBUG: Static call to method '%s' (id=%u)\n", 
            method_entry->method_name, method_id);
     
-    // TODO: Implement actual method execution
-    // For now, just push a default return value
-    Value result = value_create_i64(0);
-    if (!stack_push(vm->stack, result)) {
-        return INTERPRET_STACK_OVERFLOW;
+    // Get the method information
+    Method* method_info = method_entry->method_info;
+    if (!method_info) {
+        printf("Runtime error: Method info not available for method %u\n", method_id);
+        return INTERPRET_RUNTIME_ERROR;
     }
     
-    return INTERPRET_OK;
+    // Execute the method bytecode (no object for static methods)
+    Value null_object = value_create_null();
+    return execute_method_bytecode(vm, method_info, null_object);
 }
 
 InterpretResult op_load_field(VM* vm, uint32_t field_id) {
@@ -920,6 +923,49 @@ InterpretResult op_store_field(VM* vm, uint32_t field_id) {
 InterpretResult op_nop(VM* vm) {
     // No operation - just return OK
     return INTERPRET_OK;
+}
+
+// Method execution function
+InterpretResult execute_method_bytecode(VM* vm, Method* method, Value object) {
+    if (!vm || !method) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    printf("DEBUG: Executing method '%s' with %u bytes of bytecode\n", 
+           method->name, method->bytecode_size);
+    
+    // If no bytecode, return default value
+    if (!method->bytecode || method->bytecode_size == 0) {
+        printf("DEBUG: Method has no bytecode, returning default value\n");
+        Value result = value_create_i64(0);
+        if (!stack_push(vm->stack, result)) {
+            return INTERPRET_STACK_OVERFLOW;
+        }
+        return INTERPRET_OK;
+    }
+    
+    // Save current stack state
+    size_t original_stack_top = vm->stack->top;
+    
+    // Push the object onto the stack for method execution
+    if (object.type != VALUE_NULL) {
+        if (!stack_push(vm->stack, object)) {
+            return INTERPRET_STACK_OVERFLOW;
+        }
+    }
+    
+    // Execute the method bytecode using the existing interpreter
+    InterpretResult result = interpret_bytecode(vm, method->bytecode, method->bytecode_size);
+    
+    // If the method didn't return a value, push a default one
+    if (result == INTERPRET_OK && vm->stack->top == original_stack_top) {
+        Value default_result = value_create_i64(0);
+        if (!stack_push(vm->stack, default_result)) {
+            return INTERPRET_STACK_OVERFLOW;
+        }
+    }
+    
+    return result;
 }
 
 const char* interpret_result_to_string(InterpretResult result) {

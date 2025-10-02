@@ -112,6 +112,9 @@ InterpretResult op_type_cast(VM* vm, uint32_t type_index);
 // System operations
 InterpretResult op_halt(VM* vm);
 
+// Method execution
+InterpretResult execute_method_bytecode(VM* vm, struct Method* method, Value object);
+
 // Utility functions
 const char* interpret_result_to_string(InterpretResult result);
 bool is_arithmetic_opcode(uint8_t opcode);
