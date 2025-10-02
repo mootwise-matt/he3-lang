@@ -121,7 +121,7 @@ void print_tokens(Lexer* lexer) {
 
 // Print AST (for debug)
 void print_ast(Ast* node, int depth) {
-    ast_print_tree(node, depth);
+    ast_print(node, depth);
 }
 
 // Main compilation function
@@ -218,6 +218,26 @@ int compile_file(const char* input_filename, const char* output_filename,
     IRToBytecodeTranslator* bytecode_translator = ir_to_bytecode_translator_create();
     if (!bytecode_translator) {
         fprintf(stderr, "Error: Failed to create bytecode translator\n");
+        // Note: ir_function_destroy not implemented yet
+        ast_to_ir_translator_destroy(ir_translator);
+        // Note: ast_destroy not implemented yet
+        parser_destroy(parser);
+        lexer_destroy(lexer);
+        free(source);
+        return 1;
+    }
+    
+    // Set current function in translator before adding method
+    printf("DEBUG: Setting current function in translator\n");
+    bytecode_translator->current_function = ir_function;
+    
+    // Add method to method table before translating
+    printf("DEBUG: Adding method to bytecode translator\n");
+    uint32_t method_id = ir_to_bytecode_add_method(bytecode_translator, "main", "()I", 1);
+    printf("DEBUG: method_id = %u\n", method_id);
+    if (method_id == 0) {
+        fprintf(stderr, "Error: Failed to add method to bytecode translator\n");
+        ir_to_bytecode_translator_destroy(bytecode_translator);
         // Note: ir_function_destroy not implemented yet
         ast_to_ir_translator_destroy(ir_translator);
         // Note: ast_destroy not implemented yet

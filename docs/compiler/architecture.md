@@ -4,6 +4,22 @@
 
 The He³ compiler is designed as a modular, multi-stage pipeline that transforms He³ source code into executable bytecode. The architecture emphasizes separation of concerns, testability, and maintainability.
 
+## Shared Architecture
+
+The He³ project uses a **shared architecture** where common components are consolidated in the `/src/shared/` directory to ensure consistency between the compiler and virtual machine:
+
+### **Shared Components** (`src/shared/`)
+- **`ast/`** - Unified AST definitions and utilities
+- **`tokens.h`** - Common token definitions for lexer and parser
+- **`bytecode/`** - Shared bytecode format, opcodes, and utilities
+- **`types/`** - Common type definitions and type table structures
+
+### **Benefits of Shared Architecture**
+- **Consistency** - Compiler and VM use identical data structures
+- **Maintainability** - Single source of truth for common definitions
+- **Reliability** - Eliminates compatibility issues between components
+- **Development Speed** - Changes to shared components automatically propagate
+
 ## Pipeline Stages
 
 ### 1. Lexical Analysis (`src/compiler/lexer/`) ✅
@@ -53,9 +69,9 @@ The He³ compiler is designed as a modular, multi-stage pipeline that transforms
 - Enhanced error reporting with context
 - Support for all He³ language constructs
 
-### 3. Abstract Syntax Tree (`src/compiler/ast/`) ✅
+### 3. Shared Abstract Syntax Tree (`src/shared/ast/`) ✅
 
-**Purpose**: Represent parsed code as a tree structure
+**Purpose**: Represent parsed code as a tree structure (shared between compiler and VM)
 
 **Key Components**:
 - `ast.h` - AST node definitions and interfaces
@@ -77,10 +93,12 @@ The He³ compiler is designed as a modular, multi-stage pipeline that transforms
 - `AST_IDENTIFIER` - Identifiers
 
 **Features**:
+- **Shared between compiler and VM** for consistency
 - Modular design with separate header/implementation
 - Tree traversal and manipulation functions
 - Pretty printing for debugging
 - Memory management for tree nodes
+- Unified literal value handling
 
 ### 4. Intermediate Representation (`src/compiler/ir/`) ✅
 

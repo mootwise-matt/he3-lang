@@ -2,7 +2,7 @@
 
 ## 🚀 Implementation Status
 
-**✅ IMPLEMENTED**: The shared bytecode format is now fully implemented and integrated with the VM. The compiler and VM use unified structures defined in `src/include/bytecode_format.h` and `src/include/opcodes.h`. This document describes the implemented bytecode format.
+**✅ IMPLEMENTED**: The shared bytecode format is now fully implemented and integrated with the VM. The compiler and VM use unified structures defined in `src/shared/bytecode/bytecode_format.h` and `src/shared/bytecode/opcodes.h`. This document describes the implemented bytecode format.
 
 ## Related Documentation
 

@@ -2,6 +2,7 @@
 #include "../../vm/vm.h"
 #include "../../shared/bytecode/opcodes.h"
 #include "stack.h"
+#include "context.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -275,18 +276,32 @@ InterpretResult op_add(VM* vm) {
     Value val2 = stack_pop(vm->stack);
     Value val1 = stack_pop(vm->stack);
     
+    printf("DEBUG: op_add - val1.type=%d, val2.type=%d\n", val1.type, val2.type);
+    
     if (val1.type == VALUE_I64 && val2.type == VALUE_I64) {
         Value result = value_create_i64(val1.data.i64_value + val2.data.i64_value);
+        printf("DEBUG: op_add - result=%lld\n", result.data.i64_value);
         if (!stack_push(vm->stack, result)) {
             return INTERPRET_STACK_OVERFLOW;
         }
     } else if (val1.type == VALUE_F64 && val2.type == VALUE_F64) {
         Value result = value_create_f64(val1.data.f64_value + val2.data.f64_value);
+        printf("DEBUG: op_add - result=%f\n", result.data.f64_value);
+        if (!stack_push(vm->stack, result)) {
+            return INTERPRET_STACK_OVERFLOW;
+        }
+    } else if ((val1.type == VALUE_I64 && val2.type == VALUE_F64) || 
+               (val1.type == VALUE_F64 && val2.type == VALUE_I64)) {
+        // Mixed types: convert both to float
+        double v1 = (val1.type == VALUE_I64) ? (double)val1.data.i64_value : val1.data.f64_value;
+        double v2 = (val2.type == VALUE_I64) ? (double)val2.data.i64_value : val2.data.f64_value;
+        Value result = value_create_f64(v1 + v2);
+        printf("DEBUG: op_add - mixed types result=%f\n", result.data.f64_value);
         if (!stack_push(vm->stack, result)) {
             return INTERPRET_STACK_OVERFLOW;
         }
     } else {
-        fprintf(stderr, "Runtime error: Invalid operands for addition\n");
+        fprintf(stderr, "Runtime error: Invalid operands for addition (val1.type=%d, val2.type=%d)\n", val1.type, val2.type);
         return INTERPRET_RUNTIME_ERROR;
     }
     
@@ -396,13 +411,21 @@ InterpretResult op_div(VM* vm) {
 // ============================================================================
 
 InterpretResult op_load_local(VM* vm, uint32_t local_index) {
-    if (!vm || !vm->stack) {
+    if (!vm || !vm->stack || !vm->context) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    // For now, just push a placeholder value
-    // TODO: Implement proper local variable loading
-    Value val = value_create_i64(0);
+    // Get current call frame
+    CallFrame* frame = execution_context_current_frame(vm->context);
+    if (!frame) {
+        fprintf(stderr, "Runtime error: No active call frame\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Get local variable value
+    Value val = call_frame_get_local(frame, local_index);
+    
+    // Push onto stack
     if (!stack_push(vm->stack, val)) {
         return INTERPRET_STACK_OVERFLOW;
     }
@@ -411,7 +434,7 @@ InterpretResult op_load_local(VM* vm, uint32_t local_index) {
 }
 
 InterpretResult op_store_local(VM* vm, uint32_t local_index) {
-    if (!vm || !vm->stack) {
+    if (!vm || !vm->stack || !vm->context) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
@@ -419,9 +442,21 @@ InterpretResult op_store_local(VM* vm, uint32_t local_index) {
         return INTERPRET_STACK_UNDERFLOW;
     }
     
-    // For now, just pop the value
-    // TODO: Implement proper local variable storage
-    stack_pop(vm->stack);
+    // Get current call frame
+    CallFrame* frame = execution_context_current_frame(vm->context);
+    if (!frame) {
+        fprintf(stderr, "Runtime error: No active call frame\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Pop value from stack
+    Value val = stack_pop(vm->stack);
+    
+    // Store in local variable
+    if (!call_frame_set_local(frame, local_index, val)) {
+        fprintf(stderr, "Runtime error: Failed to store local variable %u\n", local_index);
+        return INTERPRET_RUNTIME_ERROR;
+    }
     
     return INTERPRET_OK;
 }

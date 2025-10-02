@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdbool.h>
-#include "tokens.h"
+#include "../tokens.h"
 
 // AST node kinds for He³ parser
 typedef enum {

@@ -144,7 +144,8 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
                     ir_to_bytecode_translator_set_error(translator, "Unsupported constant type in IR_LOAD_CONST");
                     return false;
             }
-            return ir_to_bytecode_emit_push_constant(translator, constant_index);
+            return ir_to_bytecode_emit_instruction(translator, OP_PUSH_CONSTANT, 
+                                                 (uint8_t*)&constant_index, sizeof(uint32_t));
         }
         
         case IR_LOAD_LOCAL:
@@ -384,12 +385,25 @@ uint32_t ir_to_bytecode_add_method(IRToBytecodeTranslator* translator, const cha
     if (!translator || !name || !signature) return 0;
     
     // Add method name to string table
+    printf("DEBUG: Adding method name '%s' to string table\n", name);
     uint32_t name_offset = string_table_add_string(translator->string_table, name);
-    if (name_offset == 0) return 0;
+    printf("DEBUG: name_offset = %u\n", name_offset);
+    // Note: 0 is a valid string table index, so we don't check for 0 here
     
     // Add signature to string table
+    printf("DEBUG: Adding signature '%s' to string table\n", signature);
     uint32_t signature_offset = string_table_add_string(translator->string_table, signature);
-    if (signature_offset == 0) return 0;
+    printf("DEBUG: signature_offset = %u\n", signature_offset);
+    // Note: 0 is a valid string table index, so we don't check for 0 here
+    
+    // Get local count from current function if available
+    uint32_t local_count = 0;
+    if (translator->current_function) {
+        local_count = translator->current_function->local_count;
+        printf("DEBUG: Using local_count from IR function: %u\n", local_count);
+    } else {
+        printf("DEBUG: No current function, using local_count = 0\n");
+    }
     
     // Create method entry
     MethodEntry entry;
@@ -399,7 +413,7 @@ uint32_t ir_to_bytecode_add_method(IRToBytecodeTranslator* translator, const cha
     entry.signature_offset = signature_offset;
     entry.bytecode_offset = 0; // Will be set later
     entry.bytecode_size = 0;   // Will be set later
-    entry.local_count = 0;
+    entry.local_count = local_count;
     entry.param_count = 0;
     entry.return_type_id = 0;
     entry.flags = 0;
@@ -463,14 +477,7 @@ BytecodeFile* ir_to_bytecode_generate_file(IRToBytecodeTranslator* translator) {
         printf("DEBUG: Program type created with ID %u\n", type_id);
     }
     
-    // Add a main method if none exists
-    if (translator->method_table->count == 0) {
-        uint32_t method_id = ir_to_bytecode_add_method(translator, "main", "()I", 1); // Program type
-        if (method_id == 0) {
-            ir_to_bytecode_translator_set_error(translator, "Failed to create main method");
-            return NULL;
-        }
-    }
+    // Method should already be added before function translation
     
     // Copy tables to bytecode file
     translator->bytecode_file->string_table = translator->string_table;
@@ -481,6 +488,15 @@ BytecodeFile* ir_to_bytecode_generate_file(IRToBytecodeTranslator* translator) {
     // Set bytecode
     translator->bytecode_file->bytecode = translator->current_bytecode;
     translator->bytecode_file->bytecode_size = translator->current_bytecode_size;
+    
+    // Update method table entries with bytecode information
+    if (translator->method_table && translator->method_table->count > 0) {
+        translator->method_table->entries[0].bytecode_offset = 0; // First method starts at beginning
+        translator->method_table->entries[0].bytecode_size = translator->current_bytecode_size;
+        printf("DEBUG: Updated method table entry 0: offset=%u, size=%u\n", 
+               translator->method_table->entries[0].bytecode_offset,
+               translator->method_table->entries[0].bytecode_size);
+    }
     
     // Set entry point
     translator->bytecode_file->header.entry_point_method_id = 1; // First method is main

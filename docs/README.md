@@ -12,8 +12,9 @@ to native code via a transpiler or LLVM.
 **[📁 View Source Code on GitHub](https://github.com/mootwise-matt/he3-lang)**
 
 ### **Quick Links**
-- **[🔧 Compiler Source](https://github.com/mootwise-matt/he3-lang/tree/main/src/compiler)** - Lexer, parser, AST, IR, emitter
+- **[🔧 Compiler Source](https://github.com/mootwise-matt/he3-lang/tree/main/src/compiler)** - Lexer, parser, IR, emitter
 - **[🖥️ VM Source](https://github.com/mootwise-matt/he3-lang/tree/main/src/vm)** - Virtual machine, memory management, object system
+- **[🔗 Shared Code](https://github.com/mootwise-matt/he3-lang/tree/main/src/shared)** - Common AST, bytecode format, types, and utilities
 - **[📝 Examples](https://github.com/mootwise-matt/he3-lang/tree/main/examples)** - Sample He³ programs
 - **[🐛 Report Issues](https://github.com/mootwise-matt/he3-lang/issues)** - Bug reports and feature requests
 - **[💬 Join Discussions](https://github.com/mootwise-matt/he3-lang/discussions)** - Community discussions
@@ -59,10 +60,6 @@ to native code via a transpiler or LLVM.
   - AST generation for all language features
   - Error recovery and detailed diagnostics
   - Support for classes, methods, fields, statements, expressions
-- **AST System** (`src/compiler/ast/`) - Complete
-  - Complete AST node definitions for all language constructs
-  - Type-safe node creation and manipulation
-  - Comprehensive visitor pattern implementation
 - **IR System** (`src/compiler/ir/`) - Complete
   - Three-address code intermediate representation
   - IR builder for AST to IR translation
@@ -72,6 +69,20 @@ to native code via a transpiler or LLVM.
   - Bytecode writer with string and relocation tables
   - Complete instruction set support
 
+### ✅ **Shared Code Implementation**
+- **AST System** (`src/shared/ast/`) - Complete
+  - Unified AST node definitions for all language constructs
+  - Type-safe node creation and manipulation
+  - Shared between compiler and VM for consistency
+- **Token Definitions** (`src/shared/tokens.h`) - Complete
+  - Unified token definitions for lexer and parser
+  - Shared between compiler components
+- **Bytecode Format** (`src/shared/bytecode/`) - Complete
+  - Unified bytecode format between compiler and VM
+  - Comprehensive instruction set (100+ opcodes)
+  - Complete table structures (string, type, method, field)
+  - Opcode utilities and disassembly support
+
 ### ✅ **Virtual Machine Implementation**
 - **Core VM Engine** (`src/vm/`) - Complete
   - Bytecode loader and interpreter
@@ -79,11 +90,6 @@ to native code via a transpiler or LLVM.
   - Memory management with generational GC
   - Object system with classes, methods, and fields
   - Cross-platform execution support
-- **Shared Bytecode Format** (`src/include/`) - Complete
-  - Unified bytecode format between compiler and VM
-  - Comprehensive instruction set (100+ opcodes)
-  - Complete table structures (string, type, method, field)
-  - Opcode utilities and disassembly support
 
 ### ✅ **Build System**
 - **Makefile** - Complete
@@ -95,11 +101,11 @@ to native code via a transpiler or LLVM.
   - Clear separation of concerns
   - Comprehensive documentation
 
-### 🔄 **Next Phase: Compiler-VM Integration**
-- **Bytecode Writer** - In Progress
-  - Update compiler to generate shared bytecode format
-  - Align bytecode output with VM expectations
-  - Enable complete source-to-execution pipeline
+### ✅ **Compiler-VM Integration**
+- **Shared Architecture** - Complete
+  - Unified AST and bytecode format between compiler and VM
+  - Eliminated duplicate code and ensured consistency
+  - Complete source-to-execution pipeline working
 
 ## Development Guidelines
 - **Temporary Code**: All temporary test files, debug code, and experimental implementations must be placed in the `/tmp/` folder, which is excluded from git

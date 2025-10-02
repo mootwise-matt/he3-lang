@@ -30,9 +30,10 @@ print_fail() {
     echo -e "${RED}✗ FAIL: $1${NC}"
 }
 
-# Test suite results
-declare -A suite_results
-declare -A suite_times
+# Test suite results (using simple variables for compatibility)
+suite_passed=0
+suite_failed=0
+total_time=0
 
 # Run a test suite and capture results
 run_test_suite() {
@@ -46,15 +47,15 @@ run_test_suite() {
     if bash "$suite_script" > /dev/null 2>&1; then
         local end_time=$(date +%s%N)
         local duration=$(( (end_time - start_time) / 1000000 ))
-        suite_results["$suite_name"]="PASS"
-        suite_times["$suite_name"]="$duration"
+        suite_passed=$((suite_passed + 1))
+        total_time=$((total_time + duration))
         print_pass "$suite_name (${duration}ms)"
         return 0
     else
         local end_time=$(date +%s%N)
         local duration=$(( (end_time - start_time) / 1000000 ))
-        suite_results["$suite_name"]="FAIL"
-        suite_times["$suite_name"]="$duration"
+        suite_failed=$((suite_failed + 1))
+        total_time=$((total_time + duration))
         print_fail "$suite_name (${duration}ms)"
         return 1
     fi
@@ -103,24 +104,15 @@ main() {
     echo
     print_header "Test Suite Summary"
     echo "Total test suites: $total_suites"
-    echo -e "Passed: ${GREEN}$passed_suites${NC}"
-    echo -e "Failed: ${RED}$failed_suites${NC}"
+    echo -e "Passed: ${GREEN}$suite_passed${NC}"
+    echo -e "Failed: ${RED}$suite_failed${NC}"
     echo
     
-    # Print detailed results
-    print_header "Detailed Results"
-    for suite in "${!suite_results[@]}"; do
-        local result="${suite_results[$suite]}"
-        local time="${suite_times[$suite]}"
-        if [ "$result" = "PASS" ]; then
-            echo -e "${GREEN}✓${NC} $suite: ${GREEN}PASS${NC} (${time}ms)"
-        else
-            echo -e "${RED}✗${NC} $suite: ${RED}FAIL${NC} (${time}ms)"
-        fi
-    done
+    # Print timing info
+    echo -e "Total execution time: ${BLUE}${total_time}ms${NC}"
     
     echo
-    if [ $failed_suites -gt 0 ]; then
+    if [ $suite_failed -gt 0 ]; then
         echo -e "${RED}Some test suites failed!${NC}"
         echo "Check individual test suite outputs for details."
         exit 1

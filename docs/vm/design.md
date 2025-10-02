@@ -7,10 +7,25 @@
 - **Object system** with classes, methods, and fields (✅ **IMPLEMENTED**).
 - **Bytecode loader** for .bx executable files (✅ **IMPLEMENTED**).
 - **Cross-platform execution** on ARM, Apple Silicon, Intel (✅ **IMPLEMENTED**).
-- **Shared bytecode format** with unified compiler-VM structures (✅ **IMPLEMENTED**).
+- **Shared architecture** with unified AST and bytecode format (✅ **IMPLEMENTED**).
 - **Comprehensive instruction set** with 100+ opcodes (✅ **IMPLEMENTED**).
 - Security manager for module authentication (🔄 **PLANNED**).
 - Event manager for cross-thread communication (🔄 **PLANNED**).
+
+## Shared Architecture
+
+The VM is designed to work seamlessly with the compiler through a **shared architecture**:
+
+### **Shared Components** (`src/shared/`)
+- **AST System** - Unified tree representation used by both compiler and VM
+- **Bytecode Format** - Shared instruction set and file format
+- **Token Definitions** - Common token types for language processing
+- **Type System** - Common type definitions and utilities
+
+### **Benefits**
+- **Consistency** - Compiler and VM use identical data structures
+- **Reliability** - Eliminates compatibility issues between components
+- **Maintainability** - Single source of truth for common definitions
 
 ## Linking & Dynamic Linking
 - `.ohe3` files carry imports.

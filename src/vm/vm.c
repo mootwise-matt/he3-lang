@@ -197,9 +197,15 @@ int vm_execute(VM* vm) {
     
     if (!stack_is_empty(vm->stack)) {
         Value result_value = stack_pop(vm->stack);
-        printf("Popped value type: %d, value: %lld\n", result_value.type, result_value.data.i64_value);
+        printf("Popped value type: %d\n", result_value.type);
         if (result_value.type == VALUE_I64) {
+            printf("Popped integer value: %lld\n", result_value.data.i64_value);
             return_value = (int)result_value.data.i64_value;
+        } else if (result_value.type == VALUE_F64) {
+            printf("Popped float value: %f\n", result_value.data.f64_value);
+            return_value = (int)result_value.data.f64_value; // Convert float to int
+        } else {
+            printf("Popped value: %lld (unexpected type)\n", result_value.data.i64_value);
         }
         value_destroy(&result_value);
     }

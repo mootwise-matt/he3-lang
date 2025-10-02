@@ -1111,39 +1111,47 @@ IRValue ast_to_ir_create_literal_value(Ast* ast) {
     
     if (!ast) return value;
     
-    // Determine literal type based on the token kind
-    switch (ast->literal.token.kind) {
-        case TK_INT:
-            value.type = IR_VALUE_I64;
-            value.data.i64 = ast->literal.int_value;
-            break;
-        case TK_FLOAT:
+    // Determine literal type based on the literal values
+    printf("DEBUG: ast_to_ir_create_literal_value - checking literal values\n");
+    
+    // Check which literal value is set
+    if (ast->literal.int_value != 0 || ast->literal.float_value != 0.0 || 
+        ast->literal.bool_value || ast->literal.string_offset != 0) {
+        // Determine type based on what's set
+        if (ast->literal.string_offset != 0 || ast->text) {
+            // String literal
+            printf("DEBUG: Creating STRING literal: %s\n", ast->text);
+            value.type = IR_VALUE_STRING;
+            value.data.string_id = (uint32_t)(uintptr_t)ast->text;
+            return value;
+        } else if (ast->literal.float_value != 0.0) {
+            // Float literal
+            printf("DEBUG: Creating FLOAT literal: %f\n", ast->literal.float_value);
             value.type = IR_VALUE_F64;
             value.data.f64 = ast->literal.float_value;
-            break;
-        case TK_STRING:
-            value.type = IR_VALUE_STRING;
-            // Store the string value directly - it will be processed during IR to bytecode translation
-            value.data.string_id = (uint32_t)(uintptr_t)ast->literal.string_value;
-            break;
-        case TK_TRUE:
+            return value;
+        } else if (ast->literal.bool_value) {
+            // Boolean literal
+            printf("DEBUG: Creating TRUE literal\n");
             value.type = IR_VALUE_BOOL;
             value.data.boolean = true;
-            break;
-        case TK_FALSE:
-            value.type = IR_VALUE_BOOL;
-            value.data.boolean = false;
-            break;
-        case TK_NULL:
-            value.type = IR_VALUE_NULL;
-            break;
-        default:
-            // Default to integer for unknown types
+            return value;
+        } else {
+            // Integer literal
+            printf("DEBUG: Creating INT literal: %lld\n", ast->literal.int_value);
             value.type = IR_VALUE_I64;
             value.data.i64 = ast->literal.int_value;
-            break;
+            return value;
+        }
+    } else {
+        // Default to integer 0
+        printf("DEBUG: Creating default INT literal: 0\n");
+        value.type = IR_VALUE_I64;
+        value.data.i64 = 0;
+        return value;
     }
     
+    printf("DEBUG: Created IR value - type=%d, data=%lld\n", value.type, value.data.i64);
     return value;
 }
 

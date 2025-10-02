@@ -1,6 +1,6 @@
 #pragma once
 #include <stdbool.h>
-#include "tokens.h"
+#include "../../shared/tokens.h"
 
 // Lexer state
 typedef struct {

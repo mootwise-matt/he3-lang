@@ -145,16 +145,15 @@ void parser_synchronize(Parser* parser) {
 
 // AST creation helpers
 Ast* create_ast_node(AstKind kind) {
-    return ast_create_node(kind);
+    return ast_create(kind, NULL, 0, 0);
 }
 
 Ast* create_ast_literal(TokenKind token_kind, Token token) {
-    Ast* node = ast_create_node(AST_LITERAL);
+    printf("DEBUG: create_ast_literal - token_kind=%d, token.kind=%d\n", token_kind, token.kind);
+    Ast* node = ast_create(AST_LITERAL, NULL, token.line, token.col);
     if (!node) return NULL;
     
-    node->literal.token = token;
-    node->line = token.line;
-    node->col = token.col;
+    // Line and col are already set by ast_create
     
     // Set literal values based on token kind
     switch (token_kind) {
@@ -167,11 +166,12 @@ Ast* create_ast_literal(TokenKind token_kind, Token token) {
         case TK_STRING:
             // Copy string value
             printf("DEBUG: Creating string literal from token: '%.*s'\n", token.len, token.start);
-            node->literal.string_value = malloc(token.len + 1);
-            if (node->literal.string_value) {
-                strncpy(node->literal.string_value, token.start, token.len);
-                node->literal.string_value[token.len] = '\0';
-                printf("DEBUG: String literal created: '%s'\n", node->literal.string_value);
+            node->text = malloc(token.len + 1);
+            if (node->text) {
+                strncpy((char*)node->text, token.start, token.len);
+                ((char*)node->text)[token.len] = '\0';
+                node->literal.string_offset = 0;
+                printf("DEBUG: String literal created: '%s'\n", node->text);
             } else {
                 printf("DEBUG: Failed to allocate memory for string literal\n");
             }
@@ -190,7 +190,7 @@ Ast* create_ast_literal(TokenKind token_kind, Token token) {
 }
 
 Ast* create_ast_identifier(Token token) {
-    Ast* node = ast_create_node(AST_IDENTIFIER);
+    Ast* node = ast_create(AST_IDENTIFIER, NULL, token.line, token.col);
     if (!node) return NULL;
     
     node->identifier = malloc(token.len + 1);
@@ -198,37 +198,32 @@ Ast* create_ast_identifier(Token token) {
         strncpy(node->identifier, token.start, token.len);
         node->identifier[token.len] = '\0';
     }
-    node->line = token.line;
-    node->col = token.col;
+    // Line and col are already set by ast_create
     
     return node;
 }
 
 Ast* create_ast_binary(Ast* left, Token operator, Ast* right) {
-    Ast* node = ast_create_node(AST_BINARY);
+    Ast* node = ast_create(AST_BINARY, NULL, operator.line, operator.col);
     if (!node) return NULL;
     
     ast_add_child(node, left);
     ast_add_child(node, right);
-    node->line = operator.line;
-    node->col = operator.col;
     
     return node;
 }
 
 Ast* create_ast_unary(Token operator, Ast* right) {
-    Ast* node = ast_create_node(AST_UNARY);
+    Ast* node = ast_create(AST_UNARY, NULL, operator.line, operator.col);
     if (!node) return NULL;
     
     ast_add_child(node, right);
-    node->line = operator.line;
-    node->col = operator.col;
     
     return node;
 }
 
 Ast* create_ast_call(Ast* callee, Ast* arguments) {
-    Ast* node = ast_create_node(AST_CALL);
+    Ast* node = ast_create(AST_CALL, NULL, 0, 0);
     if (!node) return NULL;
     
     ast_add_child(node, callee);
@@ -240,7 +235,7 @@ Ast* create_ast_call(Ast* callee, Ast* arguments) {
 }
 
 Ast* create_ast_field_access(Ast* object, Token field) {
-    Ast* node = ast_create_node(AST_FIELD_ACCESS);
+    Ast* node = ast_create(AST_FIELD_ACCESS, NULL, 0, 0);
     if (!node) return NULL;
     
     ast_add_child(node, object);
@@ -256,7 +251,7 @@ Ast* create_ast_field_access(Ast* object, Token field) {
 }
 
 Ast* create_ast_assignment(Ast* target, Ast* value) {
-    Ast* node = ast_create_node(AST_ASSIGN);
+    Ast* node = ast_create(AST_ASSIGN, NULL, 0, 0);
     if (!node) return NULL;
     
     ast_add_child(node, target);
@@ -267,7 +262,7 @@ Ast* create_ast_assignment(Ast* target, Ast* value) {
 
 // Main parsing functions
 Ast* parse_compilation_unit(Parser* parser) {
-    Ast* compunit = ast_create_node(AST_COMPUNIT);
+    Ast* compunit = ast_create(AST_COMPUNIT, NULL, 0, 0);
     if (!compunit) return NULL;
     
     // Parse top-level declarations
@@ -313,7 +308,7 @@ Ast* parse_compilation_unit(Parser* parser) {
 }
 
 Ast* parse_domain_declaration(Parser* parser) {
-    Ast* domain = ast_create_node(AST_DOMAIN);
+    Ast* domain = ast_create(AST_DOMAIN, NULL, 0, 0);
     if (!domain) return NULL;
     
     // Parse domain name (qualified name)
@@ -349,7 +344,7 @@ Ast* parse_domain_declaration(Parser* parser) {
 }
 
 Ast* parse_class_declaration(Parser* parser) {
-    Ast* class = ast_create_node(AST_CLASS);
+    Ast* class = ast_create(AST_CLASS, NULL, 0, 0);
     if (!class) return NULL;
     
     // Parse class name
@@ -419,7 +414,7 @@ Ast* parse_class_declaration(Parser* parser) {
 }
 
 Ast* parse_method_declaration(Parser* parser) {
-    Ast* method = ast_create_node(AST_METHOD);
+    Ast* method = ast_create(AST_METHOD, NULL, 0, 0);
     if (!method) return NULL;
     
     // Check if it's async
@@ -467,7 +462,7 @@ Ast* parse_method_declaration(Parser* parser) {
 }
 
 Ast* parse_block_statement(Parser* parser) {
-    Ast* block = ast_create_node(AST_BLOCK);
+    Ast* block = ast_create(AST_BLOCK, NULL, 0, 0);
     if (!block) return NULL;
     
     parser_consume(parser, TK_LBRACE, "Expected '{' after block");
@@ -500,7 +495,7 @@ Ast* parse_statement(Parser* parser) {
         // Try to parse as expression statement
         Ast* expr = parse_expression(parser);
         if (expr) {
-            Ast* stmt = ast_create_node(AST_EXPR_STMT);
+            Ast* stmt = ast_create(AST_EXPR_STMT, NULL, 0, 0);
             if (stmt) {
                 ast_add_child(stmt, expr);
             }
@@ -519,7 +514,7 @@ Ast* parse_variable_declaration(Parser* parser) {
     TokenKind keyword = parser->previous.kind; // var or let
     Token name = parser_consume(parser, TK_IDENTIFIER, "Expected variable name");
     
-    Ast* decl = ast_create_node(AST_VAR_DECL);
+    Ast* decl = ast_create(AST_VAR_DECL, NULL, 0, 0);
     if (!decl) return NULL;
     
     decl->identifier = malloc(name.len + 1);
@@ -554,7 +549,7 @@ Ast* parse_variable_declaration(Parser* parser) {
 Ast* parse_expression_statement(Parser* parser) {
     Ast* expr = parse_expression(parser);
     if (expr) {
-        Ast* stmt = ast_create_node(AST_EXPR_STMT);
+        Ast* stmt = ast_create(AST_EXPR_STMT, NULL, 0, 0);
         if (stmt) {
             ast_add_child(stmt, expr);
         }
@@ -697,7 +692,7 @@ Ast* parse_call_expression(Parser* parser) {
 }
 
 Ast* finish_call_expression(Parser* parser, Ast* callee) {
-    Ast* arguments = ast_create_node(AST_ARGUMENTS);
+    Ast* arguments = ast_create(AST_ARGUMENTS, NULL, 0, 0);
     if (!arguments) return callee;
     
     if (!parser_check(parser, TK_RPAREN)) {
@@ -753,7 +748,7 @@ Ast* parse_type(Parser* parser) {
 
 // Helper function for parameter list parsing
 Ast* parse_parameter_list(Parser* parser) {
-    Ast* params = ast_create_node(AST_ARGUMENTS);
+    Ast* params = ast_create(AST_ARGUMENTS, NULL, 0, 0);
     if (!params) return NULL;
     
     if (!parser_check(parser, TK_RPAREN)) {
@@ -769,7 +764,7 @@ Ast* parse_parameter_list(Parser* parser) {
 }
 
 Ast* parse_parameter(Parser* parser) {
-    Ast* param = ast_create_node(AST_VAR_DECL);
+    Ast* param = ast_create(AST_VAR_DECL, NULL, 0, 0);
     if (!param) return NULL;
     
     // Parse parameter name
@@ -791,7 +786,7 @@ Ast* parse_parameter(Parser* parser) {
 }
 
 Ast* parse_field_declaration(Parser* parser) {
-    Ast* field = ast_create_node(AST_VAR_DECL);
+    Ast* field = ast_create(AST_VAR_DECL, NULL, 0, 0);
     if (!field) return NULL;
     
     // Parse field name
@@ -822,7 +817,7 @@ Ast* parse_field_declaration(Parser* parser) {
 }
 
 Ast* parse_type_list(Parser* parser) {
-    Ast* type_list = ast_create_node(AST_TYPE_ARGS);
+    Ast* type_list = ast_create(AST_TYPE_ARGS, NULL, 0, 0);
     if (!type_list) return NULL;
     
     do {
@@ -838,7 +833,7 @@ Ast* parse_type_list(Parser* parser) {
 // Placeholder implementations for remaining functions
 Ast* parse_import_declaration(Parser* parser) { return NULL; }
 Ast* parse_record_declaration(Parser* parser) {
-    Ast* record = ast_create_node(AST_RECORD);
+    Ast* record = ast_create(AST_RECORD, NULL, 0, 0);
     if (!record) return NULL;
     
     // Parse record name
@@ -891,7 +886,7 @@ Ast* parse_record_declaration(Parser* parser) {
     return record;
 }
 Ast* parse_enum_declaration(Parser* parser) {
-    Ast* enum_decl = ast_create_node(AST_ENUM);
+    Ast* enum_decl = ast_create(AST_ENUM, NULL, 0, 0);
     if (!enum_decl) return NULL;
     
     // Parse enum name
@@ -932,7 +927,7 @@ Ast* parse_enum_declaration(Parser* parser) {
 }
 
 Ast* parse_enum_variant(Parser* parser) {
-    Ast* variant = ast_create_node(AST_IDENTIFIER);
+    Ast* variant = ast_create(AST_IDENTIFIER, NULL, 0, 0);
     if (!variant) return NULL;
     
     // Parse variant name
@@ -945,7 +940,7 @@ Ast* parse_enum_variant(Parser* parser) {
     
     // Parse optional parameters (type list, not parameter list)
     if (parser_match(parser, TK_LPAREN)) {
-        Ast* param_types = ast_create_node(AST_TYPE_ARGS);
+        Ast* param_types = ast_create(AST_TYPE_ARGS, NULL, 0, 0);
         if (param_types) {
             do {
                 Ast* type = parse_type(parser);
@@ -961,7 +956,7 @@ Ast* parse_enum_variant(Parser* parser) {
     return variant;
 }
 Ast* parse_interface_declaration(Parser* parser) {
-    Ast* interface = ast_create_node(AST_INTERFACE);
+    Ast* interface = ast_create(AST_INTERFACE, NULL, 0, 0);
     if (!interface) return NULL;
     
     // Parse interface name
@@ -995,7 +990,7 @@ Ast* parse_interface_declaration(Parser* parser) {
 }
 
 Ast* parse_interface_member(Parser* parser) {
-    Ast* member = ast_create_node(AST_METHOD);
+    Ast* member = ast_create(AST_METHOD, NULL, 0, 0);
     if (!member) return NULL;
     
     // Check if it's async
@@ -1041,7 +1036,7 @@ Ast* parse_interface_member(Parser* parser) {
     return member;
 }
 Ast* parse_property_declaration(Parser* parser) {
-    Ast* property = ast_create_node(AST_PROPERTY);
+    Ast* property = ast_create(AST_PROPERTY, NULL, 0, 0);
     if (!property) return NULL;
     
     // Parse property name
@@ -1085,7 +1080,7 @@ Ast* parse_property_declaration(Parser* parser) {
 }
 
 Ast* parse_constructor_declaration(Parser* parser) {
-    Ast* constructor = ast_create_node(AST_CONSTRUCTOR);
+    Ast* constructor = ast_create(AST_CONSTRUCTOR, NULL, 0, 0);
     if (!constructor) return NULL;
     
     // Parse parameters
@@ -1112,7 +1107,7 @@ Ast* parse_return_statement(Parser* parser) {
     if (!parser) return NULL;
     
     // The 'return' keyword has already been consumed by parser_match
-    Ast* stmt = ast_create_node(AST_RETURN);
+    Ast* stmt = ast_create(AST_RETURN, NULL, 0, 0);
     if (!stmt) return NULL;
     
     // Check if there's a return value

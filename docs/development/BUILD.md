@@ -40,7 +40,7 @@ make install PREFIX=/usr/local
 
 ### Build Targets
 - `he3` - Main compiler executable
-- `he3vm` - Virtual machine (planned)
+- `he3vm` - Virtual machine executable
 - `libhe3` - Compiler library (planned)
 
 ## Project Structure
@@ -48,14 +48,22 @@ make install PREFIX=/usr/local
 ```
 he3/
 ├── src/
+│   ├── shared/            # Shared components between compiler and VM
+│   │   ├── ast/           # Unified AST definitions
+│   │   ├── bytecode/      # Shared bytecode format and opcodes
+│   │   ├── types/         # Common type definitions
+│   │   └── tokens.h       # Common token definitions
 │   ├── compiler/          # Compiler implementation
 │   │   ├── lexer/         # Lexical analysis
 │   │   ├── parser/        # Syntax analysis
-│   │   ├── ast/           # Abstract Syntax Tree
-│   │   ├── tests/         # Compiler tests
+│   │   ├── ir/            # Intermediate representation
+│   │   ├── emitter/       # Code generation
 │   │   └── main.c         # Compiler entry point
-│   ├── vm/                # Virtual Machine (planned)
-│   └── include/           # Shared headers
+│   └── vm/                # Virtual Machine implementation
+│       ├── execution/     # VM execution engine
+│       ├── memory/        # Memory management
+│       ├── objects/       # Object system
+│       └── main.c         # VM entry point
 ├── examples/              # Example programs
 ├── docs/                  # Documentation
 ├── build/                 # Build artifacts

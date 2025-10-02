@@ -381,3 +381,47 @@ PaymentEvents.subscribe(function(event) {
   AnalyticsModule.recordPayment(event);
 });
 ```
+
+## Compiler Source Structure
+
+The He³ compiler and virtual machine are organized with a **shared architecture** to ensure consistency and maintainability:
+
+### **Source Directory Structure**
+```
+src/
+├── shared/                    # Shared components between compiler and VM
+│   ├── ast/                  # Unified AST definitions
+│   │   ├── ast.h            # AST node types and functions
+│   │   └── ast.c            # AST implementation
+│   ├── tokens.h             # Common token definitions
+│   ├── bytecode/            # Shared bytecode format
+│   │   ├── bytecode_format.h
+│   │   ├── opcodes.h
+│   │   └── constant_table.c
+│   └── types/               # Common type definitions
+│       ├── types.h
+│       └── typetable.h
+├── compiler/                 # Compiler-specific components
+│   ├── lexer/               # Lexical analysis
+│   ├── parser/              # Syntax analysis
+│   ├── ir/                  # Intermediate representation
+│   ├── emitter/             # Code generation
+│   └── main.c               # Compiler entry point
+└── vm/                      # Virtual machine components
+    ├── execution/           # VM execution engine
+    ├── memory/              # Memory management
+    ├── objects/             # Object system
+    └── main.c               # VM entry point
+```
+
+### **Shared Architecture Benefits**
+- **Consistency**: Compiler and VM use identical data structures
+- **Maintainability**: Single source of truth for common definitions
+- **Reliability**: Eliminates compatibility issues between components
+- **Development Speed**: Changes to shared components automatically propagate
+
+### **Key Shared Components**
+- **AST System**: Unified tree representation used by both compiler and VM
+- **Token Definitions**: Common token types for lexer and parser
+- **Bytecode Format**: Shared instruction set and file format
+- **Type System**: Common type definitions and utilities

@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "../lexer/lexer.h"
-#include "../ast/ast.h"
+#include "../../shared/ast/ast.h"
 
 // Parser state
 typedef struct {
