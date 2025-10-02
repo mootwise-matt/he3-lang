@@ -1,6 +1,6 @@
 ---
 layout: page
-title: module-registry
+title: Module Registry System
 ---
 # Module Registry System
 

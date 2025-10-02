@@ -1,4 +1,10 @@
-# He³ (Helium-3) Programming Language - Global Rules
+# He³ (Helium-3) Programming Language - Cursor Rules
+
+## Git Operations
+- **NEVER automatically commit or push to git unless explicitly instructed by the user**
+- **ALWAYS ask for permission before running `git commit` or `git push`**
+- **ONLY make changes to files when requested**
+- **WAIT for explicit user instruction before any git operations**
 
 ## Project Context
 - **Language**: He³ - Pascal-inspired, object-oriented programming language
@@ -34,6 +40,7 @@
 4. **Consider architecture** - Respect current design decisions
 5. **Include proper error handling** - Always validate inputs
 6. **Add appropriate documentation** - Update current docs when needed
+7. **ASK before git operations** - Never commit or push without explicit permission
 
 ## He³ Language Features
 - Classes with inheritance, interfaces, and properties

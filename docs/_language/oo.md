@@ -1,6 +1,6 @@
 ---
 layout: page
-title: oo
+title: Object-Oriented Features
 ---
 # Object-Oriented Model
 

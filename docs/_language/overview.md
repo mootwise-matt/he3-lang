@@ -1,6 +1,6 @@
 ---
 layout: page
-title: overview
+title: Language Overview
 ---
 # He³ Language Overview
 
