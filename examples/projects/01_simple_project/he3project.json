@@ -1,0 +1,19 @@
+{
+  "name": "simple-project",
+  "version": "1.0.0",
+  "type": "executable",
+  "entryPoint": "src/main.he3",
+  "domains": [
+    "app.main",
+    "app.utils"
+  ],
+  "dependencies": [],
+  "security": {
+    "keys": {}
+  },
+  "build": {
+    "output": "build/simple-project.helium3",
+    "optimize": false,
+    "debug": true
+  }
+}

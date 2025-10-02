@@ -659,9 +659,46 @@ InterpretResult op_new_object(VM* vm, uint32_t type_id) {
     return INTERPRET_OK;
 }
 
+InterpretResult op_call_builtin(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, we'll handle print function calls
+    // In a full implementation, we'd look up the function name and dispatch accordingly
+    
+    // Pop the string argument from the stack
+    if (stack_is_empty(vm->stack)) {
+        printf("Runtime error: No arguments for built-in function\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value arg = stack_pop(vm->stack);
+    if (arg.type != VALUE_STRING) {
+        printf("Runtime error: print() expects a string argument\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Print the string
+    printf("%s", arg.data.string_value);
+    
+    // Push a default return value (void)
+    Value void_result = {0};
+    void_result.type = VALUE_I64;
+    void_result.data.i64_value = 0;
+    stack_push(vm->stack, void_result);
+    
+    return INTERPRET_OK;
+}
+
 InterpretResult op_call(VM* vm, uint32_t method_id) {
     if (!vm || !vm->stack) {
         return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Check if this is a built-in function call (method_id 0 is reserved for built-ins)
+    if (method_id == 0) {
+        return op_call_builtin(vm);
     }
     
     // Look up the method in the module registry

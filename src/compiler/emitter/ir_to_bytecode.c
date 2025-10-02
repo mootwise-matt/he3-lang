@@ -100,7 +100,9 @@ bool ir_to_bytecode_translate_block(IRToBytecodeTranslator* translator, IRBlock*
     translator->current_block = block;
     
     // Translate all instructions in the block
+    printf("DEBUG: Block has %zu instructions\n", block->instruction_count);
     for (size_t i = 0; i < block->instruction_count; i++) {
+        printf("DEBUG: Processing instruction %zu: op=%d\n", i, block->instructions[i]->op);
         if (!ir_to_bytecode_translate_instruction(translator, block->instructions[i])) {
             return false;
         }
@@ -112,7 +114,7 @@ bool ir_to_bytecode_translate_block(IRToBytecodeTranslator* translator, IRBlock*
 bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IRInstruction* instruction) {
     if (!translator || !instruction) return false;
     
-    printf("DEBUG: Translating IR instruction: %d\n", instruction->op);
+    printf("DEBUG: Translating IR instruction: op=%d, operand_count=%u\n", instruction->op, instruction->operand_count);
     
     // Debug: Print all enum values
     printf("DEBUG: IR_LOAD_CONST=%d, IR_INC=%d, IR_DEC=%d, IR_RETURN=%d, IR_JMP_GE=%d\n", 
@@ -147,6 +149,14 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             return ir_to_bytecode_emit_instruction(translator, OP_PUSH_CONSTANT, 
                                                  (uint8_t*)&constant_index, sizeof(uint32_t));
         }
+        
+        case IR_LOAD_STATIC:
+            printf("DEBUG: Handling IR_LOAD_STATIC\n");
+            // For built-in functions, we'll push a special built-in function reference
+            // This will be handled by the VM when the function is called
+            uint32_t builtin_id = 0; // Built-in function ID (0 = print)
+            return ir_to_bytecode_emit_instruction(translator, OP_PUSH_CONSTANT, 
+                                                 (uint8_t*)&builtin_id, sizeof(uint32_t));
         
         case IR_LOAD_LOCAL:
             return ir_to_bytecode_emit_instruction(translator, OP_LOAD_LOCAL, 
@@ -195,9 +205,10 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             // Get argument count from second operand
             uint32_t arg_count = (uint32_t)instruction->operands[1].data.i64;
             
-            // For now, we'll use a placeholder method ID (0)
-            // In a full implementation, we'd look up the actual method ID
-            uint32_t method_id = 0;
+            // Check if the callee is a built-in function
+            // For built-in functions, we'll use method_id 0
+            // For regular functions, we'd look up the actual method ID
+            uint32_t method_id = 0; // Built-in function ID
             
             // Emit CALL instruction with method ID
             return ir_to_bytecode_emit_instruction(translator, OP_CALL, 
@@ -255,7 +266,8 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
         }
         
         default:
-            printf("DEBUG: Unknown instruction type: %d\n", instruction->op);
+            printf("DEBUG: Unknown instruction type: %d (expected IR_CALL=4)\n", instruction->op);
+            printf("DEBUG: Instruction operand count: %u\n", instruction->operand_count);
             ir_to_bytecode_translator_set_error(translator, "Unknown instruction type");
             return false;
     }

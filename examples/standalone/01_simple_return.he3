@@ -1,0 +1,7 @@
+domain app.simple;
+
+class Program {
+    function main(): System.Int64 {
+        return 0;
+    }
+}

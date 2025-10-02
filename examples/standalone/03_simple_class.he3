@@ -1,0 +1,15 @@
+domain app.class;
+
+class Calculator {
+    function add(a: System.Int64, b: System.Int64): System.Int64 {
+        return a + b;
+    }
+}
+
+class Program {
+    function main(): System.Int64 {
+        var calc: Calculator = new Calculator();
+        var result: System.Int64 = calc.add(0, 0);
+        return result;
+    }
+}

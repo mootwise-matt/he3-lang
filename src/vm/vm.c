@@ -732,3 +732,131 @@ void vm_print_module_registry(VM* vm) {
     method_registry_print_info();
     field_registry_print_info();
 }
+
+// Multi-module and library support functions
+
+int vm_load_library(VM* vm, const char* library_path) {
+    if (!vm || !library_path) {
+        return 0;
+    }
+    
+    printf("Loading library: %s\n", library_path);
+    
+    // Check if library is already loaded
+    const char* basename = strrchr(library_path, '/');
+    if (basename) {
+        basename++;
+    } else {
+        basename = library_path;
+    }
+    
+    // Remove extension
+    char module_name[256];
+    strncpy(module_name, basename, sizeof(module_name) - 1);
+    module_name[sizeof(module_name) - 1] = '\0';
+    char* dot = strrchr(module_name, '.');
+    if (dot) {
+        *dot = '\0';
+    }
+    
+    // Check if already loaded
+    if (vm_find_module(vm, module_name)) {
+        printf("Library %s already loaded\n", module_name);
+        return 1;
+    }
+    
+    // Load the library module
+    if (!vm_load_module(vm, library_path)) {
+        fprintf(stderr, "Failed to load library: %s\n", library_path);
+        return 0;
+    }
+    
+    printf("Library %s loaded successfully\n", module_name);
+    return 1;
+}
+
+int vm_load_project_modules(VM* vm, const char* project_file) {
+    if (!vm || !project_file) {
+        return 0;
+    }
+    
+    printf("Loading project modules from: %s\n", project_file);
+    
+    // TODO: Parse project file and load all modules
+    // For now, this is a placeholder that would:
+    // 1. Parse the he3project.json file
+    // 2. Load all source files as modules
+    // 3. Load all dependencies as libraries
+    // 4. Resolve cross-module references
+    
+    printf("Project module loading not yet implemented\n");
+    return 0;
+}
+
+bool vm_resolve_dependencies(VM* vm, const char* project_file) {
+    if (!vm || !project_file) {
+        return false;
+    }
+    
+    printf("Resolving dependencies for project: %s\n", project_file);
+    
+    // TODO: Implement dependency resolution
+    // This would:
+    // 1. Parse project dependencies
+    // 2. Load required libraries
+    // 3. Resolve cross-module class/method references
+    // 4. Validate all dependencies are satisfied
+    
+    printf("Dependency resolution not yet implemented\n");
+    return false;
+}
+
+ClassRegistryEntry* vm_find_class_anywhere(VM* vm, const char* class_name) {
+    if (!vm || !class_name) {
+        return NULL;
+    }
+    
+    // Search through all loaded modules for the class
+    ModuleEntry* current = vm->module_registry->modules;
+    while (current) {
+        ClassRegistryEntry* class_entry = class_registry_find_class_by_name_and_module(
+            class_name, current->module_id
+        );
+        if (class_entry) {
+            return class_entry;
+        }
+        current = current->next;
+    }
+    
+    return NULL;
+}
+
+MethodRegistryEntry* vm_find_method_anywhere(VM* vm, const char* method_name, const char* class_name) {
+    if (!vm || !method_name || !class_name) {
+        return NULL;
+    }
+    
+    // First find the class
+    ClassRegistryEntry* class_entry = vm_find_class_anywhere(vm, class_name);
+    if (!class_entry) {
+        return NULL;
+    }
+    
+    // Then find the method in that class
+    return method_registry_find_method_by_name_and_type(method_name, class_entry->type_id);
+}
+
+FieldRegistryEntry* vm_find_field_anywhere(VM* vm, const char* field_name, const char* class_name) {
+    if (!vm || !field_name || !class_name) {
+        return NULL;
+    }
+    
+    // First find the class
+    ClassRegistryEntry* class_entry = vm_find_class_anywhere(vm, class_name);
+    if (!class_entry) {
+        return NULL;
+    }
+    
+    // Then find the field in that class
+    return field_registry_find_field_by_name_and_type(field_name, class_entry->type_id);
+}

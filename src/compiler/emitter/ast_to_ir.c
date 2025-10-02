@@ -93,6 +93,9 @@ AstToIRTranslator* ast_to_ir_translator_create(void) {
     translator->error_message = NULL;
     translator->has_error = false;
     
+    // Register built-in functions
+    ast_to_ir_register_builtin_functions(translator);
+    
     return translator;
 }
 
@@ -480,6 +483,8 @@ IRValue ast_to_ir_translate_method_call(AstToIRTranslator* translator, Ast* ast)
         return null_value;
     }
     
+    printf("DEBUG: Created IR_CALL instruction with op=%d\n", call_instruction->op);
+    
     // Add callee as first operand
     ir_instruction_add_operand(call_instruction, callee);
     
@@ -500,6 +505,7 @@ IRValue ast_to_ir_translate_method_call(AstToIRTranslator* translator, Ast* ast)
     ir_instruction_set_result(call_instruction, result);
     
     // Add instruction to current block
+    printf("DEBUG: Adding IR_CALL instruction to IR function\n");
     ir_builder_add_instruction(translator->ir_builder, call_instruction);
     
     return result;
@@ -1191,6 +1197,29 @@ IRValue ast_to_ir_create_literal_value(Ast* ast) {
         value.data.i64 = 0;
         return value;
     }
+}
+
+// Register built-in functions in the symbol table
+void ast_to_ir_register_builtin_functions(AstToIRTranslator* translator) {
+    if (!translator || !translator->symbol_table) return;
+    
+    // Register print function
+    ast_to_ir_add_symbol(translator, "print", TYPE_ID_VOID, false);
+    
+    // Register other built-in functions as needed
+    ast_to_ir_add_symbol(translator, "println", TYPE_ID_VOID, false);
+    ast_to_ir_add_symbol(translator, "readLine", TYPE_ID_STRING, false);
+    ast_to_ir_add_symbol(translator, "fileExists", TYPE_ID_BOOLEAN, false);
+    ast_to_ir_add_symbol(translator, "readFile", TYPE_ID_STRING, false);
+    ast_to_ir_add_symbol(translator, "writeFile", TYPE_ID_VOID, false);
+    ast_to_ir_add_symbol(translator, "currentTimeMillis", TYPE_ID_INTEGER, false);
+    ast_to_ir_add_symbol(translator, "exit", TYPE_ID_VOID, false);
+    ast_to_ir_add_symbol(translator, "argc", TYPE_ID_INTEGER, false);
+    ast_to_ir_add_symbol(translator, "argv", TYPE_ID_STRING, false);
+    ast_to_ir_add_symbol(translator, "workingDir", TYPE_ID_STRING, false);
+    ast_to_ir_add_symbol(translator, "changeDir", TYPE_ID_VOID, false);
+    ast_to_ir_add_symbol(translator, "envGet", TYPE_ID_STRING, false);
+    ast_to_ir_add_symbol(translator, "envSet", TYPE_ID_VOID, false);
 }
 
 // These functions are not used in the current simplified implementation

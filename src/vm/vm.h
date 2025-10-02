@@ -136,3 +136,11 @@ ClassRegistryEntry* vm_find_class_in_registry(VM* vm, const char* class_name);
 MethodRegistryEntry* vm_find_method_in_registry(VM* vm, const char* method_name);
 FieldRegistryEntry* vm_find_field_in_registry(VM* vm, const char* field_name);
 void vm_print_module_registry(VM* vm);
+
+// Multi-module and library support
+int vm_load_library(VM* vm, const char* library_path);
+int vm_load_project_modules(VM* vm, const char* project_file);
+bool vm_resolve_dependencies(VM* vm, const char* project_file);
+ClassRegistryEntry* vm_find_class_anywhere(VM* vm, const char* class_name);
+MethodRegistryEntry* vm_find_method_anywhere(VM* vm, const char* method_name, const char* class_name);
+FieldRegistryEntry* vm_find_field_anywhere(VM* vm, const char* field_name, const char* class_name);

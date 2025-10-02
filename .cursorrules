@@ -1,10 +1,12 @@
 # He³ (Helium-3) Programming Language - Cursor Rules
 
-## Git Operations
-- **NEVER automatically commit or push to git unless explicitly instructed by the user**
-- **ALWAYS ask for permission before running `git commit` or `git push`**
+## Git Operations - STRICT RULES
+- **NEVER automatically commit or push to git under ANY circumstances**
+- **NEVER run `git commit` or `git push` without explicit user instruction**
 - **ONLY make changes to files when requested**
-- **WAIT for explicit user instruction before any git operations**
+- **ALWAYS ask for explicit permission before ANY git operations**
+- **If you need to commit/push, ask the user first: "Should I commit and push these changes?"**
+- **Wait for explicit "yes" or "git commit and push" instruction before proceeding**
 
 ## Project Context
 - **Language**: He³ - Pascal-inspired, object-oriented programming language

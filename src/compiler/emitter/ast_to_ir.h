@@ -81,3 +81,6 @@ bool ast_to_ir_is_logical_operation(AstKind kind);
 IROp ast_to_ir_get_arithmetic_op(AstKind kind);
 IROp ast_to_ir_get_comparison_op(AstKind kind);
 IROp ast_to_ir_get_logical_op(AstKind kind);
+
+// Built-in function registration
+void ast_to_ir_register_builtin_functions(AstToIRTranslator* translator);
