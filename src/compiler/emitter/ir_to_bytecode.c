@@ -184,15 +184,75 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             // For now, just emit a comparison - the jump will be handled separately
             return ir_to_bytecode_emit_instruction(translator, OP_GE, NULL, 0);
         
-        case IR_CALL:
+        case IR_CALL: {
             printf("DEBUG: Handling IR_CALL\n");
-            // For now, just emit a return - method calls will be handled later
-            return ir_to_bytecode_emit_instruction(translator, OP_RETURN, NULL, 0);
+            // IR_CALL has: callee, argument count, and arguments
+            if (instruction->operand_count < 2) {
+                ir_to_bytecode_translator_set_error(translator, "IR_CALL requires callee and argument count");
+                return false;
+            }
+            
+            // Get argument count from second operand
+            uint32_t arg_count = (uint32_t)instruction->operands[1].data.i64;
+            
+            // For now, we'll use a placeholder method ID (0)
+            // In a full implementation, we'd look up the actual method ID
+            uint32_t method_id = 0;
+            
+            // Emit CALL instruction with method ID
+            return ir_to_bytecode_emit_instruction(translator, OP_CALL, 
+                                                 (uint8_t*)&method_id, sizeof(uint32_t));
+        }
         
         case IR_RETURN_VAL:
             printf("DEBUG: Handling IR_RETURN_VAL\n");
             // For now, just emit a return - return values will be handled later
             return ir_to_bytecode_emit_instruction(translator, OP_RETURN, NULL, 0);
+        
+        case IR_NEW: {
+            printf("DEBUG: Handling IR_NEW\n");
+            // IR_NEW has: class name (string), argument count (i64)
+            if (instruction->operand_count < 2) {
+                ir_to_bytecode_translator_set_error(translator, "IR_NEW requires class name and argument count");
+                return false;
+            }
+            
+            // Get class name from first operand
+            const char* class_name = (const char*)(uintptr_t)instruction->operands[0].data.string_id;
+            uint32_t class_name_offset = ir_to_bytecode_add_string_constant(translator, class_name);
+            if (class_name_offset == 0) {
+                ir_to_bytecode_translator_set_error(translator, "Failed to add class name to string table");
+                return false;
+            }
+            
+            // Get argument count from second operand
+            uint32_t arg_count = (uint32_t)instruction->operands[1].data.i64;
+            
+            // For now, we'll use a placeholder type ID (0 = System.Object)
+            // In a full implementation, we'd look up the actual type ID
+            uint32_t type_id = 0;
+            
+            // Emit NEW_OBJECT instruction with type ID
+            return ir_to_bytecode_emit_instruction(translator, OP_NEW_OBJECT, 
+                                                 (uint8_t*)&type_id, sizeof(uint32_t));
+        }
+        
+        case IR_LOAD_FIELD: {
+            printf("DEBUG: Handling IR_LOAD_FIELD\n");
+            // IR_LOAD_FIELD has: object, field
+            if (instruction->operand_count < 2) {
+                ir_to_bytecode_translator_set_error(translator, "IR_LOAD_FIELD requires object and field");
+                return false;
+            }
+            
+            // For now, we'll use a placeholder field ID (0)
+            // In a full implementation, we'd look up the actual field ID
+            uint32_t field_id = 0;
+            
+            // Emit LOAD_FIELD instruction with field ID
+            return ir_to_bytecode_emit_instruction(translator, OP_LOAD_FIELD, 
+                                                 (uint8_t*)&field_id, sizeof(uint32_t));
+        }
         
         default:
             printf("DEBUG: Unknown instruction type: %d\n", instruction->op);

@@ -319,6 +319,18 @@ int compile_file(const char* input_filename, const char* output_filename,
         helium_module->bytecode_size = bytecode_file->header.bytecode_size;
         helium_module->header.entry_point_method_id = bytecode_file->header.entry_point_method_id;
         
+        // Add Sys class to module manifest (as first entry)
+        if (!helium_module_add_sys_class(helium_module)) {
+            fprintf(stderr, "Error: Failed to add Sys class to module manifest\n");
+            helium_module_destroy(helium_module);
+            bytecode_file_destroy(bytecode_file);
+            ir_to_bytecode_translator_destroy(bytecode_translator);
+            ast_to_ir_translator_destroy(ir_translator);
+            parser_destroy(parser);
+            lexer_destroy(lexer);
+            return 1;
+        }
+        
         // Set module name and version
         helium_module->header.module_name_offset = helium_module_add_string(helium_module, "example");
         helium_module->header.module_version_offset = helium_module_add_string(helium_module, "1.0.0");

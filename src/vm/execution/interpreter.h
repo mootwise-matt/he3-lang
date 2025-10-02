@@ -89,8 +89,11 @@ InterpretResult op_ret_val(VM* vm);
 
 // Object operations
 InterpretResult op_new(VM* vm, uint32_t type_index);
+InterpretResult op_new_object(VM* vm, uint32_t type_id);
 InterpretResult op_load_field(VM* vm, uint32_t field_index);
 InterpretResult op_store_field(VM* vm, uint32_t field_index);
+InterpretResult op_call_virtual(VM* vm, uint32_t method_id);
+InterpretResult op_call_static(VM* vm, uint32_t method_id);
 
 // Array operations
 InterpretResult op_load_index(VM* vm);

@@ -315,6 +315,8 @@ IRValue ast_to_ir_translate_expression(AstToIRTranslator* translator, Ast* ast) 
             return ast_to_ir_translate_array_access(translator, ast);
         case AST_ASSIGN:
             return ast_to_ir_translate_assignment_expression(translator, ast);
+        case AST_NEW:
+            return ast_to_ir_translate_new_expression(translator, ast);
         default:
             ast_to_ir_translator_set_error(translator, "Unsupported expression type");
             IRValue null_value = {0};
@@ -1094,6 +1096,57 @@ void ast_to_ir_translator_set_error(AstToIRTranslator* translator, const char* m
 const char* ast_to_ir_translator_get_error(AstToIRTranslator* translator) {
     if (!translator) return NULL;
     return translator->error_message;
+}
+
+IRValue ast_to_ir_translate_new_expression(AstToIRTranslator* translator, Ast* ast) {
+    if (!translator || !ast || !ast->identifier) {
+        IRValue null_value = {0};
+        return null_value;
+    }
+    
+    // Find constructor arguments
+    Ast* arguments = NULL;
+    for (uint32_t i = 0; i < ast->child_count; i++) {
+        if (ast->children[i]->kind == AST_ARGUMENTS) {
+            arguments = ast->children[i];
+            break;
+        }
+    }
+    
+    // Translate constructor arguments
+    if (arguments) {
+        for (uint32_t i = 0; i < arguments->child_count; i++) {
+            ast_to_ir_translate_expression(translator, arguments->children[i]);
+        }
+    }
+    
+    // Create NEW instruction
+    IRInstruction* instruction = ir_builder_create_instruction(translator->ir_builder, IR_NEW);
+    if (!instruction) {
+        ast_to_ir_translator_set_error(translator, "Failed to create NEW instruction");
+        IRValue null_value = {0};
+        return null_value;
+    }
+    
+    // Add class name as string operand
+    IRValue class_name_value = {0};
+    class_name_value.type = IR_VALUE_STRING;
+    class_name_value.data.string_id = (uint32_t)(uintptr_t)ast->identifier;
+    ir_instruction_add_operand(instruction, class_name_value);
+    
+    // Add argument count as operand
+    IRValue arg_count_value = {0};
+    arg_count_value.type = IR_VALUE_I64;
+    arg_count_value.data.i64 = arguments ? arguments->child_count : 0;
+    ir_instruction_add_operand(instruction, arg_count_value);
+    
+    // Create result value
+    IRValue result = ast_to_ir_create_temp_value(translator, IR_VALUE_OBJECT);
+    ir_instruction_set_result(instruction, result);
+    
+    ir_builder_add_instruction(translator->ir_builder, instruction);
+    
+    return result;
 }
 
 bool ast_to_ir_translator_has_error(AstToIRTranslator* translator) {

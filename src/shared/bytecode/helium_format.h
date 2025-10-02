@@ -79,4 +79,5 @@ HeliumModule* helium_module_load(const char* filename);
 bool helium_module_validate(HeliumModule* module);
 const char* helium_module_get_string(HeliumModule* module, uint32_t offset);
 uint32_t helium_module_add_string(HeliumModule* module, const char* str);
+bool helium_module_add_sys_class(HeliumModule* module);
 void helium_module_print_info(HeliumModule* module);

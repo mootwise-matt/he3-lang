@@ -69,6 +69,18 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
             return op_ge(vm);
         case OP_RETURN:
             return op_ret(vm);
+        case OP_NEW_OBJECT:
+            return op_new_object(vm, *(uint32_t*)operands);
+        case OP_CALL:
+            return op_call(vm, *(uint32_t*)operands);
+        case OP_CALL_VIRTUAL:
+            return op_call_virtual(vm, *(uint32_t*)operands);
+        case OP_CALL_STATIC:
+            return op_call_static(vm, *(uint32_t*)operands);
+        case OP_LOAD_FIELD:
+            return op_load_field(vm, *(uint32_t*)operands);
+        case OP_STORE_FIELD:
+            return op_store_field(vm, *(uint32_t*)operands);
         default:
             printf("Runtime error: Invalid Opcode 0x%02X\n", opcode);
             return INTERPRET_RUNTIME_ERROR;
@@ -616,6 +628,104 @@ InterpretResult op_ge(VM* vm) {
     Value result_value = value_create_bool(result);
     if (!stack_push(vm->stack, result_value)) {
         return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+// ============================================================================
+// OBJECT OPERATIONS
+// ============================================================================
+
+InterpretResult op_new_object(VM* vm, uint32_t type_id) {
+    if (!vm || !vm->heap) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, create a simple object with the given type ID
+    // In a full implementation, we'd look up the class definition
+    // and allocate the proper amount of memory
+    
+    // Create a basic object structure
+    // This is a simplified implementation - in reality we'd need
+    // to look up the class definition and allocate proper memory
+    Value object_value = value_create_object(NULL); // NULL for now
+    if (!stack_push(vm->stack, object_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    printf("DEBUG: Created object with type_id=%u\n", type_id);
+    return INTERPRET_OK;
+}
+
+InterpretResult op_call(VM* vm, uint32_t method_id) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, just pop the arguments and return a default value
+    // In a full implementation, we'd look up the method definition
+    // and execute its bytecode
+    
+    printf("DEBUG: Calling method with id=%u\n", method_id);
+    
+    // Pop arguments (we don't know how many, so we'll just pop one for now)
+    if (vm->stack->top > 0) {
+        stack_pop(vm->stack);
+    }
+    
+    // Push a default return value
+    Value result = value_create_i64(0);
+    if (!stack_push(vm->stack, result)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_call_virtual(VM* vm, uint32_t method_id) {
+    // Virtual calls are similar to regular calls but with dynamic dispatch
+    return op_call(vm, method_id);
+}
+
+InterpretResult op_call_static(VM* vm, uint32_t method_id) {
+    // Static calls don't need an object instance
+    return op_call(vm, method_id);
+}
+
+InterpretResult op_load_field(VM* vm, uint32_t field_id) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, just return a default value
+    // In a full implementation, we'd pop the object from the stack,
+    // look up the field, and push its value
+    
+    printf("DEBUG: Loading field with id=%u\n", field_id);
+    
+    // Push a default field value
+    Value field_value = value_create_i64(0);
+    if (!stack_push(vm->stack, field_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_store_field(VM* vm, uint32_t field_id) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, just pop the value
+    // In a full implementation, we'd pop the value and object from the stack,
+    // look up the field, and store the value
+    
+    printf("DEBUG: Storing field with id=%u\n", field_id);
+    
+    if (vm->stack->top > 0) {
+        stack_pop(vm->stack);
     }
     
     return INTERPRET_OK;

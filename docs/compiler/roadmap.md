@@ -67,6 +67,10 @@ src/
 **Goal**: Add more language features incrementally
 
 **Deliverables**:
+- [x] **Object-Oriented Programming** - Classes, inheritance, methods, fields
+- [x] **Module Registry System** - Runtime class discovery and method resolution
+- [x] **Bytecode Generation** - Complete OO opcode support (NEW, CALL, LOAD_FIELD, etc.)
+- [x] **VM Integration** - Module loading and class registration
 - [ ] Security annotations
 - [ ] Event system
 - [ ] Async/await

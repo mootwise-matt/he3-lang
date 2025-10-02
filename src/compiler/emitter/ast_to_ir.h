@@ -44,6 +44,7 @@ IRValue ast_to_ir_translate_method_call(AstToIRTranslator* translator, Ast* ast)
 IRValue ast_to_ir_translate_field_access(AstToIRTranslator* translator, Ast* ast);
 IRValue ast_to_ir_translate_array_access(AstToIRTranslator* translator, Ast* ast);
 IRValue ast_to_ir_translate_assignment_expression(AstToIRTranslator* translator, Ast* ast);
+IRValue ast_to_ir_translate_new_expression(AstToIRTranslator* translator, Ast* ast);
 
 // Statement translation
 void ast_to_ir_translate_statement(AstToIRTranslator* translator, Ast* ast);

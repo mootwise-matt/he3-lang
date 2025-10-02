@@ -174,6 +174,7 @@ class Program {
 
 ### **Virtual Machine Documentation**
 - [**VM Design**](vm/design.md) - Virtual machine architecture
+- [**Module Registry**](vm/module-registry.md) - Runtime class discovery and registration system
 
 ### **Source Code**
 - [**GitHub Repository**](https://github.com/mootwise-matt/he3-lang) - Complete source code
@@ -223,7 +224,8 @@ class Program {
 - **Core Engine** - Stack-based interpreter with PC/SP/FP registers
 - **Memory Management** - Generational garbage collection (16MB heap)
 - **Object System** - Classes, methods, fields, and inheritance
-- **Bytecode Loader** - .bx file loading and module management
+- **Module Registry** - Runtime class discovery and registration system
+- **Bytecode Loader** - .bx and .helium3 file loading and module management
 - **Cross-Platform** - ARM, Apple Silicon, Intel support
 
 #### **Shared Architecture**

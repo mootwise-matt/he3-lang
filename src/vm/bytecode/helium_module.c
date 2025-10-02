@@ -431,6 +431,52 @@ uint32_t helium_module_add_string(HeliumModule* module, const char* str) {
     return string_table_add_string(module->string_table_obj, str);
 }
 
+// Add Sys class to module manifest (as first entry)
+bool helium_module_add_sys_class(HeliumModule* module) {
+    if (!module || !module->type_table || !module->method_table) {
+        return false;
+    }
+    
+    // Add Sys class to type table
+    TypeEntry sys_type;
+    sys_type.type_id = 1; // Sys gets type ID 1
+    sys_type.name_offset = helium_module_add_string(module, "Sys");
+    sys_type.parent_type_id = 0; // Sys inherits from System.Object (type ID 0)
+    sys_type.size = sizeof(void*); // Sys is a singleton, just a pointer
+    sys_type.field_count = 0;
+    sys_type.method_count = 1; // println method
+    sys_type.interface_count = 0;
+    sys_type.flags = TYPE_FLAG_CLASS; // Sys is a class
+    sys_type.vtable_offset = 0; // Will be set by VM
+    
+    // Add to type table using the existing function
+    if (!type_table_add_type(module->type_table, &sys_type)) {
+        return false;
+    }
+    
+    // Add println method to method table
+    MethodEntry println_method;
+    println_method.method_id = 1; // println gets method ID 1
+    println_method.type_id = 1; // Belongs to Sys class
+    println_method.name_offset = helium_module_add_string(module, "println");
+    println_method.signature_offset = helium_module_add_string(module, "(System.Object):void");
+    println_method.bytecode_offset = 0; // Will be set by VM
+    println_method.bytecode_size = 0; // Will be set by VM
+    println_method.local_count = 0;
+    println_method.param_count = 1; // Takes one parameter (the value to print)
+    println_method.return_type_id = 0; // Returns void (type ID 0)
+    println_method.flags = METHOD_FLAG_STATIC; // Sys.println() is static
+    println_method.line_number = 0;
+    println_method.column_number = 0;
+    
+    // Add to method table using the existing function
+    if (!method_table_add_method(module->method_table, &println_method)) {
+        return false;
+    }
+    
+    return true;
+}
+
 // Print module information
 void helium_module_print_info(HeliumModule* module) {
     if (!module) {

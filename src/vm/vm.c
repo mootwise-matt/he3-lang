@@ -3,6 +3,7 @@
 #include "execution/stack.h"
 #include "execution/interpreter.h"
 #include "execution/context.h"
+#include "modules/module_registry.h"
 #include "../shared/bytecode/helium_format.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,15 @@ VM* vm_create(void) {
     vm->context = execution_context_create();
     vm->heap = heap_create(16 * 1024 * 1024); // 16MB heap
     vm->classes = NULL;
+    vm->module_registry = module_registry_create();
+    if (!vm->module_registry) {
+        fprintf(stderr, "Failed to create module registry\n");
+        if (vm->stack) stack_destroy(vm->stack);
+        if (vm->context) execution_context_destroy(vm->context);
+        if (vm->heap) heap_destroy(vm->heap);
+        free(vm);
+        return NULL;
+    }
     vm->running = false;
     vm->exit_code = 0;
     
@@ -57,6 +67,14 @@ void vm_destroy(VM* vm) {
     // Clean up object system
     vm_cleanup_object_system(vm);
     
+    // Clean up module registry
+    if (vm->module_registry) {
+        module_registry_destroy(vm->module_registry);
+    }
+    
+    // Clean up global registries
+    module_registry_cleanup();
+    
     free(vm);
 }
 
@@ -74,10 +92,32 @@ int vm_load_bytecode(VM* vm, const char* filename) {
     }
     
     if (strcmp(extension, ".helium3") == 0) {
-        // Load helium3 module
-        HeliumModule* module = helium_module_load(filename);
-        if (!module) {
+        // Load helium3 module using module registry
+        if (!module_registry_load_helium3_module(vm->module_registry, filename)) {
             fprintf(stderr, "Failed to load helium3 module: %s\n", filename);
+            return 0;
+        }
+        
+        // Get the loaded module (extract basename without extension)
+        const char* basename = strrchr(filename, '/');
+        if (basename) {
+            basename++;
+        } else {
+            basename = filename;
+        }
+        
+        // Remove extension
+        char module_name[256];
+        strncpy(module_name, basename, sizeof(module_name) - 1);
+        module_name[sizeof(module_name) - 1] = '\0';
+        char* dot = strrchr(module_name, '.');
+        if (dot) {
+            *dot = '\0';
+        }
+        
+        ModuleEntry* module_entry = module_registry_find_module(vm->module_registry, module_name);
+        if (!module_entry) {
+            fprintf(stderr, "Failed to find loaded module: %s\n", module_name);
             return 0;
         }
         
@@ -85,41 +125,64 @@ int vm_load_bytecode(VM* vm, const char* filename) {
         vm->bytecode = bytecode_file_create();
         if (!vm->bytecode) {
             fprintf(stderr, "Failed to create bytecode file structure\n");
-            helium_module_destroy(module);
             return 0;
         }
         
         // Copy data from helium module to bytecode file
-        vm->bytecode->string_table = module->string_table_obj;
-        vm->bytecode->type_table = module->type_table;
-        vm->bytecode->method_table = module->method_table;
-        vm->bytecode->field_table = module->field_table;
-        vm->bytecode->bytecode = module->bytecode;
-        vm->bytecode->header.bytecode_size = module->bytecode_size;
-        vm->bytecode->header.entry_point_method_id = module->header.entry_point_method_id;
+        vm->bytecode->string_table = module_entry->helium_module->string_table_obj;
+        vm->bytecode->type_table = module_entry->helium_module->type_table;
+        vm->bytecode->method_table = module_entry->helium_module->method_table;
+        vm->bytecode->field_table = module_entry->helium_module->field_table;
+        vm->bytecode->bytecode = module_entry->helium_module->bytecode;
+        vm->bytecode->header.bytecode_size = module_entry->helium_module->bytecode_size;
+        vm->bytecode->header.entry_point_method_id = module_entry->helium_module->header.entry_point_method_id;
         
         // Set up header flags
         vm->bytecode->header.flags = BYTECODE_FLAG_EXECUTABLE;
         
         printf("Loaded helium3 module: %s\n", filename);
-        printf("Module Name: %s\n", helium_module_get_string(module, module->header.module_name_offset));
-        printf("Module Version: %s\n", helium_module_get_string(module, module->header.module_version_offset));
+        printf("Module Name: %s\n", module_entry->module_name);
+        printf("Module Version: %s\n", module_entry->module_version);
         printf("Methods: %u\n", vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
         printf("Types: %u\n", vm->bytecode->type_table ? vm->bytecode->type_table->count : 0);
         
-        // Clean up helium module (but keep the data)
-        free(module);
-        
     } else if (strcmp(extension, ".bx") == 0) {
-        // Load regular bytecode file
-        vm->bytecode = bytecode_load_file(filename);
-        if (!vm->bytecode) {
+        // Load regular bytecode file using module registry
+        printf("DEBUG: Loading bytecode file: %s\n", filename);
+        if (!module_registry_load_bytecode_file(vm->module_registry, filename)) {
             fprintf(stderr, "Failed to load bytecode file: %s\n", filename);
             return 0;
         }
+        printf("DEBUG: Bytecode file loaded successfully\n");
+        
+        // Get the loaded module (extract basename without extension)
+        const char* basename = strrchr(filename, '/');
+        if (basename) {
+            basename++;
+        } else {
+            basename = filename;
+        }
+        
+        // Remove extension
+        char module_name[256];
+        strncpy(module_name, basename, sizeof(module_name) - 1);
+        module_name[sizeof(module_name) - 1] = '\0';
+        char* dot = strrchr(module_name, '.');
+        if (dot) {
+            *dot = '\0';
+        }
+        
+        ModuleEntry* module_entry = module_registry_find_module(vm->module_registry, module_name);
+        if (!module_entry) {
+            fprintf(stderr, "Failed to find loaded module: %s\n", module_name);
+            return 0;
+        }
+        
+        // Use the bytecode file from the module
+        vm->bytecode = module_entry->bytecode_file;
         
         printf("Loaded bytecode file: %s\n", filename);
-        printf("Domain: %s\n", bytecode_get_domain_name(vm->bytecode));
+        printf("Module Name: %s\n", module_entry->module_name);
         printf("Methods: %u\n", vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
         printf("Types: %u\n", vm->bytecode->type_table ? vm->bytecode->type_table->count : 0);
         
@@ -585,4 +648,87 @@ void vm_print_objects(VM* vm) {
     printf("=== Object System Objects ===\n");
     printf("Note: Object tracking not yet implemented\n");
     printf("Heap contains allocated objects managed by GC\n");
+}
+
+// Module registry functions
+void vm_initialize_module_registry(VM* vm) {
+    if (!vm) return;
+    
+    if (!vm->module_registry) {
+        vm->module_registry = module_registry_create();
+    }
+}
+
+void vm_cleanup_module_registry(VM* vm) {
+    if (!vm || !vm->module_registry) return;
+    
+    module_registry_destroy(vm->module_registry);
+    vm->module_registry = NULL;
+}
+
+bool vm_load_module(VM* vm, const char* filename) {
+    if (!vm || !filename) {
+        return false;
+    }
+    
+    if (!vm->module_registry) {
+        vm_initialize_module_registry(vm);
+    }
+    
+    const char* extension = strrchr(filename, '.');
+    if (!extension) {
+        return false;
+    }
+    
+    if (strcmp(extension, ".helium3") == 0) {
+        return module_registry_load_helium3_module(vm->module_registry, filename);
+    } else if (strcmp(extension, ".bx") == 0) {
+        return module_registry_load_bytecode_file(vm->module_registry, filename);
+    }
+    
+    return false;
+}
+
+ModuleEntry* vm_find_module(VM* vm, const char* module_name) {
+    if (!vm || !vm->module_registry || !module_name) {
+        return NULL;
+    }
+    
+    return module_registry_find_module(vm->module_registry, module_name);
+}
+
+ClassRegistryEntry* vm_find_class_in_registry(VM* vm, const char* class_name) {
+    if (!vm || !class_name) {
+        return NULL;
+    }
+    
+    return class_registry_find_class(class_name);
+}
+
+MethodRegistryEntry* vm_find_method_in_registry(VM* vm, const char* method_name) {
+    if (!vm || !method_name) {
+        return NULL;
+    }
+    
+    return method_registry_find_method(method_name);
+}
+
+FieldRegistryEntry* vm_find_field_in_registry(VM* vm, const char* field_name) {
+    if (!vm || !field_name) {
+        return NULL;
+    }
+    
+    return field_registry_find_field(field_name);
+}
+
+void vm_print_module_registry(VM* vm) {
+    if (!vm || !vm->module_registry) {
+        printf("No module registry available\n");
+        return;
+    }
+    
+    module_registry_print_info(vm->module_registry);
+    class_registry_print_info();
+    method_registry_print_info();
+    field_registry_print_info();
 }

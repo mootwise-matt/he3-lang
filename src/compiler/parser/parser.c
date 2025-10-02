@@ -112,7 +112,12 @@ void parser_error_at_previous(Parser* parser, const char* message) {
 void parser_synchronize(Parser* parser) {
     parser->panic_mode = false;
     
-    while (!parser_is_at_end(parser)) {
+    int sync_count = 0;
+    const int MAX_SYNC_ATTEMPTS = 100; // Prevent infinite loops
+    
+    while (!parser_is_at_end(parser) && sync_count < MAX_SYNC_ATTEMPTS) {
+        sync_count++;
+        
         // If we just consumed a semicolon, we're at a statement boundary
         if (parser->previous.kind == TK_SEMICOLON) {
             return;
@@ -128,6 +133,7 @@ void parser_synchronize(Parser* parser) {
             case TK_PROCEDURE:
             case TK_VAR:
             case TK_LET:
+            case TK_NEW:
             case TK_IF:
             case TK_WHILE:
             case TK_FOR:
@@ -140,6 +146,13 @@ void parser_synchronize(Parser* parser) {
         }
         
         parser_advance(parser);
+    }
+    
+    // If we've exceeded max sync attempts, force advance to EOF
+    if (sync_count >= MAX_SYNC_ATTEMPTS) {
+        while (!parser_is_at_end(parser)) {
+            parser_advance(parser);
+        }
     }
 }
 
@@ -277,41 +290,80 @@ Ast* parse_compilation_unit(Parser* parser) {
     if (!compunit) return NULL;
     
     // Parse top-level declarations
-    while (!parser_is_at_end(parser)) {
+    int parse_attempts = 0;
+    const int MAX_PARSE_ATTEMPTS = 1000; // Prevent infinite loops
+    
+    while (!parser_is_at_end(parser) && parse_attempts < MAX_PARSE_ATTEMPTS) {
+        parse_attempts++;
+        
         if (parser_match(parser, TK_DOMAIN)) {
-        Ast* domain = parse_domain_declaration(parser);
-        if (domain) {
+            Ast* domain = parse_domain_declaration(parser);
+            if (domain) {
                 ast_add_child(compunit, domain);
+            }
+            // Always advance even if parsing failed
+            if (parser->panic_mode) {
+                parser_synchronize(parser);
             }
         } else if (parser_match(parser, TK_IMPORT)) {
             Ast* import = parse_import_declaration(parser);
             if (import) {
                 ast_add_child(compunit, import);
             }
+            // Always advance even if parsing failed
+            if (parser->panic_mode) {
+                parser_synchronize(parser);
+            }
         } else if (parser_match(parser, TK_CLASS)) {
             Ast* class = parse_class_declaration(parser);
             if (class) {
                 ast_add_child(compunit, class);
+            }
+            // Always advance even if parsing failed
+            if (parser->panic_mode) {
+                parser_synchronize(parser);
             }
         } else if (parser_match(parser, TK_RECORD)) {
             Ast* record = parse_record_declaration(parser);
             if (record) {
                 ast_add_child(compunit, record);
             }
+            // Always advance even if parsing failed
+            if (parser->panic_mode) {
+                parser_synchronize(parser);
+            }
         } else if (parser_match(parser, TK_ENUM)) {
             Ast* enum_decl = parse_enum_declaration(parser);
             if (enum_decl) {
                 ast_add_child(compunit, enum_decl);
+            }
+            // Always advance even if parsing failed
+            if (parser->panic_mode) {
+                parser_synchronize(parser);
             }
         } else if (parser_match(parser, TK_INTERFACE)) {
             Ast* interface = parse_interface_declaration(parser);
             if (interface) {
                 ast_add_child(compunit, interface);
             }
+            // Always advance even if parsing failed
+            if (parser->panic_mode) {
+                parser_synchronize(parser);
+            }
+        } else if (parser_match(parser, TK_NEW)) {
+            // Skip 'new' at top level - this shouldn't happen in valid code
+            parser_advance(parser);
         } else {
             // Unexpected token - report error and synchronize
             parser_error_at_current(parser, "Expected declaration (domain, import, class, record, enum, or interface)");
             parser_synchronize(parser);
+        }
+    }
+    
+    // If we've exceeded max parse attempts, force advance to EOF
+    if (parse_attempts >= MAX_PARSE_ATTEMPTS) {
+        while (!parser_is_at_end(parser)) {
+            parser_advance(parser);
         }
     }
     
@@ -323,7 +375,13 @@ Ast* parse_domain_declaration(Parser* parser) {
     if (!domain) return NULL;
     
     // Parse domain name (qualified name)
-    Token name = parser_consume(parser, TK_IDENTIFIER, "Expected domain name");
+    if (parser->current.kind != TK_IDENTIFIER) {
+        parser_error_at_current(parser, "Expected domain name");
+        return NULL;
+    }
+    
+    Token name = parser->current;
+    parser_advance(parser);
     
     // Build qualified name by collecting all parts
     char* qualified_name = malloc(name.len + 1);
@@ -332,8 +390,17 @@ Ast* parse_domain_declaration(Parser* parser) {
     qualified_name[name.len] = '\0';
     
     // Parse additional parts of qualified name (e.g., "app.main")
-    while (parser_match(parser, TK_DOT)) {
-        Token part = parser_consume(parser, TK_IDENTIFIER, "Expected domain name part after '.'");
+    while (parser->current.kind == TK_DOT) {
+        parser_advance(parser); // consume the dot
+        
+        if (parser->current.kind != TK_IDENTIFIER) {
+            parser_error_at_current(parser, "Expected domain name part after '.'");
+            free(qualified_name);
+            return NULL;
+        }
+        
+        Token part = parser->current;
+        parser_advance(parser);
         
         // Reallocate and append the new part
         size_t new_len = strlen(qualified_name) + 1 + part.len + 1; // +1 for dot, +1 for null terminator
@@ -350,7 +417,13 @@ Ast* parse_domain_declaration(Parser* parser) {
     domain->identifier = qualified_name;
     
     // Parse semicolon
-    parser_consume(parser, TK_SEMICOLON, "Expected ';' after domain declaration");
+    if (parser->current.kind != TK_SEMICOLON) {
+        parser_error_at_current(parser, "Expected ';' after domain declaration");
+        free(qualified_name);
+        return NULL;
+    }
+    parser_advance(parser);
+    
     return domain;
 }
 
@@ -404,7 +477,7 @@ Ast* parse_class_declaration(Parser* parser) {
             if (constructor) {
                 ast_add_child(class, constructor);
             }
-        } else if (parser_match(parser, TK_VAR) || parser_match(parser, TK_LET)) {
+        } else if (parser_match(parser, TK_VAR) || parser_match(parser, TK_LET) || parser_match(parser, TK_NEW)) {
             Ast* field = parse_field_declaration(parser);
             if (field) {
                 ast_add_child(class, field);
@@ -740,6 +813,10 @@ Ast* parse_primary_expression(Parser* parser) {
         return create_ast_literal(TK_STRING, parser->previous);
     }
     
+    if (parser_match(parser, TK_NEW)) {
+        return parse_new_expression(parser);
+    }
+
     if (parser_match(parser, TK_IDENTIFIER)) {
         return create_ast_identifier(parser->previous);
     }
@@ -770,6 +847,10 @@ Ast* parse_type(Parser* parser) {
         return type_node;
     }
     
+    if (parser_match(parser, TK_NEW)) {
+        return parse_new_expression(parser);
+    }
+
     if (parser_match(parser, TK_IDENTIFIER)) {
         return create_ast_identifier(parser->previous);
     }
@@ -897,7 +978,7 @@ Ast* parse_record_declaration(Parser* parser) {
             if (constructor) {
                 ast_add_child(record, constructor);
             }
-        } else if (parser_match(parser, TK_VAR) || parser_match(parser, TK_LET)) {
+        } else if (parser_match(parser, TK_VAR) || parser_match(parser, TK_LET) || parser_match(parser, TK_NEW)) {
             Ast* field = parse_field_declaration(parser);
             if (field) {
                 ast_add_child(record, field);
@@ -1159,3 +1240,45 @@ Ast* parse_pattern(Parser* parser) { return NULL; }
 Ast* parse_literal_pattern(Parser* parser) { return NULL; }
 Ast* parse_identifier_pattern(Parser* parser) { return NULL; }
 Ast* parse_constructor_pattern(Parser* parser) { return NULL; }
+
+// Parse new expression (e.g., new Sys())
+Ast* parse_new_expression(Parser* parser) {
+    // Consume the 'new' token
+    parser_advance(parser);
+    
+    // Parse the class name
+    Token class_name = parser_consume(parser, TK_IDENTIFIER, "Expected class name after 'new'");
+    
+    // Parse constructor arguments
+    Ast* arguments = ast_create(AST_ARGUMENTS, NULL, 0, 0);
+    if (!arguments) return NULL;
+    
+    parser_consume(parser, TK_LPAREN, "Expected '(' after class name");
+    
+    if (!parser_check(parser, TK_RPAREN)) {
+        do {
+            Ast* arg = parse_expression(parser);
+            if (arg) {
+                ast_add_child(arguments, arg);
+            }
+        } while (parser_match(parser, TK_COMMA));
+    }
+    
+    parser_consume(parser, TK_RPAREN, "Expected ')' after constructor arguments");
+    
+    // Create AST_NEW node
+    Ast* new_expr = ast_create(AST_NEW, NULL, 0, 0);
+    if (!new_expr) return NULL;
+    
+    // Store class name
+    new_expr->identifier = malloc(class_name.len + 1);
+    if (new_expr->identifier) {
+        strncpy(new_expr->identifier, class_name.start, class_name.len);
+        new_expr->identifier[class_name.len] = '\0';
+    }
+    
+    // Add arguments as child
+    ast_add_child(new_expr, arguments);
+    
+    return new_expr;
+}

@@ -71,9 +71,10 @@ A modern, object-oriented programming language with Pascal roots and Java/C#-sty
   - Graceful error handling
 
 ### 🔄 **In Progress**
+- **Method Resolution** - Virtual dispatch and method calls
+- **Field Access** - Complete field access implementation
 - **Type Resolution** - Planned
 - **Semantic Analysis** - Planned
-- **VM Integration** - Connect compiler pipeline to VM execution
 
 ### ✅ **Virtual Machine Implementation**
 - **Core VM Engine** (`src/vm/`) - Complete
@@ -82,6 +83,13 @@ A modern, object-oriented programming language with Pascal roots and Java/C#-sty
   - Memory management with generational GC
   - Object system with classes, methods, and fields
   - Cross-platform execution support
+
+- **Module Registry System** (`src/vm/modules/`) - Complete
+  - Runtime class discovery and registration
+  - Automatic method and field discovery from loaded modules
+  - Support for both `.bx` and `.helium3` file formats
+  - Memory management and cleanup
+  - Debug output and module information display
 
 ### 📋 **Planned Features**
 - **Pattern Matching**: `match` statements with `when` clauses

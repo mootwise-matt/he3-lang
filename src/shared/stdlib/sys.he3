@@ -1,0 +1,84 @@
+domain System;
+
+class Sys {
+    function print(message: string): void {
+        // Implementation will be provided by VM
+    }
+    
+    function println(message: string): void {
+        // Implementation will be provided by VM
+    }
+    
+    function readLine(): string {
+        // Implementation will be provided by VM
+        return "";
+    }
+    
+    function fileExists(filename: string): boolean {
+        // Implementation will be provided by VM
+        return false;
+    }
+    
+    function readFile(filename: string): string {
+        // Implementation will be provided by VM
+        return "";
+    }
+    
+    function writeFile(filename: string, content: string): void {
+        // Implementation will be provided by VM
+    }
+    
+    function listDir(path: string): string[] {
+        // Implementation will be provided by VM
+        return [];
+    }
+    
+    function createDir(path: string): void {
+        // Implementation will be provided by VM
+    }
+    
+    function deleteFile(filename: string): void {
+        // Implementation will be provided by VM
+    }
+    
+    function deleteDir(path: string): void {
+        // Implementation will be provided by VM
+    }
+    
+    function currentTimeMillis(): integer {
+        // Implementation will be provided by VM
+        return 0;
+    }
+    
+    function exit(code: integer): void {
+        // Implementation will be provided by VM
+    }
+    
+    function argc(): integer {
+        // Implementation will be provided by VM
+        return 0;
+    }
+    
+    function argv(index: integer): string {
+        // Implementation will be provided by VM
+        return "";
+    }
+    
+    function workingDir(): string {
+        // Implementation will be provided by VM
+        return "";
+    }
+    
+    function changeDir(path: string): void {
+        // Implementation will be provided by VM
+    }
+    
+    function envGet(name: string): string {
+        // Implementation will be provided by VM
+        return "";
+    }
+    
+    function envSet(name: string, value: string): void {
+        // Implementation will be provided by VM
+    }
+}

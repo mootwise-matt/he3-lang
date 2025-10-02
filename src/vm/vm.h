@@ -17,6 +17,7 @@ struct Class;
 // Include heap and object headers
 #include "memory/heap.h"
 #include "objects/object.h"
+#include "modules/module_registry.h"
 
 // VM Value types
 typedef enum {
@@ -69,6 +70,7 @@ typedef struct VM {
     struct ExecutionContext* context; // Execution context
     struct Heap* heap;              // Memory heap
     struct Class* classes;          // Loaded classes
+    ModuleRegistry* module_registry; // Module registry
     bool running;                   // VM running state
     int exit_code;                  // VM exit code
 } VM;
@@ -124,3 +126,13 @@ struct Object* vm_create_object_by_class(VM* vm, struct Class* class_info);
 void vm_print_object_system(VM* vm);
 void vm_print_classes(VM* vm);
 void vm_print_objects(VM* vm);
+
+// Module registry functions
+void vm_initialize_module_registry(VM* vm);
+void vm_cleanup_module_registry(VM* vm);
+bool vm_load_module(VM* vm, const char* filename);
+ModuleEntry* vm_find_module(VM* vm, const char* module_name);
+ClassRegistryEntry* vm_find_class_in_registry(VM* vm, const char* class_name);
+MethodRegistryEntry* vm_find_method_in_registry(VM* vm, const char* method_name);
+FieldRegistryEntry* vm_find_field_in_registry(VM* vm, const char* field_name);
+void vm_print_module_registry(VM* vm);

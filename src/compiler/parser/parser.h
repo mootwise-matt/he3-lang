@@ -57,6 +57,7 @@ Ast* parse_expression_statement(Parser* parser);
 
 // Expression parsing
 Ast* parse_expression(Parser* parser);
+Ast* parse_new_expression(Parser* parser);
 Ast* parse_assignment(Parser* parser);
 Ast* parse_or_expression(Parser* parser);
 Ast* parse_and_expression(Parser* parser);
