@@ -149,7 +149,27 @@ Ast* create_ast_node(AstKind kind) {
 }
 
 Ast* create_ast_literal(TokenKind token_kind, Token token) {
-    printf("DEBUG: create_ast_literal - token_kind=%d, token.kind=%d\n", token_kind, token.kind);
+    printf("DEBUG: create_ast_literal - token_kind=%d (%s), token.kind=%d (%s)\n", 
+           token_kind, token_kind_to_string(token_kind),
+           token.kind, token_kind_to_string(token.kind));
+    
+    // Check if this is an invalid call
+    printf("DEBUG: Checking token_kind %d against TK_ASSIGN %d\n", token_kind, TK_ASSIGN);
+    if (token_kind == TK_ASSIGN) {
+        printf("ERROR: create_ast_literal called with TK_ASSIGN! This should not happen.\n");
+        printf("       Token content: '%.*s'\n", token.len, token.start);
+        printf("       This indicates a parser bug - TK_ASSIGN should not create literals.\n");
+        return NULL;
+    }
+    
+    // Also check for other invalid token kinds
+    if (token_kind >= TK_DOMAIN && token_kind <= TK_UNDERSCORE) {
+        printf("ERROR: create_ast_literal called with non-literal token kind %d (%s)!\n", 
+               token_kind, token_kind_to_string(token_kind));
+        printf("       Token content: '%.*s'\n", token.len, token.start);
+        return NULL;
+    }
+    
     Ast* node = ast_create(AST_LITERAL, NULL, token.line, token.col);
     if (!node) return NULL;
     
@@ -491,7 +511,7 @@ Ast* parse_statement(Parser* parser) {
         return parse_return_statement(parser);
     } else if (parser_match(parser, TK_MATCH)) {
         return parse_match_statement(parser);
-    } else {
+        } else {
         // Try to parse as expression statement
         Ast* expr = parse_expression(parser);
         if (expr) {
@@ -760,9 +780,9 @@ Ast* parse_primary_expression(Parser* parser) {
     printf("DEBUG: No match found, current token: %d (%s)\n", 
            parser->current.kind, token_kind_to_string(parser->current.kind));
     parser_error_at_current(parser, "Expected expression");
-    return NULL;
-}
-
+        return NULL;
+    }
+    
 Ast* parse_type(Parser* parser) {
     if (parser_match(parser, TK_INTEGER) || parser_match(parser, TK_FLOAT_TYPE) ||
         parser_match(parser, TK_BOOLEAN) || parser_match(parser, TK_STRING_TYPE) ||
@@ -958,7 +978,7 @@ Ast* parse_enum_declaration(Parser* parser) {
             // Continue parsing variants
         } else if (!parser_check(parser, TK_RBRACE)) {
             parser_error_at_current(parser, "Expected ',' or '}' after enum variant");
-            break;
+                break;
         }
     }
     

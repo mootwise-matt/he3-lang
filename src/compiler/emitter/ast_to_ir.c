@@ -1121,6 +1121,12 @@ IRValue ast_to_ir_create_literal_value(Ast* ast) {
         value.type = IR_VALUE_STRING;
         value.data.string_id = (uint32_t)(uintptr_t)ast->text;
         return value;
+    } else if (ast->literal.int_value != 0) {
+        // Integer literal (check this before float to avoid union confusion)
+        printf("DEBUG: Creating INT literal: %lld\n", ast->literal.int_value);
+        value.type = IR_VALUE_I64;
+        value.data.i64 = ast->literal.int_value;
+        return value;
     } else if (ast->literal.float_value != 0.0) {
         // Float literal
         printf("DEBUG: Creating FLOAT literal: %f\n", ast->literal.float_value);
@@ -1132,12 +1138,6 @@ IRValue ast_to_ir_create_literal_value(Ast* ast) {
         printf("DEBUG: Creating TRUE literal\n");
         value.type = IR_VALUE_BOOL;
         value.data.boolean = true;
-        return value;
-    } else if (ast->literal.int_value != 0) {
-        // Integer literal
-        printf("DEBUG: Creating INT literal: %lld\n", ast->literal.int_value);
-        value.type = IR_VALUE_I64;
-        value.data.i64 = ast->literal.int_value;
         return value;
     } else {
         // Default to integer 0
