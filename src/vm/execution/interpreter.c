@@ -771,9 +771,50 @@ InterpretResult op_load_field(VM* vm, uint32_t field_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    // TODO: Implement actual field access
-    // For now, just push a default field value
-    Value field_value = value_create_i64(0);
+    // Get the field information from the registry
+    Field* field_info = field_entry->field_info;
+    if (!field_info) {
+        printf("Runtime error: Field info not available for field %u\n", field_id);
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Access the field value from the object's data
+    Object* obj = (Object*)object.data.object_value;
+    if (!obj) {
+        printf("Runtime error: Invalid object reference\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Check if the field offset is valid
+    if (field_info->offset >= obj->header.size) {
+        printf("Runtime error: Field offset %u exceeds object size %u\n", 
+               field_info->offset, obj->header.size);
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Read the field value based on its type
+    Value field_value;
+    uint8_t* field_data = obj->data + field_info->offset;
+    
+    switch (field_info->type_id) {
+        case 1: // i64
+            field_value = value_create_i64(*(int64_t*)field_data);
+            break;
+        case 2: // f64
+            field_value = value_create_f64(*(double*)field_data);
+            break;
+        case 3: // bool
+            field_value = value_create_bool(*(bool*)field_data);
+            break;
+        case 4: // string
+            field_value = value_create_string((char*)field_data);
+            break;
+        default:
+            printf("Runtime error: Unknown field type %u\n", field_info->type_id);
+            return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Push the field value onto the stack
     if (!stack_push(vm->stack, field_value)) {
         return INTERPRET_STACK_OVERFLOW;
     }
@@ -810,8 +851,68 @@ InterpretResult op_store_field(VM* vm, uint32_t field_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    // TODO: Implement actual field storage
-    // For now, just consume the values
+    // Get the field information from the registry
+    Field* field_info = field_entry->field_info;
+    if (!field_info) {
+        printf("Runtime error: Field info not available for field %u\n", field_id);
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Access the object
+    Object* obj = (Object*)object.data.object_value;
+    if (!obj) {
+        printf("Runtime error: Invalid object reference\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Check if the field offset is valid
+    if (field_info->offset >= obj->header.size) {
+        printf("Runtime error: Field offset %u exceeds object size %u\n", 
+               field_info->offset, obj->header.size);
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Store the field value based on its type
+    uint8_t* field_data = obj->data + field_info->offset;
+    
+    switch (field_info->type_id) {
+        case 1: // i64
+            if (value.type != VALUE_I64) {
+                printf("Runtime error: Type mismatch for field %s (expected i64, got %d)\n", 
+                       field_info->name, value.type);
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            *(int64_t*)field_data = value.data.i64_value;
+            break;
+        case 2: // f64
+            if (value.type != VALUE_F64) {
+                printf("Runtime error: Type mismatch for field %s (expected f64, got %d)\n", 
+                       field_info->name, value.type);
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            *(double*)field_data = value.data.f64_value;
+            break;
+        case 3: // bool
+            if (value.type != VALUE_BOOL) {
+                printf("Runtime error: Type mismatch for field %s (expected bool, got %d)\n", 
+                       field_info->name, value.type);
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            *(bool*)field_data = value.data.bool_value;
+            break;
+        case 4: // string
+            if (value.type != VALUE_STRING) {
+                printf("Runtime error: Type mismatch for field %s (expected string, got %d)\n", 
+                       field_info->name, value.type);
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            // For strings, we need to copy the string data
+            strcpy((char*)field_data, value.data.string_value);
+            break;
+        default:
+            printf("Runtime error: Unknown field type %u\n", field_info->type_id);
+            return INTERPRET_RUNTIME_ERROR;
+    }
     
     return INTERPRET_OK;
 }

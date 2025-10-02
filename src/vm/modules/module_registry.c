@@ -596,7 +596,21 @@ bool module_registry_discover_fields_from_module(ModuleRegistry* registry, uint3
         registry_entry->type_id = field_entry->type_id;
         registry_entry->field_name = strdup(field_name);
         registry_entry->field_type_id = field_entry->field_type_id;
-        registry_entry->field_info = NULL; // Will be created when needed
+        
+        // Create the field info structure
+        Field* field_info = malloc(sizeof(Field));
+        if (field_info) {
+            field_info->name = strdup(field_name);
+            field_info->type_id = field_entry->field_type_id;
+            field_info->offset = field_entry->offset; // Use the offset from the field entry
+            field_info->size = 8; // Default size, TODO: Calculate based on type
+            field_info->is_static = false; // TODO: Determine from field flags
+            field_info->is_private = false; // TODO: Determine from field flags
+            field_info->is_protected = false; // TODO: Determine from field flags
+            field_info->is_public = true; // Default to public
+            field_info->next = NULL;
+        }
+        registry_entry->field_info = field_info;
         registry_entry->next = NULL;
         
         field_registry_register_field(registry_entry);
