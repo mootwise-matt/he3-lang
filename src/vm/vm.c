@@ -2,6 +2,8 @@
 #include "loader/bytecode_loader.h"
 #include "execution/stack.h"
 #include "execution/interpreter.h"
+#include "execution/context.h"
+#include "../shared/bytecode/helium_format.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,13 +18,15 @@ VM* vm_create(void) {
     // Initialize VM
     vm->bytecode = NULL;
     vm->stack = stack_create(1024); // Initial stack capacity
-    vm->context = NULL;
+    vm->context = execution_context_create();
     vm->heap = heap_create(16 * 1024 * 1024); // 16MB heap
     vm->classes = NULL;
     vm->running = false;
     vm->exit_code = 0;
     
-    if (!vm->stack) {
+    if (!vm->stack || !vm->context) {
+        if (vm->stack) stack_destroy(vm->stack);
+        if (vm->context) execution_context_destroy(vm->context);
         free(vm);
         return NULL;
     }
@@ -43,8 +47,7 @@ void vm_destroy(VM* vm) {
     }
     
     if (vm->context) {
-        // TODO: Destroy execution context
-        free(vm->context);
+        execution_context_destroy(vm->context);
     }
     
     if (vm->heap) {
@@ -63,18 +66,69 @@ int vm_load_bytecode(VM* vm, const char* filename) {
         return 0;
     }
     
-    // Load bytecode file
-    vm->bytecode = bytecode_load_file(filename);
-    if (!vm->bytecode) {
-        fprintf(stderr, "Failed to load bytecode file: %s\n", filename);
+    // Check file extension to determine format
+    const char* extension = strrchr(filename, '.');
+    if (!extension) {
+        fprintf(stderr, "No file extension found: %s\n", filename);
         return 0;
     }
     
-    printf("Loaded bytecode file: %s\n", filename);
-    printf("Domain: %s\n", bytecode_get_domain_name(vm->bytecode));
-    printf("Methods: %u\n", vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
-    printf("Types: %u\n", vm->bytecode->type_table ? vm->bytecode->type_table->count : 0);
+    if (strcmp(extension, ".helium3") == 0) {
+        // Load helium3 module
+        HeliumModule* module = helium_module_load(filename);
+        if (!module) {
+            fprintf(stderr, "Failed to load helium3 module: %s\n", filename);
+            return 0;
+        }
+        
+        // Convert helium module to bytecode file format
+        vm->bytecode = bytecode_file_create();
+        if (!vm->bytecode) {
+            fprintf(stderr, "Failed to create bytecode file structure\n");
+            helium_module_destroy(module);
+            return 0;
+        }
+        
+        // Copy data from helium module to bytecode file
+        vm->bytecode->string_table = module->string_table_obj;
+        vm->bytecode->type_table = module->type_table;
+        vm->bytecode->method_table = module->method_table;
+        vm->bytecode->field_table = module->field_table;
+        vm->bytecode->bytecode = module->bytecode;
+        vm->bytecode->header.bytecode_size = module->bytecode_size;
+        vm->bytecode->header.entry_point_method_id = module->header.entry_point_method_id;
+        
+        // Set up header flags
+        vm->bytecode->header.flags = BYTECODE_FLAG_EXECUTABLE;
+        
+        printf("Loaded helium3 module: %s\n", filename);
+        printf("Module Name: %s\n", helium_module_get_string(module, module->header.module_name_offset));
+        printf("Module Version: %s\n", helium_module_get_string(module, module->header.module_version_offset));
+        printf("Methods: %u\n", vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
+        printf("Types: %u\n", vm->bytecode->type_table ? vm->bytecode->type_table->count : 0);
+        
+        // Clean up helium module (but keep the data)
+        free(module);
+        
+    } else if (strcmp(extension, ".bx") == 0) {
+        // Load regular bytecode file
+        vm->bytecode = bytecode_load_file(filename);
+        if (!vm->bytecode) {
+            fprintf(stderr, "Failed to load bytecode file: %s\n", filename);
+            return 0;
+        }
+        
+        printf("Loaded bytecode file: %s\n", filename);
+        printf("Domain: %s\n", bytecode_get_domain_name(vm->bytecode));
+        printf("Methods: %u\n", vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
+        printf("Types: %u\n", vm->bytecode->type_table ? vm->bytecode->type_table->count : 0);
+        
+    } else {
+        fprintf(stderr, "Unsupported file format: %s (expected .bx or .helium3)\n", extension);
+        return 0;
+    }
     
+    printf("DEBUG: vm_load_bytecode returning 1 (success)\n");
     return 1;
 }
 
@@ -87,14 +141,35 @@ int vm_execute(VM* vm) {
     vm->running = true;
     
     // Find main function
+    printf("DEBUG: Looking for main function in method table (count=%u)\n", 
+           vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
     MethodEntry* main_method = method_table_find_by_name(vm->bytecode->method_table, "main");
     if (!main_method) {
         fprintf(stderr, "Main function not found\n");
         return 1;
     }
+    printf("DEBUG: Main function found\n");
     
     printf("Executing main function...\n");
     printf("Bytecode offset: %u, size: %u\n", main_method->bytecode_offset, main_method->bytecode_size);
+    
+    // Create call frame for main function
+    CallFrame* main_frame = call_frame_create(
+        vm->bytecode->bytecode + main_method->bytecode_offset,
+        main_method->local_count
+    );
+    
+    if (!main_frame) {
+        fprintf(stderr, "Failed to create call frame for main function\n");
+        return 1;
+    }
+    
+    // Push frame onto execution context
+    if (!execution_context_push_frame(vm->context, main_frame)) {
+        fprintf(stderr, "Failed to push main frame onto execution context\n");
+        call_frame_destroy(main_frame);
+        return 1;
+    }
     
     // Execute bytecode
     InterpretResult result = interpret_bytecode(vm, 
@@ -103,8 +178,15 @@ int vm_execute(VM* vm) {
     
     if (result != INTERPRET_OK) {
         fprintf(stderr, "Runtime error: %s\n", interpret_result_to_string(result));
+        // Clean up call frame
+        CallFrame* frame = execution_context_pop_frame(vm->context);
+        if (frame) call_frame_destroy(frame);
         return 1;
     }
+    
+    // Clean up call frame
+    CallFrame* frame = execution_context_pop_frame(vm->context);
+    if (frame) call_frame_destroy(frame);
     
     vm->running = false;
     printf("Execution completed successfully\n");

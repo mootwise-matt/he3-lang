@@ -36,6 +36,8 @@ typedef struct {
     // Section offsets and sizes
     uint32_t string_table_offset;
     uint32_t string_table_size;
+    uint32_t constant_table_offset;
+    uint32_t constant_table_size;
     uint32_t type_table_offset;
     uint32_t type_table_size;
     uint32_t method_table_offset;
@@ -80,6 +82,36 @@ typedef struct {
     StringEntry* entries;        // String entries
     char* data;                  // String data (UTF-8, null-terminated)
 } StringTable;
+
+// ============================================================================
+// CONSTANT TABLE
+// ============================================================================
+
+// Constant value types
+typedef enum {
+    CONSTANT_TYPE_INT64 = 0,        // 64-bit signed integer
+    CONSTANT_TYPE_FLOAT64 = 1,      // 64-bit floating point
+    CONSTANT_TYPE_BOOLEAN = 2,      // Boolean value
+    CONSTANT_TYPE_STRING = 3,       // String reference (offset in string table)
+    CONSTANT_TYPE_NULL = 4,         // Null reference
+} ConstantType;
+
+// Constant table entry
+typedef struct {
+    ConstantType type;              // Type of constant
+    union {
+        int64_t int_value;          // Integer value
+        double float_value;         // Float value
+        bool bool_value;            // Boolean value
+        uint32_t string_offset;     // String offset in string table
+    } value;
+} ConstantEntry;
+
+// Constant table
+typedef struct {
+    uint32_t count;                 // Number of constants
+    ConstantEntry* entries;         // Constant entries
+} ConstantTable;
 
 // ============================================================================
 // TYPE TABLE
@@ -204,6 +236,7 @@ typedef struct {
 typedef struct {
     BytecodeHeader header;       // File header
     StringTable* string_table;   // String table
+    ConstantTable* constant_table; // Constant table
     TypeTable* type_table;       // Type table
     MethodTable* method_table;   // Method table
     FieldTable* field_table;     // Field table
@@ -249,6 +282,37 @@ const char* string_table_get_string(StringTable* table, uint32_t index);
 
 // Find string in table
 int32_t string_table_find_string(StringTable* table, const char* str);
+
+// ============================================================================
+// CONSTANT TABLE OPERATIONS
+// ============================================================================
+
+// Create constant table
+ConstantTable* constant_table_create(void);
+
+// Destroy constant table
+void constant_table_destroy(ConstantTable* table);
+
+// Add constant to table
+uint32_t constant_table_add_constant(ConstantTable* table, const ConstantEntry* entry);
+
+// Get constant from table
+const ConstantEntry* constant_table_get_constant(ConstantTable* table, uint32_t index);
+
+// Add integer constant
+uint32_t constant_table_add_int64(ConstantTable* table, int64_t value);
+
+// Add float constant
+uint32_t constant_table_add_float64(ConstantTable* table, double value);
+
+// Add boolean constant
+uint32_t constant_table_add_boolean(ConstantTable* table, bool value);
+
+// Add string constant
+uint32_t constant_table_add_string(ConstantTable* table, uint32_t string_offset);
+
+// Add null constant
+uint32_t constant_table_add_null(ConstantTable* table);
 
 // ============================================================================
 // TYPE TABLE OPERATIONS
@@ -323,6 +387,9 @@ bool validate_magic(const char* magic);
 // Get string from bytecode file
 const char* bytecode_get_string(BytecodeFile* file, uint32_t offset);
 
+// Get constant from bytecode file
+const ConstantEntry* bytecode_get_constant(BytecodeFile* file, uint32_t index);
+
 // Get type from bytecode file
 const TypeEntry* bytecode_get_type(BytecodeFile* file, uint32_t type_id);
 
@@ -341,6 +408,9 @@ void bytecode_file_print_info(BytecodeFile* file);
 
 // Print string table
 void string_table_print(StringTable* table);
+
+// Print constant table
+void constant_table_print(ConstantTable* table);
 
 // Print type table
 void type_table_print(TypeTable* table);

@@ -1,0 +1,7 @@
+domain app.test;
+
+class Program {
+  function main(): integer {
+    return 42;
+  }
+}

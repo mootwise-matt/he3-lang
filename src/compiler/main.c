@@ -7,6 +7,7 @@
 #include "emitter/ast_to_ir.h"
 #include "emitter/ir_to_bytecode.h"
 #include "../shared/bytecode/bytecode_format.h"
+#include "../shared/bytecode/helium_format.h"
 
 // Compiler version
 #define HE3_VERSION "0.1.0"
@@ -23,12 +24,14 @@ void print_usage(const char* program_name) {
     printf("  -d, --debug             Enable debug output\n");
     printf("  -t, --tokens            Show tokenized output\n");
     printf("  -a, --ast               Show AST output\n");
+    printf("  -m, --module            Generate .helium3 module file\n");
     printf("  --lexer-only            Only run lexer (tokenize)\n");
     printf("  --parser-only           Only run parser (parse to AST)\n");
     printf("\n");
     printf("Examples:\n");
     printf("  %s program.he3                    # Compile program.he3 to program.bx\n", program_name);
     printf("  %s -o output.bx program.he3       # Compile to specific output file\n", program_name);
+    printf("  %s -m program.he3                 # Generate .helium3 module file\n", program_name);
     printf("  %s -t program.he3                 # Show tokens only\n", program_name);
     printf("  %s -a program.he3                 # Show AST only\n", program_name);
 }
@@ -123,7 +126,7 @@ void print_ast(Ast* node, int depth) {
 
 // Main compilation function
 int compile_file(const char* input_filename, const char* output_filename, 
-                bool show_tokens, bool show_ast, bool lexer_only, bool parser_only) {
+                bool show_tokens, bool show_ast, bool lexer_only, bool parser_only, bool generate_module) {
     
     // Read input file
     char* source = read_file(input_filename);
@@ -270,6 +273,66 @@ int compile_file(const char* input_filename, const char* output_filename,
     
     printf("Bytecode saved successfully\n");
     
+    // Generate .helium3 module if requested
+    if (generate_module) {
+        printf("Generating .helium3 module...\n");
+        
+        // Create helium module
+        HeliumModule* helium_module = helium_module_create();
+        if (!helium_module) {
+            fprintf(stderr, "Error: Failed to create helium module\n");
+            bytecode_file_destroy(bytecode_file);
+            ir_to_bytecode_translator_destroy(bytecode_translator);
+            ast_to_ir_translator_destroy(ir_translator);
+            parser_destroy(parser);
+            lexer_destroy(lexer);
+            free(source);
+            return 1;
+        }
+        
+        // Copy data from bytecode file to helium module
+        helium_module->string_table_obj = bytecode_file->string_table;
+        helium_module->type_table = bytecode_file->type_table;
+        helium_module->method_table = bytecode_file->method_table;
+        helium_module->field_table = bytecode_file->field_table;
+        helium_module->bytecode = bytecode_file->bytecode;
+        helium_module->bytecode_size = bytecode_file->header.bytecode_size;
+        helium_module->header.entry_point_method_id = bytecode_file->header.entry_point_method_id;
+        
+        // Set module name and version
+        helium_module->header.module_name_offset = helium_module_add_string(helium_module, "example");
+        helium_module->header.module_version_offset = helium_module_add_string(helium_module, "1.0.0");
+        
+        // Generate .helium3 filename
+        char helium_filename[256];
+        const char* last_dot = strrchr(input_filename, '.');
+        if (last_dot && strcmp(last_dot, ".he3") == 0) {
+            size_t len = last_dot - input_filename;
+            strncpy(helium_filename, input_filename, len);
+            helium_filename[len] = '\0';
+            strcat(helium_filename, ".helium3");
+        } else {
+            strcpy(helium_filename, input_filename);
+            strcat(helium_filename, ".helium3");
+        }
+        
+        // Save helium module
+        if (!helium_module_save(helium_module, helium_filename)) {
+            fprintf(stderr, "Error: Failed to save helium module\n");
+            helium_module_destroy(helium_module);
+            bytecode_file_destroy(bytecode_file);
+            ir_to_bytecode_translator_destroy(bytecode_translator);
+            ast_to_ir_translator_destroy(ir_translator);
+            parser_destroy(parser);
+            lexer_destroy(lexer);
+            free(source);
+            return 1;
+        }
+        
+        printf("Helium module saved to %s\n", helium_filename);
+        helium_module_destroy(helium_module);
+    }
+    
     // Cleanup
     // Note: Temporarily commenting out cleanup to avoid segfault
     // bytecode_file_destroy(bytecode_file);
@@ -294,6 +357,7 @@ int main(int argc, char* argv[]) {
     bool lexer_only = false;
     bool parser_only = false;
     bool debug = false;
+    bool generate_module = false;
     char* output_filename = NULL;
     char* input_filename = NULL;
     
@@ -305,6 +369,7 @@ int main(int argc, char* argv[]) {
         {"debug", no_argument, 0, 'd'},
         {"tokens", no_argument, 0, 't'},
         {"ast", no_argument, 0, 'a'},
+        {"module", no_argument, 0, 'm'},
         {"lexer-only", no_argument, 0, 1},
         {"parser-only", no_argument, 0, 2},
         {0, 0, 0, 0}
@@ -313,7 +378,7 @@ int main(int argc, char* argv[]) {
     int option_index = 0;
     int c;
     
-    while ((c = getopt_long(argc, argv, "hvo:dta", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "hvo:dtam", long_options, &option_index)) != -1) {
         switch (c) {
             case 'h':
                 show_help = true;
@@ -332,6 +397,9 @@ int main(int argc, char* argv[]) {
                 break;
             case 'a':
                 show_ast = true;
+                break;
+            case 'm':
+                generate_module = true;
                 break;
             case 1: // --lexer-only
                 lexer_only = true;
@@ -376,7 +444,7 @@ int main(int argc, char* argv[]) {
     
     // Compile the file
     int result = compile_file(input_filename, final_output, show_tokens, show_ast, 
-                            lexer_only, parser_only);
+                            lexer_only, parser_only, generate_module);
     
     free(final_output);
     return result;

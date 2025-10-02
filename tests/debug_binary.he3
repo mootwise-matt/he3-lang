@@ -1,0 +1,11 @@
+domain app.test;
+
+class Program {
+  function main(): integer {
+    let x: integer;
+    let y: integer;
+    x = 10;
+    y = 5;
+    return x + y;
+  }
+}

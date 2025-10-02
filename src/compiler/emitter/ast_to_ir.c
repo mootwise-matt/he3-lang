@@ -157,15 +157,22 @@ IRFunction* ast_to_ir_translate_compilation_unit(AstToIRTranslator* translator, 
         return NULL;
     }
     
+    printf("DEBUG: AST compilation unit has %u children\n", ast->child_count);
+    
     // For now, we'll translate the first function we find
     // In a full implementation, we'd handle multiple functions and classes
     for (uint32_t i = 0; i < ast->child_count; i++) {
         Ast* child = ast->children[i];
+        printf("DEBUG: Child %u: kind=%d, identifier=%s\n", i, child->kind, child->identifier ? child->identifier : "NULL");
+        
         if (child->kind == AST_CLASS) {
+            printf("DEBUG: Found class '%s' with %u children\n", child->identifier ? child->identifier : "NULL", child->child_count);
             // Look for methods inside the class
             for (uint32_t j = 0; j < child->child_count; j++) {
                 Ast* method = child->children[j];
+                printf("DEBUG: Class child %u: kind=%d, identifier=%s\n", j, method->kind, method->identifier ? method->identifier : "NULL");
                 if (method->kind == AST_METHOD) {
+                    printf("DEBUG: Found method '%s'\n", method->identifier ? method->identifier : "NULL");
                     return ast_to_ir_translate_function(translator, method);
                 }
             }
@@ -306,6 +313,8 @@ IRValue ast_to_ir_translate_expression(AstToIRTranslator* translator, Ast* ast) 
             return ast_to_ir_translate_field_access(translator, ast);
         case AST_INDEX_ACCESS:
             return ast_to_ir_translate_array_access(translator, ast);
+        case AST_ASSIGN:
+            return ast_to_ir_translate_assignment_expression(translator, ast);
         default:
             ast_to_ir_translator_set_error(translator, "Unsupported expression type");
             IRValue null_value = {0};
@@ -319,9 +328,9 @@ IRValue ast_to_ir_translate_binary_expression(AstToIRTranslator* translator, Ast
         return null_value;
     }
     
-    // Translate left and right operands
-    IRValue left = ast_to_ir_translate_expression(translator, ast->children[0]);
-    IRValue right = ast_to_ir_translate_expression(translator, ast->children[1]);
+    // Translate left and right operands - these will add LOAD_LOCAL instructions to IR
+    ast_to_ir_translate_expression(translator, ast->children[0]);
+    ast_to_ir_translate_expression(translator, ast->children[1]);
     
     // For now, default to addition
     // In a full implementation, we'd need to store the operator type in the AST
@@ -334,9 +343,7 @@ IRValue ast_to_ir_translate_binary_expression(AstToIRTranslator* translator, Ast
         return null_value;
     }
     
-    ir_instruction_add_operand(instruction, left);
-    ir_instruction_add_operand(instruction, right);
-    
+    // ADD instruction works with values on the stack, no operands needed
     IRValue result = ast_to_ir_create_temp_value(translator, IR_VALUE_I64);
     ir_instruction_set_result(instruction, result);
     
@@ -425,7 +432,7 @@ IRValue ast_to_ir_translate_identifier(AstToIRTranslator* translator, Ast* ast) 
     
     IRValue symbol_value = {0};
     symbol_value.type = IR_VALUE_TEMP;
-    symbol_value.data.temp_id = symbol_id;
+    symbol_value.data.temp_id = symbol_id - 1; // Convert back to 0-based index
     ir_instruction_add_operand(instruction, symbol_value);
     
     IRValue result = ast_to_ir_create_temp_value(translator, IR_VALUE_I64);
@@ -609,32 +616,41 @@ void ast_to_ir_translate_declaration(AstToIRTranslator* translator, Ast* ast) {
     
     // If there's an initializer, translate it
     if (ast->child_count > 1) {
-        IRValue init_value = ast_to_ir_translate_expression(translator, ast->children[1]);
+        // Translate the initializer expression (this will push the value onto the stack)
+        ast_to_ir_translate_expression(translator, ast->children[1]);
         
-        // Create store instruction
+        // Store to local variable
         IRInstruction* instruction = ir_builder_create_instruction(translator->ir_builder, IR_STORE_LOCAL);
         if (instruction) {
             IRValue symbol_value = {0};
             symbol_value.type = IR_VALUE_TEMP;
-            symbol_value.data.temp_id = ast_to_ir_find_symbol(translator, ast->identifier);
+            uint32_t symbol_id = ast_to_ir_find_symbol(translator, ast->identifier);
+            symbol_value.data.temp_id = symbol_id > 0 ? symbol_id - 1 : 0; // Convert back to 0-based index
             ir_instruction_add_operand(instruction, symbol_value);
-            ir_instruction_add_operand(instruction, init_value);
             ir_builder_add_instruction(translator->ir_builder, instruction);
         }
     } else {
-        // Initialize with default value
+        // Initialize with default value - first push the value, then store it
         IRValue default_value = {0};
         default_value.type = IR_VALUE_I64;
         default_value.data.i64 = 0;
         
-        IRInstruction* instruction = ir_builder_create_instruction(translator->ir_builder, IR_STORE_LOCAL);
-        if (instruction) {
+        // Push the default value
+        IRInstruction* push_instruction = ir_builder_create_instruction(translator->ir_builder, IR_LOAD_CONST);
+        if (push_instruction) {
+            ir_instruction_add_operand(push_instruction, default_value);
+            ir_builder_add_instruction(translator->ir_builder, push_instruction);
+        }
+        
+        // Store to local variable
+        IRInstruction* store_instruction = ir_builder_create_instruction(translator->ir_builder, IR_STORE_LOCAL);
+        if (store_instruction) {
             IRValue symbol_value = {0};
             symbol_value.type = IR_VALUE_TEMP;
-            symbol_value.data.temp_id = ast_to_ir_find_symbol(translator, ast->identifier);
-            ir_instruction_add_operand(instruction, symbol_value);
-            ir_instruction_add_operand(instruction, default_value);
-            ir_builder_add_instruction(translator->ir_builder, instruction);
+            uint32_t symbol_id = ast_to_ir_find_symbol(translator, ast->identifier);
+            symbol_value.data.temp_id = symbol_id > 0 ? symbol_id - 1 : 0; // Convert back to 0-based index
+            ir_instruction_add_operand(store_instruction, symbol_value);
+            ir_builder_add_instruction(translator->ir_builder, store_instruction);
         }
     }
 }
@@ -661,7 +677,7 @@ void ast_to_ir_translate_assignment(AstToIRTranslator* translator, Ast* ast) {
         if (instruction) {
             IRValue symbol_value = {0};
             symbol_value.type = IR_VALUE_TEMP;
-            symbol_value.data.temp_id = symbol_id;
+            symbol_value.data.temp_id = symbol_id - 1; // Convert back to 0-based index
             ir_instruction_add_operand(instruction, symbol_value);
             ir_instruction_add_operand(instruction, value);
             ir_builder_add_instruction(translator->ir_builder, instruction);
@@ -695,6 +711,52 @@ void ast_to_ir_translate_assignment(AstToIRTranslator* translator, Ast* ast) {
             ir_builder_add_instruction(translator->ir_builder, instruction);
         }
     }
+}
+
+IRValue ast_to_ir_translate_assignment_expression(AstToIRTranslator* translator, Ast* ast) {
+    if (!translator || !ast || ast->child_count < 2) {
+        IRValue null_value = {0};
+        return null_value;
+    }
+    
+    // Translate right-hand side
+    IRValue value = ast_to_ir_translate_expression(translator, ast->children[1]);
+    
+    // Determine if this is a local variable or field access
+    Ast* left_side = ast->children[0];
+    IROp store_op = IR_STORE_LOCAL; // Default to local
+    
+    if (left_side->kind == AST_IDENTIFIER) {
+        // Simple variable assignment
+        uint32_t symbol_id = ast_to_ir_find_symbol(translator, left_side->identifier);
+        if (symbol_id == 0) {
+            ast_to_ir_translator_set_error(translator, "Undefined variable in assignment");
+            IRValue null_value = {0};
+            return null_value;
+        }
+        
+        IRInstruction* instruction = ir_builder_create_instruction(translator->ir_builder, store_op);
+        if (instruction) {
+            IRValue symbol_value = {0};
+            symbol_value.type = IR_VALUE_TEMP;
+            symbol_value.data.temp_id = symbol_id - 1; // Convert back to 0-based index
+            ir_instruction_add_operand(instruction, symbol_value);
+            ir_instruction_add_operand(instruction, value);
+            ir_builder_add_instruction(translator->ir_builder, instruction);
+        }
+        
+        // Return the assigned value
+        return value;
+    } else if (left_side->kind == AST_FIELD_ACCESS) {
+        // Field assignment - for now, treat as local
+        // Full implementation would handle object field access
+        ast_to_ir_translator_set_error(translator, "Field assignment not yet implemented");
+        IRValue null_value = {0};
+        return null_value;
+    }
+    
+    IRValue null_value = {0};
+    return null_value;
 }
 
 void ast_to_ir_translate_expression_statement(AstToIRTranslator* translator, Ast* ast) {
@@ -981,6 +1043,11 @@ void ast_to_ir_add_symbol(AstToIRTranslator* translator, const char* name, uint3
     table->entries[table->count].local_index = is_local ? table->next_local_index++ : 0;
     table->entries[table->count].scope_depth = translator->current_scope_depth;
     table->count++;
+    
+    // Update IR function local count if this is a local variable
+    if (is_local && translator->ir_builder && translator->ir_builder->current_function) {
+        translator->ir_builder->current_function->local_count = table->next_local_index;
+    }
 }
 
 uint32_t ast_to_ir_find_symbol(AstToIRTranslator* translator, const char* name) {
@@ -991,7 +1058,7 @@ uint32_t ast_to_ir_find_symbol(AstToIRTranslator* translator, const char* name) 
     // Search from most recent to oldest (for proper scoping)
     for (int32_t i = table->count - 1; i >= 0; i--) {
         if (strcmp(table->entries[i].name, name) == 0) {
-            return table->entries[i].local_index + 1; // Return 1-based index
+            return table->entries[i].local_index + 1; // Return 1-based index (0 = not found)
         }
     }
     
@@ -1044,10 +1111,38 @@ IRValue ast_to_ir_create_literal_value(Ast* ast) {
     
     if (!ast) return value;
     
-    // For now, assume all literals are integers
-    // In a full implementation, we'd need to determine the literal type
-    value.type = IR_VALUE_I64;
-    value.data.i64 = ast->literal.int_value;
+    // Determine literal type based on the token kind
+    switch (ast->literal.token.kind) {
+        case TK_INT:
+            value.type = IR_VALUE_I64;
+            value.data.i64 = ast->literal.int_value;
+            break;
+        case TK_FLOAT:
+            value.type = IR_VALUE_F64;
+            value.data.f64 = ast->literal.float_value;
+            break;
+        case TK_STRING:
+            value.type = IR_VALUE_STRING;
+            // Store the string value directly - it will be processed during IR to bytecode translation
+            value.data.string_id = (uint32_t)(uintptr_t)ast->literal.string_value;
+            break;
+        case TK_TRUE:
+            value.type = IR_VALUE_BOOL;
+            value.data.boolean = true;
+            break;
+        case TK_FALSE:
+            value.type = IR_VALUE_BOOL;
+            value.data.boolean = false;
+            break;
+        case TK_NULL:
+            value.type = IR_VALUE_NULL;
+            break;
+        default:
+            // Default to integer for unknown types
+            value.type = IR_VALUE_I64;
+            value.data.i64 = ast->literal.int_value;
+            break;
+    }
     
     return value;
 }

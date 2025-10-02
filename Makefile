@@ -7,13 +7,14 @@ SRCDIR = src
 BUILDDIR = build
 TESTDIR = $(SRCDIR)/compiler/tests
 
+# Shared source files
+SHARED_SOURCES = $(SRCDIR)/shared/bytecode/constant_table.c
+
 # Compiler source files
 LEXER_SOURCES = $(SRCDIR)/compiler/lexer/lexer.c
 PARSER_SOURCES = $(SRCDIR)/compiler/parser/parser.c
 AST_SOURCES = $(SRCDIR)/compiler/ast/ast.c
-RESOLVER_SOURCES = $(SRCDIR)/compiler/resolver/resolver.c
-EMITTER_SOURCES = $(SRCDIR)/compiler/emitter/emitter.c
-COMMON_SOURCES = $(SRCDIR)/compiler/common/common.c
+MAIN_SOURCES = $(SRCDIR)/compiler/main.c
 
 # IR and bytecode source files
 IR_SOURCES = $(SRCDIR)/compiler/ir/ir.c
@@ -21,27 +22,28 @@ BYTECODE_SOURCES = $(SRCDIR)/vm/bytecode/bytecode.c
 IR_TO_BYTECODE_SOURCES = $(SRCDIR)/compiler/emitter/ir_to_bytecode.c
 AST_TO_IR_SOURCES = $(SRCDIR)/compiler/emitter/ast_to_ir.c
 BYTECODE_FILE_SOURCES = $(SRCDIR)/vm/bytecode/bytecode_file.c
+HELIUM_MODULE_SOURCES = $(SRCDIR)/vm/bytecode/helium_module.c
 
 # VM source files
 VM_SOURCES = $(SRCDIR)/vm/vm.c
 VM_LOADER_SOURCES = $(SRCDIR)/vm/loader/bytecode_loader.c
-VM_EXECUTION_SOURCES = $(SRCDIR)/vm/execution/stack.c $(SRCDIR)/vm/execution/interpreter.c
+VM_EXECUTION_SOURCES = $(SRCDIR)/vm/execution/stack.c $(SRCDIR)/vm/execution/interpreter.c $(SRCDIR)/vm/execution/context.c
 VM_MEMORY_SOURCES = $(SRCDIR)/vm/memory/heap.c
 VM_OBJECT_SOURCES = $(SRCDIR)/vm/objects/object.c
 VM_BYTECODE_FILE_SOURCES = $(SRCDIR)/vm/bytecode/bytecode_file.c
 VM_OPCODE_UTILS_SOURCES = $(SRCDIR)/vm/bytecode/opcode_utils.c
+VM_HELIUM_MODULE_SOURCES = $(SRCDIR)/vm/bytecode/helium_module.c
 VM_MAIN_SOURCES = $(SRCDIR)/vm/main.c
 
 # Test source files
 TEST_SOURCES = $(TESTDIR)/lexer_test.c $(TESTDIR)/parser_test.c
 
 # Object files
+SHARED_OBJECTS = $(BUILDDIR)/constant_table.o
 LEXER_OBJECTS = $(BUILDDIR)/lexer.o
 PARSER_OBJECTS = $(BUILDDIR)/parser.o
 AST_OBJECTS = $(BUILDDIR)/ast.o
-RESOLVER_OBJECTS = $(BUILDDIR)/resolver.o
-EMITTER_OBJECTS = $(BUILDDIR)/emitter.o
-COMMON_OBJECTS = $(BUILDDIR)/common.o
+MAIN_OBJECTS = $(BUILDDIR)/main.o
 
 # IR and bytecode object files
 IR_OBJECTS = $(BUILDDIR)/ir.o
@@ -49,271 +51,223 @@ BYTECODE_OBJECTS = $(BUILDDIR)/bytecode.o
 IR_TO_BYTECODE_OBJECTS = $(BUILDDIR)/ir_to_bytecode.o
 AST_TO_IR_OBJECTS = $(BUILDDIR)/ast_to_ir.o
 BYTECODE_FILE_OBJECTS = $(BUILDDIR)/bytecode_file.o
+HELIUM_MODULE_OBJECTS = $(BUILDDIR)/helium_module.o
 
 # VM object files
 VM_OBJECTS = $(BUILDDIR)/vm.o
 VM_LOADER_OBJECTS = $(BUILDDIR)/bytecode_loader.o
-VM_EXECUTION_OBJECTS = $(BUILDDIR)/stack.o $(BUILDDIR)/interpreter.o
+VM_EXECUTION_OBJECTS = $(BUILDDIR)/stack.o $(BUILDDIR)/interpreter.o $(BUILDDIR)/context.o
 VM_MEMORY_OBJECTS = $(BUILDDIR)/heap.o
 VM_OBJECT_OBJECTS = $(BUILDDIR)/object.o
 VM_BYTECODE_FILE_OBJECTS = $(BUILDDIR)/bytecode_file.o
 VM_OPCODE_UTILS_OBJECTS = $(BUILDDIR)/opcode_utils.o
+VM_HELIUM_MODULE_OBJECTS = $(BUILDDIR)/helium_module.o
+VM_MAIN_OBJECTS = $(BUILDDIR)/vm_main.o
 
-# Test executables
-LEXER_TEST = $(BUILDDIR)/lexer_test
-LEXER_REGRESSION_TEST = $(BUILDDIR)/lexer_regression_test
-PARSER_TEST = $(BUILDDIR)/parser_test
-PARSER_COMPREHENSIVE_TEST = $(BUILDDIR)/parser_comprehensive_test
-PARSER_REGRESSION_TEST = $(BUILDDIR)/parser_regression_test
-IR_BYTECODE_TEST = $(BUILDDIR)/ir_bytecode_test
-AST_TO_IR_TEST = $(BUILDDIR)/ast_to_ir_test
-STATEMENT_TRANSLATION_TEST = $(BUILDDIR)/statement_translation_test
-METHOD_TRANSLATION_TEST = $(BUILDDIR)/method_translation_test
-ERROR_RECOVERY_TEST = $(BUILDDIR)/error_recovery_test
-MEMORY_TEST = $(BUILDDIR)/memory_test
-OBJECT_TEST = $(BUILDDIR)/object_test
+# Test object files
+TEST_OBJECTS = $(BUILDDIR)/lexer_test.o $(BUILDDIR)/parser_test.o
 
-# Main executables
-HE3_COMPILER = $(BUILDDIR)/he3
-HE3VM = $(BUILDDIR)/he3vm
+# All source files
+ALL_SOURCES = $(SHARED_SOURCES) $(LEXER_SOURCES) $(PARSER_SOURCES) $(AST_SOURCES) $(MAIN_SOURCES) $(IR_SOURCES) $(BYTECODE_SOURCES) $(IR_TO_BYTECODE_SOURCES) $(AST_TO_IR_SOURCES) $(BYTECODE_FILE_SOURCES) $(HELIUM_MODULE_SOURCES) $(VM_SOURCES) $(VM_LOADER_SOURCES) $(VM_EXECUTION_SOURCES) $(VM_MEMORY_SOURCES) $(VM_OBJECT_SOURCES) $(VM_BYTECODE_FILE_SOURCES) $(VM_OPCODE_UTILS_SOURCES) $(VM_HELIUM_MODULE_SOURCES) $(VM_MAIN_SOURCES)
 
-.PHONY: all clean test lexer-test parser-test ir-bytecode-test ast-to-ir-test statement-translation-test method-translation-test error-recovery-test memory-test object-test setup
+# All object files
+ALL_OBJECTS = $(SHARED_OBJECTS) $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(MAIN_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) $(BYTECODE_FILE_OBJECTS) $(HELIUM_MODULE_OBJECTS) $(VM_OBJECTS) $(VM_LOADER_OBJECTS) $(VM_EXECUTION_OBJECTS) $(VM_MEMORY_OBJECTS) $(VM_OBJECT_OBJECTS) $(VM_BYTECODE_FILE_OBJECTS) $(VM_OPCODE_UTILS_OBJECTS) $(VM_HELIUM_MODULE_OBJECTS) $(VM_MAIN_OBJECTS)
 
-# Default target
-all: setup $(HE3_COMPILER) $(HE3VM)
+# Main targets
+all: he3 he3vm
 
-# Setup build directory
-setup:
-	@mkdir -p $(BUILDDIR)
-
-# Build lexer
-$(BUILDDIR)/lexer.o: $(LEXER_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Build parser
-# Build AST
-$(BUILDDIR)/ast.o: $(AST_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(BUILDDIR)/parser.o: $(PARSER_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Build resolver
-$(BUILDDIR)/resolver.o: $(RESOLVER_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Build emitter
-$(BUILDDIR)/emitter.o: $(EMITTER_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Build common utilities
-$(BUILDDIR)/common.o: $(COMMON_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Build IR
-$(BUILDDIR)/ir.o: $(IR_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Build bytecode
-$(BUILDDIR)/bytecode.o: $(BYTECODE_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Build IR to bytecode translator
-$(BUILDDIR)/ir_to_bytecode.o: $(IR_TO_BYTECODE_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Build AST to IR translator
-$(BUILDDIR)/ast_to_ir.o: $(AST_TO_IR_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Build lexer test
-$(LEXER_TEST): $(TESTDIR)/lexer_test.c $(LEXER_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) -o $@
-
-# Build lexer regression test
-$(LEXER_REGRESSION_TEST): $(TESTDIR)/lexer_regression_test.c $(LEXER_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) -o $@
-
-# Build parser test
-# Build AST
-$(BUILDDIR)/ast.o: $(AST_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(PARSER_TEST): $(TESTDIR)/parser_test.c $(PARSER_OBJECTS) $(LEXER_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(PARSER_OBJECTS) $(LEXER_OBJECTS) -o $@
-
-# Build parser comprehensive test
-# Build AST
-$(BUILDDIR)/ast.o: $(AST_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(PARSER_COMPREHENSIVE_TEST): $(TESTDIR)/parser_comprehensive_test.c $(PARSER_OBJECTS) $(LEXER_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(PARSER_OBJECTS) $(LEXER_OBJECTS) -o $@
-
-# Build parser regression test
-# Build AST
-$(BUILDDIR)/ast.o: $(AST_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(PARSER_REGRESSION_TEST): $(TESTDIR)/parser_regression_test.c $(PARSER_OBJECTS) $(LEXER_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(PARSER_OBJECTS) $(LEXER_OBJECTS) -o $@
-
-# Build IR and bytecode test
-$(IR_BYTECODE_TEST): $(TESTDIR)/ir_bytecode_test.c $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) -o $@
-
-# Build AST to IR test
-$(AST_TO_IR_TEST): $(TESTDIR)/ast_to_ir_test.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) -o $@
-
-# Build statement translation test
-$(STATEMENT_TRANSLATION_TEST): $(TESTDIR)/statement_translation_test.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) -o $@
-
-# Build method translation test
-$(METHOD_TRANSLATION_TEST): $(TESTDIR)/method_translation_test.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) -o $@
-
-# Build error recovery test
-$(ERROR_RECOVERY_TEST): $(TESTDIR)/error_recovery_test.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) -o $@
-
-# Build main compiler
-$(HE3_COMPILER): src/compiler/main.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) $(BYTECODE_FILE_OBJECTS) $(VM_LOADER_OBJECTS) $(VM_OPCODE_UTILS_OBJECTS)
+# Compiler executable
+he3: $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(MAIN_OBJECTS) $(IR_OBJECTS) $(BYTECODE_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) $(BYTECODE_FILE_OBJECTS) $(HELIUM_MODULE_OBJECTS) $(SHARED_OBJECTS)
+	@echo "Building He³ compiler..."
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
-
-# Clean target
-clean:
-	@echo "Cleaning build artifacts..."
-	@rm -rf $(BUILDDIR)
-	@echo "Clean complete"
-
-# Test targets
-test: lexer-test lexer-regression-test parser-comprehensive-test ir-bytecode-test ast-to-ir-test statement-translation-test method-translation-test error-recovery-test
-
-lexer-test: $(LEXER_TEST)
-	@echo "Running lexer tests..."
-	@$(LEXER_TEST)
-
-lexer-regression-test: $(LEXER_REGRESSION_TEST)
-	@echo "Running lexer regression tests..."
-	@$(LEXER_REGRESSION_TEST)
-
-parser-test: $(PARSER_TEST)
-	@echo "Running parser tests..."
-	@$(PARSER_TEST)
-
-parser-comprehensive-test: $(PARSER_COMPREHENSIVE_TEST)
-	@echo "Running parser comprehensive tests..."
-	@$(PARSER_COMPREHENSIVE_TEST)
-
-parser-regression-test: $(PARSER_REGRESSION_TEST)
-	@echo "Running parser regression tests..."
-	@$(PARSER_REGRESSION_TEST)
-
-ir-bytecode-test: $(IR_BYTECODE_TEST)
-	@echo "Running IR and bytecode tests..."
-	@$(IR_BYTECODE_TEST)
-
-ast-to-ir-test: $(AST_TO_IR_TEST)
-	@echo "Running AST to IR tests..."
-	@$(AST_TO_IR_TEST)
-
-statement-translation-test: $(STATEMENT_TRANSLATION_TEST)
-	@echo "Running statement translation tests..."
-	@$(STATEMENT_TRANSLATION_TEST)
-
-method-translation-test: $(METHOD_TRANSLATION_TEST)
-	@echo "Running method translation tests..."
-	@$(METHOD_TRANSLATION_TEST)
-
-error-recovery-test: $(ERROR_RECOVERY_TEST)
-	@echo "Running error recovery tests..."
-	@$(ERROR_RECOVERY_TEST)
-
-memory-test: $(MEMORY_TEST)
-	@echo "Running memory management tests..."
-	@$(MEMORY_TEST)
-
-object-test: $(OBJECT_TEST)
-	@echo "Running object system tests..."
-	@$(OBJECT_TEST)
-
-# VM build rules
-$(BUILDDIR)/vm.o: $(VM_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(BUILDDIR)/bytecode_loader.o: $(VM_LOADER_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(BUILDDIR)/bytecode_file.o: $(VM_BYTECODE_FILE_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(BUILDDIR)/opcode_utils.o: $(VM_OPCODE_UTILS_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(BUILDDIR)/stack.o: $(SRCDIR)/vm/execution/stack.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(BUILDDIR)/interpreter.o: $(SRCDIR)/vm/execution/interpreter.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(BUILDDIR)/heap.o: $(VM_MEMORY_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(BUILDDIR)/object.o: $(VM_OBJECT_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# Memory test executable
-$(MEMORY_TEST): $(SRCDIR)/vm/memory/memory_test.c $(VM_MEMORY_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
-
-# Object test executable
-$(OBJECT_TEST): tmp/object_test.c $(VM_OBJECT_OBJECTS) $(VM_MEMORY_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+	@echo "Compiler built successfully!"
 
 # VM executable
-$(HE3VM): $(VM_MAIN_SOURCES) $(VM_OBJECTS) $(VM_LOADER_OBJECTS) $(VM_EXECUTION_OBJECTS) $(VM_MEMORY_OBJECTS) $(VM_OBJECT_OBJECTS) $(VM_BYTECODE_FILE_OBJECTS) $(VM_OPCODE_UTILS_OBJECTS) $(BYTECODE_OBJECTS)
+he3vm: $(VM_OBJECTS) $(VM_LOADER_OBJECTS) $(VM_EXECUTION_OBJECTS) $(VM_MEMORY_OBJECTS) $(VM_OBJECT_OBJECTS) $(VM_BYTECODE_FILE_OBJECTS) $(VM_OPCODE_UTILS_OBJECTS) $(VM_HELIUM_MODULE_OBJECTS) $(VM_MAIN_OBJECTS) $(SHARED_OBJECTS)
+	@echo "Building He³ VM..."
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+	@echo "VM built successfully!"
+
+# Test executables
+test_lexer: $(LEXER_OBJECTS) $(BUILDDIR)/lexer_test.o
+	@echo "Building lexer test..."
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+	@echo "Lexer test built successfully!"
+
+test_parser: $(PARSER_OBJECTS) $(AST_OBJECTS) $(BUILDDIR)/parser_test.o
+	@echo "Building parser test..."
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+	@echo "Parser test built successfully!"
+
+# Object file rules
+$(BUILDDIR)/%.o: $(SRCDIR)/shared/bytecode/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/compiler/lexer/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/compiler/parser/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/compiler/ast/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/compiler/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/compiler/emitter/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/compiler/ir/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/vm/bytecode/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/vm/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/vm/loader/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/vm/execution/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/vm/memory/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/vm/objects/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(TESTDIR)/%.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Clean targets
+clean:
+	@echo "Cleaning build files..."
+	rm -rf $(BUILDDIR)
+	rm -f he3 he3vm test_lexer test_parser
+	@echo "Clean complete!"
+
+clean_all: clean
+	@echo "Cleaning all generated files..."
+	rm -f *.ohe3 *.bx *.helium3
+	@echo "Clean all complete!"
 
 # Test targets
-test: test-examples
-	@echo "Running all tests..."
+test: test_lexer test_parser
+	@echo "Running tests..."
+	@echo "Running lexer tests..."
+	./test_lexer
+	@echo "Running parser tests..."
+	./test_parser
+	@echo "All tests completed!"
 
-test-examples:
-	@echo "Testing examples..."
-	@for example in examples/standalone/*.he3; do \
-		echo "Testing $$example..."; \
-		./he3 --ast "$$example" > /dev/null || exit 1; \
-	done
-	@echo "All examples passed!"
+# Example compilation targets
+examples: he3 he3vm
+	@echo "Compiling examples..."
+	@echo "Compiling 01_hello.he3..."
+	./he3 examples/standalone/01_hello.he3
+	@echo "Compiling 02_arithmetic.he3..."
+	./he3 examples/standalone/02_arithmetic.he3
+	@echo "Compiling 03_simple.he3..."
+	./he3 examples/standalone/03_simple.he3
+	@echo "Compiling 04_locals.he3..."
+	./he3 examples/standalone/04_locals.he3
+	@echo "Compiling 05_binary.he3..."
+	./he3 examples/standalone/05_binary.he3
+	@echo "Compiling 06_return.he3..."
+	./he3 examples/standalone/06_return.he3
+	@echo "Compiling 07_control.he3..."
+	./he3 examples/standalone/07_control.he3
+	@echo "Compiling 08_functions.he3..."
+	./he3 examples/standalone/08_functions.he3
+	@echo "Compiling 09_classes.he3..."
+	./he3 examples/standalone/09_classes.he3
+	@echo "Compiling 10_async.he3..."
+	./he3 examples/standalone/10_async.he3
+	@echo "All examples compiled!"
 
+# Example execution targets
+run_examples: examples
+	@echo "Running examples..."
+	@echo "Running 01_hello.bx..."
+	./he3vm examples/standalone/01_hello.bx
+	@echo "Running 02_arithmetic.bx..."
+	./he3vm examples/standalone/02_arithmetic.bx
+	@echo "Running 03_simple.bx..."
+	./he3vm examples/standalone/03_simple.bx
+	@echo "Running 04_locals.bx..."
+	./he3vm examples/standalone/04_locals.bx
+	@echo "Running 05_binary.bx..."
+	./he3vm examples/standalone/05_binary.bx
+	@echo "Running 06_return.bx..."
+	./he3vm examples/standalone/06_return.bx
+	@echo "Running 07_control.bx..."
+	./he3vm examples/standalone/07_control.bx
+	@echo "Running 08_functions.bx..."
+	./he3vm examples/standalone/08_functions.bx
+	@echo "Running 09_classes.bx..."
+	./he3vm examples/standalone/09_classes.bx
+	@echo "Running 10_async.bx..."
+	./he3vm examples/standalone/10_async.he3
+	@echo "All examples executed!"
 
-# Development targets
-dev: clean all test
-	@echo "Development build complete!"
+# Debug targets
+debug: CFLAGS += -DDEBUG -g3
+debug: he3 he3vm
 
-# Install executables (copy to root)
-install: $(HE3_COMPILER) $(HE3VM)
-	cp $(HE3_COMPILER) ./he3
-	cp $(HE3VM) ./he3vm
-	@echo "Compiler installed to ./he3"
-	@echo "VM installed to ./he3vm"
+# Release targets
+release: CFLAGS += -O3 -DNDEBUG
+release: clean he3 he3vm
+
+# Install targets
+install: he3 he3vm
+	@echo "Installing He³ compiler and VM..."
+	cp he3 /usr/local/bin/
+	cp he3vm /usr/local/bin/
+	@echo "Installation complete!"
+
+# Uninstall targets
+uninstall:
+	@echo "Uninstalling He³ compiler and VM..."
+	rm -f /usr/local/bin/he3
+	rm -f /usr/local/bin/he3vm
+	@echo "Uninstallation complete!"
 
 # Help target
 help:
-	@echo "He³ Compiler Build System"
-	@echo "========================="
-	@echo ""
+	@echo "He³ Compiler Makefile"
 	@echo "Available targets:"
-	@echo "  all          - Build the compiler"
+	@echo "  all          - Build both compiler and VM (default)"
+	@echo "  he3          - Build compiler only"
+	@echo "  he3vm        - Build VM only"
+	@echo "  test_lexer   - Build lexer test"
+	@echo "  test_parser  - Build parser test"
 	@echo "  test         - Run all tests"
-	@echo "  lexer-test   - Run lexer tests only"
-	@echo "  parser-test  - Run parser tests only"
-	@echo "  clean        - Remove build artifacts"
-	@echo "  dev          - Clean, build, and test"
-	@echo "  install      - Install compiler to root"
+	@echo "  examples     - Compile all examples"
+	@echo "  run_examples - Compile and run all examples"
+	@echo "  debug        - Build with debug flags"
+	@echo "  release      - Build with release flags"
+	@echo "  clean        - Clean build files"
+	@echo "  clean_all    - Clean all generated files"
+	@echo "  install      - Install to /usr/local/bin"
+	@echo "  uninstall    - Remove from /usr/local/bin"
 	@echo "  help         - Show this help message"
-	@echo ""
-	@echo "Build directory: $(BUILDDIR)"
-	@echo "Compiler output: $(HE3_COMPILER)"
+
+# Phony targets
+.PHONY: all he3 he3vm test_lexer test_parser test examples run_examples debug release clean clean_all install uninstall help

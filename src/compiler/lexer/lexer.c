@@ -287,7 +287,12 @@ Token lexer_make_operator_token(Lexer* lexer, char c) {
         case '*': return lexer_make_token(lexer, TK_STAR);
         case '/': return lexer_make_token(lexer, TK_SLASH);
         case '%': return lexer_make_token(lexer, TK_MODULO);
-        case '=': return lexer_make_token(lexer, TK_EQUAL);
+        case '=': 
+            if (lexer_peek(lexer) == '=') {
+                lexer_advance(lexer);
+                return lexer_make_token(lexer, TK_EQUAL);
+            }
+            return lexer_make_token(lexer, TK_ASSIGN);
         case '!': return lexer_make_token(lexer, TK_NOT);
         case '<': return lexer_make_token(lexer, TK_LESS);
         case '>': return lexer_make_token(lexer, TK_GREATER);

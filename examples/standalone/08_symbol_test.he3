@@ -1,0 +1,8 @@
+domain app.test;
+
+class Program {
+  function main(): integer {
+    let x: integer;
+    return 0;
+  }
+}

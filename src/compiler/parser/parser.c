@@ -28,7 +28,7 @@ void parser_destroy(Parser* parser) {
 // Utility functions
 void parser_advance(Parser* parser) {
     parser->previous = parser->current;
-    parser->current = lexer_next_token(parser->lexer);
+        parser->current = lexer_next_token(parser->lexer);
 }
 
 Token parser_consume(Parser* parser, TokenKind kind, const char* message) {
@@ -52,8 +52,8 @@ bool parser_check(Parser* parser, TokenKind kind) {
 
 bool parser_match(Parser* parser, TokenKind kind) {
     if (parser_check(parser, kind)) {
-        parser_advance(parser);
-        return true;
+    parser_advance(parser);
+    return true;
     }
     return false;
 }
@@ -166,10 +166,14 @@ Ast* create_ast_literal(TokenKind token_kind, Token token) {
             break;
         case TK_STRING:
             // Copy string value
+            printf("DEBUG: Creating string literal from token: '%.*s'\n", token.len, token.start);
             node->literal.string_value = malloc(token.len + 1);
             if (node->literal.string_value) {
                 strncpy(node->literal.string_value, token.start, token.len);
                 node->literal.string_value[token.len] = '\0';
+                printf("DEBUG: String literal created: '%s'\n", node->literal.string_value);
+            } else {
+                printf("DEBUG: Failed to allocate memory for string literal\n");
             }
             break;
         case TK_TRUE:
@@ -251,6 +255,16 @@ Ast* create_ast_field_access(Ast* object, Token field) {
     return node;
 }
 
+Ast* create_ast_assignment(Ast* target, Ast* value) {
+    Ast* node = ast_create_node(AST_ASSIGN);
+    if (!node) return NULL;
+    
+    ast_add_child(node, target);
+    ast_add_child(node, value);
+    
+    return node;
+}
+
 // Main parsing functions
 Ast* parse_compilation_unit(Parser* parser) {
     Ast* compunit = ast_create_node(AST_COMPUNIT);
@@ -259,8 +273,8 @@ Ast* parse_compilation_unit(Parser* parser) {
     // Parse top-level declarations
     while (!parser_is_at_end(parser)) {
         if (parser_match(parser, TK_DOMAIN)) {
-            Ast* domain = parse_domain_declaration(parser);
-            if (domain) {
+        Ast* domain = parse_domain_declaration(parser);
+        if (domain) {
                 ast_add_child(compunit, domain);
             }
         } else if (parser_match(parser, TK_IMPORT)) {
@@ -558,11 +572,10 @@ Ast* parse_assignment(Parser* parser) {
     Ast* expr = parse_or_expression(parser);
     
     if (parser_match(parser, TK_ASSIGN)) {
-        Token equals = parser->previous;
         Ast* value = parse_assignment(parser);
         
         if (expr && value) {
-            return create_ast_binary(expr, equals, value);
+            return create_ast_assignment(expr, value);
         }
     }
     
@@ -675,7 +688,7 @@ Ast* parse_call_expression(Parser* parser) {
         } else if (parser_match(parser, TK_DOT)) {
             Token name = parser_consume(parser, TK_IDENTIFIER, "Expected property name after '.'");
             expr = create_ast_field_access(expr, name);
-        } else {
+    } else {
             break;
         }
     }
@@ -707,7 +720,10 @@ Ast* parse_primary_expression(Parser* parser) {
     
     if (parser_match(parser, TK_INT)) return create_ast_literal(TK_INT, parser->previous);
     if (parser_match(parser, TK_FLOAT)) return create_ast_literal(TK_FLOAT, parser->previous);
-    if (parser_match(parser, TK_STRING)) return create_ast_literal(TK_STRING, parser->previous);
+    if (parser_match(parser, TK_STRING)) {
+        printf("DEBUG: Found string literal: '%.*s'\n", parser->previous.len, parser->previous.start);
+        return create_ast_literal(TK_STRING, parser->previous);
+    }
     
     if (parser_match(parser, TK_IDENTIFIER)) return create_ast_identifier(parser->previous);
     
@@ -732,7 +748,7 @@ Ast* parse_type(Parser* parser) {
         return create_ast_identifier(parser->previous);
     }
     
-    return NULL;
+        return NULL;
 }
 
 // Helper function for parameter list parsing
@@ -1092,7 +1108,25 @@ Ast* parse_if_statement(Parser* parser) { return NULL; }
 Ast* parse_while_statement(Parser* parser) { return NULL; }
 Ast* parse_for_statement(Parser* parser) { return NULL; }
 Ast* parse_match_statement(Parser* parser) { return NULL; }
-Ast* parse_return_statement(Parser* parser) { return NULL; }
+Ast* parse_return_statement(Parser* parser) {
+    if (!parser) return NULL;
+    
+    // The 'return' keyword has already been consumed by parser_match
+    Ast* stmt = ast_create_node(AST_RETURN);
+    if (!stmt) return NULL;
+    
+    // Check if there's a return value
+    if (!parser_check(parser, TK_SEMICOLON)) {
+        Ast* value = parse_expression(parser);
+        if (value) {
+            ast_add_child(stmt, value);
+        }
+    }
+    
+    parser_consume(parser, TK_SEMICOLON, "Expected ';' after return statement");
+    
+    return stmt;
+}
 Ast* parse_type_arguments(Parser* parser) { return NULL; }
 Ast* parse_qualified_name(Parser* parser) { return NULL; }
 Ast* parse_pattern(Parser* parser) { return NULL; }

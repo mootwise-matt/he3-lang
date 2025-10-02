@@ -33,8 +33,25 @@ InterpretResult op_push_bool(VM* vm, bool value);
 InterpretResult op_push_str(VM* vm, uint32_t string_index);
 InterpretResult op_push_constant(VM* vm, uint32_t constant_index);
 InterpretResult op_push_null(VM* vm);
+InterpretResult op_push_true(VM* vm);
+InterpretResult op_push_false(VM* vm);
+InterpretResult op_push_int8(VM* vm, int8_t value);
+InterpretResult op_push_int16(VM* vm, int16_t value);
+InterpretResult op_push_int32(VM* vm, int32_t value);
+InterpretResult op_push_int64(VM* vm, int64_t value);
+InterpretResult op_push_uint8(VM* vm, uint8_t value);
+InterpretResult op_push_uint16(VM* vm, uint16_t value);
+InterpretResult op_push_uint32(VM* vm, uint32_t value);
+InterpretResult op_push_uint64(VM* vm, uint64_t value);
+InterpretResult op_push_float32(VM* vm, float value);
+InterpretResult op_push_float64(VM* vm, double value);
 InterpretResult op_pop(VM* vm);
 InterpretResult op_dup(VM* vm);
+InterpretResult op_swap(VM* vm);
+InterpretResult op_inc(VM* vm);
+InterpretResult op_dec(VM* vm);
+InterpretResult op_ge(VM* vm);
+InterpretResult op_nop(VM* vm);
 
 // Local variable operations
 InterpretResult op_load_local(VM* vm, uint32_t local_index);

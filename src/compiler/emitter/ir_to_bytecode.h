@@ -16,6 +16,9 @@ typedef struct IRToBytecodeTranslator {
     // String table for method/type names
     StringTable* string_table;
     
+    // Constant table for literal values
+    ConstantTable* constant_table;
+    
     // Method table for generated methods
     MethodTable* method_table;
     
@@ -32,7 +35,7 @@ typedef struct IRToBytecodeTranslator {
     bool has_error;
 } IRToBytecodeTranslator;
 
-// Translator functions
+// Creation and destruction
 IRToBytecodeTranslator* ir_to_bytecode_translator_create(void);
 void ir_to_bytecode_translator_destroy(IRToBytecodeTranslator* translator);
 
@@ -41,16 +44,22 @@ bool ir_to_bytecode_translate_function(IRToBytecodeTranslator* translator, IRFun
 bool ir_to_bytecode_translate_block(IRToBytecodeTranslator* translator, IRBlock* block);
 bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IRInstruction* instruction);
 
-// Value translation
-bool ir_to_bytecode_translate_value(IRToBytecodeTranslator* translator, IRValue value, uint32_t* operand);
+// Bytecode generation
+bool ir_to_bytecode_emit_instruction(IRToBytecodeTranslator* translator, uint8_t opcode, const uint8_t* operands, size_t operand_size);
+bool ir_to_bytecode_emit_push_constant(IRToBytecodeTranslator* translator, int64_t value);
+bool ir_to_bytecode_emit_push_float(IRToBytecodeTranslator* translator, double value);
+bool ir_to_bytecode_emit_push_boolean(IRToBytecodeTranslator* translator, bool value);
+bool ir_to_bytecode_emit_push_string(IRToBytecodeTranslator* translator, const char* value);
+bool ir_to_bytecode_emit_push_null(IRToBytecodeTranslator* translator);
 
-// Bytecode emission
-bool ir_to_bytecode_emit_opcode(IRToBytecodeTranslator* translator, uint8_t opcode);
-bool ir_to_bytecode_emit_operand(IRToBytecodeTranslator* translator, uint32_t operand);
-bool ir_to_bytecode_emit_instruction(IRToBytecodeTranslator* translator, uint8_t opcode, uint32_t* operands, uint8_t operand_count);
-
-// String and method management
+// Table management
 uint32_t ir_to_bytecode_add_string(IRToBytecodeTranslator* translator, const char* str);
+uint32_t ir_to_bytecode_add_constant(IRToBytecodeTranslator* translator, const ConstantEntry* entry);
+uint32_t ir_to_bytecode_add_int64_constant(IRToBytecodeTranslator* translator, int64_t value);
+uint32_t ir_to_bytecode_add_float64_constant(IRToBytecodeTranslator* translator, double value);
+uint32_t ir_to_bytecode_add_boolean_constant(IRToBytecodeTranslator* translator, bool value);
+uint32_t ir_to_bytecode_add_string_constant(IRToBytecodeTranslator* translator, const char* value);
+uint32_t ir_to_bytecode_add_null_constant(IRToBytecodeTranslator* translator);
 uint32_t ir_to_bytecode_add_method(IRToBytecodeTranslator* translator, const char* name, const char* signature, uint32_t type_id);
 uint32_t ir_to_bytecode_add_type(IRToBytecodeTranslator* translator, const char* name, uint32_t super_type_id, uint32_t size);
 
@@ -61,9 +70,3 @@ BytecodeFile* ir_to_bytecode_generate_file(IRToBytecodeTranslator* translator);
 void ir_to_bytecode_translator_set_error(IRToBytecodeTranslator* translator, const char* message);
 const char* ir_to_bytecode_translator_get_error(IRToBytecodeTranslator* translator);
 bool ir_to_bytecode_translator_has_error(IRToBytecodeTranslator* translator);
-
-// Utility functions
-uint8_t ir_to_bytecode_get_opcode(IROp ir_op);
-bool ir_to_bytecode_is_optimizable_local(uint32_t local_index);
-uint8_t ir_to_bytecode_get_optimized_load_local(uint32_t local_index);
-uint8_t ir_to_bytecode_get_optimized_store_local(uint32_t local_index);

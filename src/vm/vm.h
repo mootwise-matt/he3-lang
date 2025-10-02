@@ -56,7 +56,7 @@ typedef struct CallFrame {
 
 // VM Execution Context
 typedef struct ExecutionContext {
-    struct CallFrame* frames;       // Call stack
+    struct CallFrame** frames;      // Call stack (array of pointers)
     size_t frame_count;             // Number of frames
     size_t frame_capacity;          // Frame capacity
     struct CallFrame* current_frame; // Current frame
