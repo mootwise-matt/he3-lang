@@ -3,6 +3,7 @@
 #include "../../shared/bytecode/opcodes.h"
 #include "stack.h"
 #include "context.h"
+#include "../modules/module_registry.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -663,18 +664,53 @@ InterpretResult op_call(VM* vm, uint32_t method_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    // For now, just pop the arguments and return a default value
-    // In a full implementation, we'd look up the method definition
-    // and execute its bytecode
-    
-    printf("DEBUG: Calling method with id=%u\n", method_id);
-    
-    // Pop arguments (we don't know how many, so we'll just pop one for now)
-    if (vm->stack->top > 0) {
-        stack_pop(vm->stack);
+    // Look up the method in the module registry
+    MethodRegistryEntry* method_entry = method_registry_find_method_by_id(method_id);
+    if (!method_entry) {
+        printf("Runtime error: Method with id=%u not found\n", method_id);
+        return INTERPRET_RUNTIME_ERROR;
     }
     
-    // Push a default return value
+    printf("DEBUG: Calling method '%s' (id=%u) from type %u\n", 
+           method_entry->method_name, method_id, method_entry->type_id);
+    
+    // Check if this is a static method
+    if (method_entry->method_info && method_entry->method_info->is_static) {
+        return op_call_static(vm, method_id);
+    } else {
+        return op_call_virtual(vm, method_id);
+    }
+}
+
+InterpretResult op_call_virtual(VM* vm, uint32_t method_id) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Look up the method in the module registry
+    MethodRegistryEntry* method_entry = method_registry_find_method_by_id(method_id);
+    if (!method_entry) {
+        printf("Runtime error: Virtual method with id=%u not found\n", method_id);
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    printf("DEBUG: Virtual call to method '%s' (id=%u)\n", 
+           method_entry->method_name, method_id);
+    
+    // For virtual calls, we need to pop the object from the stack
+    if (vm->stack->top == 0) {
+        printf("Runtime error: No object on stack for virtual call\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value object = stack_pop(vm->stack);
+    if (object.type != VALUE_OBJECT) {
+        printf("Runtime error: Expected object on stack for virtual call\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // TODO: Implement actual method execution
+    // For now, just push a default return value
     Value result = value_create_i64(0);
     if (!stack_push(vm->stack, result)) {
         return INTERPRET_STACK_OVERFLOW;
@@ -683,14 +719,29 @@ InterpretResult op_call(VM* vm, uint32_t method_id) {
     return INTERPRET_OK;
 }
 
-InterpretResult op_call_virtual(VM* vm, uint32_t method_id) {
-    // Virtual calls are similar to regular calls but with dynamic dispatch
-    return op_call(vm, method_id);
-}
-
 InterpretResult op_call_static(VM* vm, uint32_t method_id) {
-    // Static calls don't need an object instance
-    return op_call(vm, method_id);
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Look up the method in the module registry
+    MethodRegistryEntry* method_entry = method_registry_find_method_by_id(method_id);
+    if (!method_entry) {
+        printf("Runtime error: Static method with id=%u not found\n", method_id);
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    printf("DEBUG: Static call to method '%s' (id=%u)\n", 
+           method_entry->method_name, method_id);
+    
+    // TODO: Implement actual method execution
+    // For now, just push a default return value
+    Value result = value_create_i64(0);
+    if (!stack_push(vm->stack, result)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
 }
 
 InterpretResult op_load_field(VM* vm, uint32_t field_id) {
@@ -698,13 +749,30 @@ InterpretResult op_load_field(VM* vm, uint32_t field_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    // For now, just return a default value
-    // In a full implementation, we'd pop the object from the stack,
-    // look up the field, and push its value
+    // Look up the field in the module registry
+    FieldRegistryEntry* field_entry = field_registry_find_field_by_id(field_id);
+    if (!field_entry) {
+        printf("Runtime error: Field with id=%u not found\n", field_id);
+        return INTERPRET_RUNTIME_ERROR;
+    }
     
-    printf("DEBUG: Loading field with id=%u\n", field_id);
+    printf("DEBUG: Loading field '%s' (id=%u) from type %u\n", 
+           field_entry->field_name, field_id, field_entry->type_id);
     
-    // Push a default field value
+    // Pop the object from the stack
+    if (vm->stack->top == 0) {
+        printf("Runtime error: No object on stack for field access\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value object = stack_pop(vm->stack);
+    if (object.type != VALUE_OBJECT) {
+        printf("Runtime error: Expected object on stack for field access\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // TODO: Implement actual field access
+    // For now, just push a default field value
     Value field_value = value_create_i64(0);
     if (!stack_push(vm->stack, field_value)) {
         return INTERPRET_STACK_OVERFLOW;
@@ -718,15 +786,32 @@ InterpretResult op_store_field(VM* vm, uint32_t field_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    // For now, just pop the value
-    // In a full implementation, we'd pop the value and object from the stack,
-    // look up the field, and store the value
-    
-    printf("DEBUG: Storing field with id=%u\n", field_id);
-    
-    if (vm->stack->top > 0) {
-        stack_pop(vm->stack);
+    // Look up the field in the module registry
+    FieldRegistryEntry* field_entry = field_registry_find_field_by_id(field_id);
+    if (!field_entry) {
+        printf("Runtime error: Field with id=%u not found\n", field_id);
+        return INTERPRET_RUNTIME_ERROR;
     }
+    
+    printf("DEBUG: Storing field '%s' (id=%u) in type %u\n", 
+           field_entry->field_name, field_id, field_entry->type_id);
+    
+    // Pop the value and object from the stack
+    if (vm->stack->top < 2) {
+        printf("Runtime error: Not enough values on stack for field store\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value value = stack_pop(vm->stack);
+    Value object = stack_pop(vm->stack);
+    
+    if (object.type != VALUE_OBJECT) {
+        printf("Runtime error: Expected object on stack for field store\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // TODO: Implement actual field storage
+    // For now, just consume the values
     
     return INTERPRET_OK;
 }
