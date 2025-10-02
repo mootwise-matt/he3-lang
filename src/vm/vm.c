@@ -94,6 +94,7 @@ int vm_execute(VM* vm) {
     }
     
     printf("Executing main function...\n");
+    printf("Bytecode offset: %u, size: %u\n", main_method->bytecode_offset, main_method->bytecode_size);
     
     // Execute bytecode
     InterpretResult result = interpret_bytecode(vm, 
@@ -108,7 +109,21 @@ int vm_execute(VM* vm) {
     vm->running = false;
     printf("Execution completed successfully\n");
     
-    return 0;
+    // Get return value from stack
+    int return_value = 0;
+    printf("Final stack size: %zu\n", stack_size(vm->stack));
+    
+    if (!stack_is_empty(vm->stack)) {
+        Value result_value = stack_pop(vm->stack);
+        printf("Popped value type: %d, value: %lld\n", result_value.type, result_value.data.i64_value);
+        if (result_value.type == VALUE_I64) {
+            return_value = (int)result_value.data.i64_value;
+        }
+        value_destroy(&result_value);
+    }
+    
+    printf("Execution completed with result: %d\n", return_value);
+    return return_value;
 }
 
 int vm_call_function(VM* vm, const char* function_name, Value* args, size_t arg_count) {

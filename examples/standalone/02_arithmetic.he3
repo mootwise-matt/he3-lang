@@ -1,0 +1,13 @@
+domain app.arithmetic;
+
+class Program {
+  function main(): integer {
+    let x: integer;
+    let y: integer;
+    let result: integer;
+    x = 5;
+    y = 3;
+    result = x + y;
+    return result;
+  }
+}

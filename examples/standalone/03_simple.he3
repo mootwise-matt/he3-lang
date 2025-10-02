@@ -1,0 +1,7 @@
+domain app.simple;
+
+class Program {
+  function main(): integer {
+    return 5 + 3;
+  }
+}

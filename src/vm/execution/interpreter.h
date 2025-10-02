@@ -31,6 +31,7 @@ InterpretResult op_push_i64(VM* vm, int64_t value);
 InterpretResult op_push_f64(VM* vm, double value);
 InterpretResult op_push_bool(VM* vm, bool value);
 InterpretResult op_push_str(VM* vm, uint32_t string_index);
+InterpretResult op_push_constant(VM* vm, uint32_t constant_index);
 InterpretResult op_push_null(VM* vm);
 InterpretResult op_pop(VM* vm);
 InterpretResult op_dup(VM* vm);

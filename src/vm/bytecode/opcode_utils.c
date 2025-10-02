@@ -1,4 +1,4 @@
-#include "opcodes.h"
+#include "../../shared/bytecode/opcodes.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

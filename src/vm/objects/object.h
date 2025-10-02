@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "../../include/bytecode_format.h"
+#include "../../shared/bytecode/bytecode_format.h"
 
 // Forward declarations
 struct Class;

@@ -23,6 +23,8 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
             return op_push_str(vm, *(uint32_t*)operands);
         case OP_PUSH_NULL:
             return op_push_null(vm);
+        case OP_PUSH_CONSTANT:
+            return op_push_constant(vm, *(uint32_t*)operands);
         case OP_POP:
             return op_pop(vm);
         case OP_DUP:
@@ -129,6 +131,7 @@ InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
+    printf("Bytecode interpreter: size=%zu bytes\n", size);
     size_t ip = 0; // Instruction pointer
     
     while (ip < size) {
@@ -146,11 +149,26 @@ InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
         }
         ip += operand_count;
         
+        // Debug output
+        printf("Executing opcode %d (%s) with %d operands\n", opcode, opcode_get_name(opcode), operand_count);
+        if (operand_count > 0) {
+            printf("  Operands: ");
+            for (uint8_t i = 0; i < operand_count; i++) {
+                printf("%d ", operands[i]);
+            }
+            printf("\n");
+        }
+        printf("  Stack size before: %zu\n", stack_size(vm->stack));
+        
         // Execute instruction
         InterpretResult result = interpret_instruction(vm, opcode, operands);
         if (result != INTERPRET_OK) {
+            printf("  Instruction failed with result: %d\n", result);
             return result;
         }
+        
+        printf("  Stack size after: %zu\n", stack_size(vm->stack));
+        printf("\n");
     }
     
     return INTERPRET_OK;
@@ -210,6 +228,21 @@ InterpretResult op_push_str(VM* vm, uint32_t string_index) {
     return INTERPRET_OK;
 }
 
+InterpretResult op_push_constant(VM* vm, uint32_t constant_index) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, just push the constant index as an integer
+    // TODO: Get actual constant value from constant table
+    Value val = value_create_i64(constant_index);
+    if (!stack_push(vm->stack, val)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
 InterpretResult op_push_null(VM* vm) {
     if (!vm || !vm->stack) {
         return INTERPRET_RUNTIME_ERROR;
@@ -258,12 +291,34 @@ InterpretResult op_dup(VM* vm) {
 
 // Local variable operations
 InterpretResult op_load_local(VM* vm, uint32_t local_index) {
-    // TODO: Implement local variable loading
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, just push the local index as a value
+    // TODO: Implement proper local variable storage
+    Value val = value_create_i64(local_index);
+    if (!stack_push(vm->stack, val)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
     return INTERPRET_OK;
 }
 
 InterpretResult op_store_local(VM* vm, uint32_t local_index) {
-    // TODO: Implement local variable storing
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, just pop a value from the stack
+    // TODO: Implement proper local variable storage
+    if (stack_is_empty(vm->stack)) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value val = stack_pop(vm->stack);
+    value_destroy(&val);
+    
     return INTERPRET_OK;
 }
 

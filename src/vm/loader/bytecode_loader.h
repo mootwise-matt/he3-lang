@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "../../include/bytecode_format.h"
-#include "../../include/opcodes.h"
+#include "../../shared/bytecode/bytecode_format.h"
+#include "../../shared/bytecode/opcodes.h"
 #include "../objects/object.h"
 
 // Forward declarations

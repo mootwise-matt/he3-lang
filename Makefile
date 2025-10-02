@@ -2,7 +2,7 @@
 
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -g -O2
-INCLUDES = -Isrc/include
+INCLUDES = -Isrc/shared -Isrc/compiler -Isrc/vm
 SRCDIR = src
 BUILDDIR = build
 TESTDIR = $(SRCDIR)/compiler/tests
@@ -20,6 +20,7 @@ IR_SOURCES = $(SRCDIR)/compiler/ir/ir.c
 BYTECODE_SOURCES = $(SRCDIR)/vm/bytecode/bytecode.c
 IR_TO_BYTECODE_SOURCES = $(SRCDIR)/compiler/emitter/ir_to_bytecode.c
 AST_TO_IR_SOURCES = $(SRCDIR)/compiler/emitter/ast_to_ir.c
+BYTECODE_FILE_SOURCES = $(SRCDIR)/vm/bytecode/bytecode_file.c
 
 # VM source files
 VM_SOURCES = $(SRCDIR)/vm/vm.c
@@ -47,6 +48,7 @@ IR_OBJECTS = $(BUILDDIR)/ir.o
 BYTECODE_OBJECTS = $(BUILDDIR)/bytecode.o
 IR_TO_BYTECODE_OBJECTS = $(BUILDDIR)/ir_to_bytecode.o
 AST_TO_IR_OBJECTS = $(BUILDDIR)/ast_to_ir.o
+BYTECODE_FILE_OBJECTS = $(BUILDDIR)/bytecode_file.o
 
 # VM object files
 VM_OBJECTS = $(BUILDDIR)/vm.o
@@ -177,7 +179,7 @@ $(ERROR_RECOVERY_TEST): $(TESTDIR)/error_recovery_test.c $(LEXER_OBJECTS) $(PARS
 	$(CC) $(CFLAGS) $(INCLUDES) $< $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) -o $@
 
 # Build main compiler
-$(HE3_COMPILER): src/compiler/main.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS)
+$(HE3_COMPILER): src/compiler/main.c $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(AST_OBJECTS) $(IR_OBJECTS) $(IR_TO_BYTECODE_OBJECTS) $(AST_TO_IR_OBJECTS) $(BYTECODE_FILE_OBJECTS) $(VM_LOADER_OBJECTS) $(VM_OPCODE_UTILS_OBJECTS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
 
 # Clean target

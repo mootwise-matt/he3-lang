@@ -1,5 +1,5 @@
-#include "bytecode_format.h"
-#include "opcodes.h"
+#include "../../shared/bytecode/bytecode_format.h"
+#include "../../shared/bytecode/opcodes.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -255,6 +255,33 @@ bool bytecode_file_save(BytecodeFile* file, const char* filename) {
     
     FILE* f = fopen(filename, "wb");
     if (!f) return false;
+    
+    // Calculate offsets
+    size_t current_offset = sizeof(BytecodeHeader);
+    
+    // String table offset
+    file->header.string_table_offset = current_offset;
+    if (file->string_table && file->header.string_table_size > 0) {
+        current_offset += file->header.string_table_size;
+    }
+    
+    // Type table offset
+    file->header.type_table_offset = current_offset;
+    if (file->type_table && file->header.type_table_size > 0) {
+        current_offset += file->header.type_table_size;
+    }
+    
+    // Method table offset
+    file->header.method_table_offset = current_offset;
+    if (file->method_table && file->header.method_table_size > 0) {
+        current_offset += file->header.method_table_size;
+    }
+    
+    // Field table offset (not implemented yet)
+    file->header.field_table_offset = current_offset;
+    
+    // Bytecode offset
+    file->header.bytecode_offset = current_offset;
     
     // Write header
     if (fwrite(&file->header, sizeof(BytecodeHeader), 1, f) != 1) {
