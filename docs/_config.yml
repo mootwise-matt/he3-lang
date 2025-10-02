@@ -54,6 +54,12 @@ collections:
   bytecode:
     output: true
     permalink: /:collection/:name/
+  exporter:
+    output: true
+    permalink: /:collection/:name/
+  pages:
+    output: true
+    permalink: /:name/
 
 # Defaults
 defaults:
@@ -82,6 +88,16 @@ defaults:
       type: "bytecode"
     values:
       layout: "page"
+  - scope:
+      path: ""
+      type: "exporter"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
 
 # Navigation
 navigation:
@@ -95,6 +111,8 @@ navigation:
     url: /vm/
   - title: Bytecode
     url: /bytecode/
+  - title: Exporters
+    url: /exporter/
   - title: GitHub
     url: https://github.com/mootwise-matt/he3-lang
     external: true
