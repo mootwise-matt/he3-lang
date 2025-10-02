@@ -11,7 +11,7 @@ github:
   repository: he3-lang
 
 # Site settings
-baseurl: ""
+baseurl: "/he3-lang"
 url: "https://mootwise-matt.github.io"
 
 # Build settings
