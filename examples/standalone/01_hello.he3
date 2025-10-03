@@ -1,8 +1,0 @@
-domain app.hello;
-
-class Program {
-  function main(): integer {
-    print("Hello, He³ World!");
-    return 0;
-  }
-}

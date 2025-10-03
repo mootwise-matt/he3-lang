@@ -29,6 +29,7 @@ typedef struct {
     BytecodeFile* bytecode;
     bool compiled;
     char* error_message;
+    void* bytecode_translator; // IRToBytecodeTranslator* - stored for cleanup
 } CompilationUnit;
 
 // Project packager

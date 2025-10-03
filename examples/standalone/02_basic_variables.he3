@@ -1,9 +1,0 @@
-domain app.variables;
-
-class Program {
-    function main(): System.Int64 {
-        var x: System.Int64 = 0;
-        var y: System.Int64 = 0;
-        return x + y;
-    }
-}

@@ -221,14 +221,18 @@ HeliumModule* helium_module_load(const char* filename) {
     }
     
     // Load string table
+    printf("DEBUG: String table size: %u\n", module->header.string_table_size);
     if (module->header.string_table_size > 0) {
+        printf("DEBUG: Loading string table at offset %u\n", module->header.string_table_offset);
         fseek(file, module->header.string_table_offset, SEEK_SET);
         module->string_table_obj = string_table_create();
         if (!module->string_table_obj) {
+            printf("DEBUG: Failed to create string table\n");
             free(module);
             fclose(file);
             return NULL;
         }
+        printf("DEBUG: String table created successfully\n");
         
         if (fread(&module->string_table_obj->count, sizeof(uint32_t), 1, file) != 1) {
             string_table_destroy(module->string_table_obj);
@@ -306,14 +310,18 @@ HeliumModule* helium_module_load(const char* filename) {
     }
     
     // Load method table
+    printf("DEBUG: Method table size: %u\n", module->header.method_table_size);
     if (module->header.method_table_size > 0) {
+        printf("DEBUG: Loading method table at offset %u\n", module->header.method_table_offset);
         fseek(file, module->header.method_table_offset, SEEK_SET);
         module->method_table = method_table_create();
         if (!module->method_table) {
+            printf("DEBUG: Failed to create method table\n");
             helium_module_destroy(module);
             fclose(file);
             return NULL;
         }
+        printf("DEBUG: Method table created successfully\n");
         
         if (fread(&module->method_table->count, sizeof(uint32_t), 1, file) != 1) {
             helium_module_destroy(module);
@@ -413,14 +421,21 @@ bool helium_module_validate(HeliumModule* module) {
 
 // Get string from module
 const char* helium_module_get_string(HeliumModule* module, uint32_t offset) {
+    printf("DEBUG: helium_module_get_string called with offset %u\n", offset);
     if (!module || !module->string_table_obj || !module->string_table_obj->data) {
+        printf("DEBUG: helium_module_get_string returning NULL (module=%p, string_table_obj=%p, data=%p)\n", 
+               module, module ? module->string_table_obj : NULL, 
+               module && module->string_table_obj ? module->string_table_obj->data : NULL);
         return NULL;
     }
     
     if (offset >= module->string_table_obj->total_size) {
+        printf("DEBUG: helium_module_get_string returning NULL (offset %u >= total_size %u)\n", 
+               offset, module->string_table_obj->total_size);
         return NULL;
     }
     
+    printf("DEBUG: helium_module_get_string returning string at offset %u\n", offset);
     return module->string_table_obj->data + offset;
 }
 

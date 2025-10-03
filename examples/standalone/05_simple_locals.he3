@@ -1,9 +1,0 @@
-domain app.simple;
-
-class Program {
-  function main(): integer {
-    let x: integer;
-    x = 5;
-    return x;
-  }
-}

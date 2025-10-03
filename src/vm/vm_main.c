@@ -10,7 +10,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        fprintf(stderr, "Usage: %s <bytecode_file>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <helium3_module>\n", argv[0]);
         return 1;
     }
     
@@ -21,9 +21,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Load bytecode
-    if (vm_load_bytecode(vm, argv[1]) == 0) {
-        fprintf(stderr, "Failed to load bytecode file: %s\n", argv[1]);
+    // Load .helium3 module
+    if (vm_load_helium3_module(vm, argv[1]) == 0) {
+        fprintf(stderr, "Failed to load .helium3 module: %s\n", argv[1]);
         vm_destroy(vm);
         return 1;
     }

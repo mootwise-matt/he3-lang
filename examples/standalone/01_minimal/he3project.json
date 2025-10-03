@@ -1,0 +1,9 @@
+{
+  "name": "minimal-standalone",
+  "version": "1.0.0",
+  "type": "executable",
+  "entryPoint": "src/main.he3",
+  "sourceFiles": ["src/main.he3"],
+  "dependencies": [],
+  "build": { "output": "build/output.helium3", "optimize": false, "debug": true }
+}

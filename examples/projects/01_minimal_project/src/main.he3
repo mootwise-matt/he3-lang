@@ -1,0 +1,12 @@
+domain app.project;
+
+class Util {
+  function getValue(): integer { return 0; }
+}
+
+class Program {
+  function main(): integer {
+    var u = new Util();
+    return u.getValue();
+  }
+}

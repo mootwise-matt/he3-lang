@@ -1,7 +1,0 @@
-domain app.utils;
-
-class Calculator {
-    function add(a: System.Int64, b: System.Int64): System.Int64 {
-        return a + b;
-    }
-}

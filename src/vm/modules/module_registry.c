@@ -76,7 +76,19 @@ bool module_registry_register_module(ModuleRegistry* registry, const char* filen
     }
     
     entry->module_name = module_name;
-    entry->module_version = strdup(helium_module_get_string(module, module->header.module_version_offset));
+    
+    // Handle null module version gracefully
+    printf("DEBUG: Getting module version, offset: %u\n", module->header.module_version_offset);
+    const char* version_str = helium_module_get_string(module, module->header.module_version_offset);
+    printf("DEBUG: Module version string: %s\n", version_str ? version_str : "NULL");
+    if (version_str) {
+        entry->module_version = strdup(version_str);
+        printf("DEBUG: Duplicated version string\n");
+    } else {
+        entry->module_version = strdup("1.0.0"); // Default version
+        printf("DEBUG: Using default version\n");
+    }
+    
     entry->module_id = registry->next_module_id++;
     entry->helium_module = module;
     entry->bytecode_file = NULL;
@@ -416,16 +428,24 @@ void field_registry_print_info(void) {
 
 // Module loading and discovery
 bool module_registry_load_helium3_module(ModuleRegistry* registry, const char* filename) {
+    printf("DEBUG: Loading helium3 module: %s\n", filename);
     if (!registry || !filename) {
+        printf("DEBUG: Invalid parameters\n");
         return false;
     }
     
+    printf("DEBUG: Calling helium_module_load\n");
     HeliumModule* module = helium_module_load(filename);
     if (!module) {
+        printf("DEBUG: helium_module_load failed\n");
         return false;
     }
+    printf("DEBUG: helium_module_load succeeded\n");
     
-    return module_registry_register_module(registry, filename, module);
+    printf("DEBUG: Calling module_registry_register_module\n");
+    bool result = module_registry_register_module(registry, filename, module);
+    printf("DEBUG: module_registry_register_module result: %s\n", result ? "success" : "failed");
+    return result;
 }
 
 bool module_registry_load_bytecode_file(ModuleRegistry* registry, const char* filename) {
@@ -475,7 +495,13 @@ bool module_registry_discover_classes_from_module(ModuleRegistry* registry, uint
             continue;
         }
         
-        const char* class_name = string_table_get_string(string_table, type_entry->name_offset);
+        // Use offset-based access for helium modules
+        const char* class_name = NULL;
+        if (module_entry->helium_module) {
+            class_name = helium_module_get_string(module_entry->helium_module, type_entry->name_offset);
+        } else {
+            class_name = string_table_get_string(string_table, type_entry->name_offset);
+        }
         if (!class_name) {
             continue;
         }
@@ -526,8 +552,16 @@ bool module_registry_discover_methods_from_module(ModuleRegistry* registry, uint
     for (uint32_t i = 0; i < method_table->count; i++) {
         MethodEntry* method_entry = &method_table->entries[i];
         
-        const char* method_name = string_table_get_string(string_table, method_entry->name_offset);
-        const char* signature = string_table_get_string(string_table, method_entry->signature_offset);
+        // Use offset-based access for helium modules
+        const char* method_name = NULL;
+        const char* signature = NULL;
+        if (module_entry->helium_module) {
+            method_name = helium_module_get_string(module_entry->helium_module, method_entry->name_offset);
+            signature = helium_module_get_string(module_entry->helium_module, method_entry->signature_offset);
+        } else {
+            method_name = string_table_get_string(string_table, method_entry->name_offset);
+            signature = string_table_get_string(string_table, method_entry->signature_offset);
+        }
         
         if (!method_name) {
             continue;
@@ -599,7 +633,13 @@ bool module_registry_discover_fields_from_module(ModuleRegistry* registry, uint3
     for (uint32_t i = 0; i < field_table->count; i++) {
         FieldEntry* field_entry = &field_table->entries[i];
         
-        const char* field_name = string_table_get_string(string_table, field_entry->name_offset);
+        // Use offset-based access for helium modules
+        const char* field_name = NULL;
+        if (module_entry->helium_module) {
+            field_name = helium_module_get_string(module_entry->helium_module, field_entry->name_offset);
+        } else {
+            field_name = string_table_get_string(string_table, field_entry->name_offset);
+        }
         if (!field_name) {
             continue;
         }

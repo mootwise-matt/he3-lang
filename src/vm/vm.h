@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "../shared/bytecode/bytecode_format.h"
+#include "../shared/bytecode/helium_format.h"
 #include "../shared/bytecode/opcodes.h"
 
 // Forward declarations
@@ -65,7 +65,7 @@ typedef struct ExecutionContext {
 
 // VM Main Structure
 typedef struct VM {
-    BytecodeFile* bytecode;  // Loaded bytecode
+    HeliumModule* current_module;   // Currently executing .helium3 module
     struct Stack* stack;            // Operand stack
     struct ExecutionContext* context; // Execution context
     struct Heap* heap;              // Memory heap
@@ -80,8 +80,9 @@ VM* vm_create(void);
 void vm_destroy(VM* vm);
 
 // VM Execution
-int vm_load_bytecode(VM* vm, const char* filename);
+int vm_load_helium3_module(VM* vm, const char* filename);
 int vm_execute(VM* vm);
+int vm_execute_method(VM* vm, HeliumModule* module, uint32_t method_id);
 int vm_call_function(VM* vm, const char* function_name, Value* args, size_t arg_count);
 
 // Stack Operations

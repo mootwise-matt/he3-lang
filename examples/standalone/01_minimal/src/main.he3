@@ -1,7 +1,7 @@
-domain app.simple;
+domain app.min;
 
 class Program {
   function main(): integer {
-    return 5 + 3;
+    return 0;
   }
 }

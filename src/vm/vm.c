@@ -17,7 +17,7 @@ VM* vm_create(void) {
     }
     
     // Initialize VM
-    vm->bytecode = NULL;
+    vm->current_module = NULL;
     vm->stack = stack_create(1024); // Initial stack capacity
     vm->context = execution_context_create();
     vm->heap = heap_create(16 * 1024 * 1024); // 16MB heap
@@ -48,8 +48,8 @@ void vm_destroy(VM* vm) {
     if (!vm) return;
     
     // Destroy components
-    if (vm->bytecode) {
-        bytecode_destroy_file(vm->bytecode);
+    if (vm->current_module) {
+        helium_module_destroy(vm->current_module);
     }
     
     if (vm->stack) {
@@ -79,165 +79,164 @@ void vm_destroy(VM* vm) {
 }
 
 // VM Execution
-int vm_load_bytecode(VM* vm, const char* filename) {
+int vm_load_helium3_module(VM* vm, const char* filename) {
     if (!vm || !filename) {
         return 0;
     }
     
-    // Check file extension to determine format
+    // Check file extension
     const char* extension = strrchr(filename, '.');
-    if (!extension) {
-        fprintf(stderr, "No file extension found: %s\n", filename);
+    if (!extension || strcmp(extension, ".helium3") != 0) {
+        fprintf(stderr, "Invalid file format: %s (expected .helium3)\n", filename);
         return 0;
     }
     
-    if (strcmp(extension, ".helium3") == 0) {
-        // Load helium3 module using module registry
-        if (!module_registry_load_helium3_module(vm->module_registry, filename)) {
-            fprintf(stderr, "Failed to load helium3 module: %s\n", filename);
-            return 0;
-        }
-        
-        // Get the loaded module (extract basename without extension)
-        const char* basename = strrchr(filename, '/');
-        if (basename) {
-            basename++;
-        } else {
-            basename = filename;
-        }
-        
-        // Remove extension
-        char module_name[256];
-        strncpy(module_name, basename, sizeof(module_name) - 1);
-        module_name[sizeof(module_name) - 1] = '\0';
-        char* dot = strrchr(module_name, '.');
-        if (dot) {
-            *dot = '\0';
-        }
-        
-        ModuleEntry* module_entry = module_registry_find_module(vm->module_registry, module_name);
-        if (!module_entry) {
-            fprintf(stderr, "Failed to find loaded module: %s\n", module_name);
-            return 0;
-        }
-        
-        // Convert helium module to bytecode file format
-        vm->bytecode = bytecode_file_create();
-        if (!vm->bytecode) {
-            fprintf(stderr, "Failed to create bytecode file structure\n");
-            return 0;
-        }
-        
-        // Copy data from helium module to bytecode file
-        vm->bytecode->string_table = module_entry->helium_module->string_table_obj;
-        vm->bytecode->type_table = module_entry->helium_module->type_table;
-        vm->bytecode->method_table = module_entry->helium_module->method_table;
-        vm->bytecode->field_table = module_entry->helium_module->field_table;
-        vm->bytecode->bytecode = module_entry->helium_module->bytecode;
-        vm->bytecode->header.bytecode_size = module_entry->helium_module->bytecode_size;
-        vm->bytecode->header.entry_point_method_id = module_entry->helium_module->header.entry_point_method_id;
-        
-        // Set up header flags
-        vm->bytecode->header.flags = BYTECODE_FLAG_EXECUTABLE;
-        
-        printf("Loaded helium3 module: %s\n", filename);
-        printf("Module Name: %s\n", module_entry->module_name);
-        printf("Module Version: %s\n", module_entry->module_version);
-        printf("Methods: %u\n", vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
-        printf("Types: %u\n", vm->bytecode->type_table ? vm->bytecode->type_table->count : 0);
-        
-    } else if (strcmp(extension, ".bx") == 0) {
-        // Load regular bytecode file using module registry
-        printf("DEBUG: Loading bytecode file: %s\n", filename);
-        if (!module_registry_load_bytecode_file(vm->module_registry, filename)) {
-            fprintf(stderr, "Failed to load bytecode file: %s\n", filename);
-            return 0;
-        }
-        printf("DEBUG: Bytecode file loaded successfully\n");
-        
-        // Get the loaded module (extract basename without extension)
-        const char* basename = strrchr(filename, '/');
-        if (basename) {
-            basename++;
-        } else {
-            basename = filename;
-        }
-        
-        // Remove extension
-        char module_name[256];
-        strncpy(module_name, basename, sizeof(module_name) - 1);
-        module_name[sizeof(module_name) - 1] = '\0';
-        char* dot = strrchr(module_name, '.');
-        if (dot) {
-            *dot = '\0';
-        }
-        
-        ModuleEntry* module_entry = module_registry_find_module(vm->module_registry, module_name);
-        if (!module_entry) {
-            fprintf(stderr, "Failed to find loaded module: %s\n", module_name);
-            return 0;
-        }
-        
-        // Use the bytecode file from the module
-        vm->bytecode = module_entry->bytecode_file;
-        
-        printf("Loaded bytecode file: %s\n", filename);
-        printf("Module Name: %s\n", module_entry->module_name);
-        printf("Methods: %u\n", vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
-        printf("Types: %u\n", vm->bytecode->type_table ? vm->bytecode->type_table->count : 0);
-        
+    // Load the .helium3 module directly
+    printf("DEBUG: Loading .helium3 module: %s\n", filename);
+    HeliumModule* module = helium_module_load(filename);
+    if (!module) {
+        fprintf(stderr, "Failed to load .helium3 module: %s\n", filename);
+        return 0;
+    }
+    
+    // Set as current module
+    vm->current_module = module;
+    
+    // Register module in registry for class discovery
+    const char* basename = strrchr(filename, '/');
+    if (basename) {
+        basename++;
     } else {
-        fprintf(stderr, "Unsupported file format: %s (expected .bx or .helium3)\n", extension);
+        basename = filename;
+    }
+    
+    // Remove extension
+    char module_name[256];
+    strncpy(module_name, basename, sizeof(module_name) - 1);
+    module_name[sizeof(module_name) - 1] = '\0';
+    char* dot = strrchr(module_name, '.');
+    if (dot) {
+        *dot = '\0';
+    }
+    
+    // Register module in registry
+    if (!module_registry_register_module(vm->module_registry, module_name, module)) {
+        fprintf(stderr, "Failed to register module: %s\n", module_name);
+        helium_module_destroy(module);
+        vm->current_module = NULL;
         return 0;
     }
     
-    printf("DEBUG: vm_load_bytecode returning 1 (success)\n");
+    printf("Loaded .helium3 module: %s\n", filename);
+    printf("Module Name: %s\n", module_name);
+    printf("Entry Point Method ID: %u\n", module->header.entry_point_method_id);
+    printf("Methods: %u\n", module->method_table ? module->method_table->count : 0);
+    printf("Types: %u\n", module->type_table ? module->type_table->count : 0);
+    
     return 1;
 }
 
 int vm_execute(VM* vm) {
-    if (!vm || !vm->bytecode) {
-        fprintf(stderr, "No bytecode loaded\n");
+    if (!vm || !vm->current_module) {
+        fprintf(stderr, "No .helium3 module loaded\n");
         return 1;
     }
     
     vm->running = true;
     
-    // Find main function
-    printf("DEBUG: Looking for main function in method table (count=%u)\n", 
-           vm->bytecode->method_table ? vm->bytecode->method_table->count : 0);
-    MethodEntry* main_method = method_table_find_by_name(vm->bytecode->method_table, "main");
-    if (!main_method) {
-        fprintf(stderr, "Main function not found\n");
+    // Check if module has an entry point
+    if (vm->current_module->header.entry_point_method_id == 0) {
+        printf("Module is a library (no entry point) - classes registered for use by other modules\n");
+        vm->running = false;
+        return 0;
+    }
+    
+    // Find the entry point method
+    uint32_t entry_point_id = vm->current_module->header.entry_point_method_id;
+    printf("DEBUG: Looking for entry point method ID: %u\n", entry_point_id);
+    
+    if (!vm->current_module->method_table) {
+        fprintf(stderr, "Method table is null\n");
         return 1;
     }
-    printf("DEBUG: Main function found\n");
     
-    printf("Executing main function...\n");
-    printf("Bytecode offset: %u, size: %u\n", main_method->bytecode_offset, main_method->bytecode_size);
+    // Find method by ID
+    MethodEntry* entry_method = NULL;
+    for (uint32_t i = 0; i < vm->current_module->method_table->count; i++) {
+        if (vm->current_module->method_table->entries[i].method_id == entry_point_id) {
+            entry_method = &vm->current_module->method_table->entries[i];
+            break;
+        }
+    }
     
-    // Create call frame for main function
-    CallFrame* main_frame = call_frame_create(
-        vm->bytecode->bytecode + main_method->bytecode_offset,
-        main_method->local_count
+    if (!entry_method) {
+        fprintf(stderr, "Entry point method ID %u not found\n", entry_point_id);
+        return 1;
+    }
+    
+    printf("DEBUG: Entry point method found\n");
+    printf("DEBUG: Method ID: %u\n", entry_method->method_id);
+    printf("DEBUG: Method name offset: %u\n", entry_method->name_offset);
+    printf("DEBUG: Method signature offset: %u\n", entry_method->signature_offset);
+    printf("DEBUG: Bytecode offset: %u, size: %u\n", entry_method->bytecode_offset, entry_method->bytecode_size);
+    
+    // Get method name for debugging
+    const char* method_name = helium_module_get_string(vm->current_module, entry_method->name_offset);
+    if (method_name) {
+        printf("DEBUG: Method name: %s\n", method_name);
+    }
+    
+    printf("Executing entry point method...\n");
+    
+    // Execute the entry point method
+    return vm_execute_method(vm, vm->current_module, entry_point_id);
+}
+
+int vm_execute_method(VM* vm, HeliumModule* module, uint32_t method_id) {
+    if (!vm || !module) {
+        fprintf(stderr, "Invalid VM or module\n");
+        return 1;
+    }
+    
+    // Find the method by ID
+    MethodEntry* method = NULL;
+    for (uint32_t i = 0; i < module->method_table->count; i++) {
+        if (module->method_table->entries[i].method_id == method_id) {
+            method = &module->method_table->entries[i];
+            break;
+        }
+    }
+    
+    if (!method) {
+        fprintf(stderr, "Method ID %u not found\n", method_id);
+        return 1;
+    }
+    
+    printf("DEBUG: Executing method ID %u\n", method_id);
+    printf("DEBUG: Bytecode offset: %u, size: %u\n", method->bytecode_offset, method->bytecode_size);
+    
+    // Create call frame for the method
+    CallFrame* method_frame = call_frame_create(
+        module->bytecode + method->bytecode_offset,
+        method->local_count
     );
     
-    if (!main_frame) {
-        fprintf(stderr, "Failed to create call frame for main function\n");
+    if (!method_frame) {
+        fprintf(stderr, "Failed to create call frame for method\n");
         return 1;
     }
     
     // Push frame onto execution context
-    if (!execution_context_push_frame(vm->context, main_frame)) {
-        fprintf(stderr, "Failed to push main frame onto execution context\n");
-        call_frame_destroy(main_frame);
+    if (!execution_context_push_frame(vm->context, method_frame)) {
+        fprintf(stderr, "Failed to push method frame onto execution context\n");
+        call_frame_destroy(method_frame);
         return 1;
     }
     
     // Execute bytecode
     InterpretResult result = interpret_bytecode(vm, 
-        vm->bytecode->bytecode + main_method->bytecode_offset,
-        main_method->bytecode_size);
+        module->bytecode + method->bytecode_offset,
+        method->bytecode_size);
     
     if (result != INTERPRET_OK) {
         fprintf(stderr, "Runtime error: %s\n", interpret_result_to_string(result));
@@ -252,7 +251,7 @@ int vm_execute(VM* vm) {
     if (frame) call_frame_destroy(frame);
     
     vm->running = false;
-    printf("Execution completed successfully\n");
+    printf("Method execution completed successfully\n");
     
     // Get return value from stack
     int return_value = 0;
@@ -266,24 +265,33 @@ int vm_execute(VM* vm) {
             return_value = (int)result_value.data.i64_value;
         } else if (result_value.type == VALUE_F64) {
             printf("Popped float value: %f\n", result_value.data.f64_value);
-            return_value = (int)result_value.data.f64_value; // Convert float to int
+            return_value = (int)result_value.data.f64_value;
         } else {
             printf("Popped value: %lld (unexpected type)\n", result_value.data.i64_value);
         }
         value_destroy(&result_value);
     }
     
-    printf("Execution completed with result: %d\n", return_value);
+    printf("Method execution completed with result: %d\n", return_value);
     return return_value;
 }
 
 int vm_call_function(VM* vm, const char* function_name, Value* args, size_t arg_count) {
-    if (!vm || !vm->bytecode || !function_name) {
+    if (!vm || !vm->current_module || !function_name) {
         return 1;
     }
     
-    // Find function
-    MethodEntry* method = method_table_find_by_name(vm->bytecode->method_table, function_name);
+    // Find function in current module
+    MethodEntry* method = NULL;
+    for (uint32_t i = 0; i < vm->current_module->method_table->count; i++) {
+        const char* method_name = helium_module_get_string(vm->current_module, 
+            vm->current_module->method_table->entries[i].name_offset);
+        if (method_name && strcmp(method_name, function_name) == 0) {
+            method = &vm->current_module->method_table->entries[i];
+            break;
+        }
+    }
+    
     if (!method) {
         fprintf(stderr, "Function not found: %s\n", function_name);
         return 1;
@@ -292,7 +300,7 @@ int vm_call_function(VM* vm, const char* function_name, Value* args, size_t arg_
     // TODO: Implement function call with arguments
     // For now, just execute the method bytecode
     InterpretResult result = interpret_bytecode(vm,
-        vm->bytecode->bytecode + method->bytecode_offset,
+        vm->current_module->bytecode + method->bytecode_offset,
         method->bytecode_size);
     
     if (result != INTERPRET_OK) {
@@ -460,8 +468,8 @@ void vm_print_frames(VM* vm) {
 }
 
 void vm_disassemble(VM* vm) {
-    if (!vm || !vm->bytecode) {
-        printf("No bytecode loaded\n");
+    if (!vm || !vm->current_module) {
+        printf("No .helium3 module loaded\n");
         return;
     }
     

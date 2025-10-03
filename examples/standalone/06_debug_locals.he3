@@ -1,9 +1,0 @@
-domain app.test;
-
-class Program {
-  function main(): integer {
-    let x: integer;
-    x = 10;
-    return x;
-  }
-}
