@@ -105,6 +105,16 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
             return op_load_field(vm, *(uint32_t*)operands);
         case OP_STORE_FIELD:
             return op_store_field(vm, *(uint32_t*)operands);
+        case OP_JUMP:
+            return op_jmp(vm, *(int32_t*)operands);
+        case OP_JUMP_IF_TRUE:
+            return op_jmp_if_true(vm, *(int32_t*)operands);
+        case OP_JUMP_IF_FALSE:
+            return op_jmp_if_false(vm, *(int32_t*)operands);
+        case OP_JUMP_IF_NULL:
+            return op_jmp_if_null(vm, *(int32_t*)operands);
+        case OP_JUMP_IF_NOT_NULL:
+            return op_jmp_if_not_null(vm, *(int32_t*)operands);
         default:
             printf("Runtime error: Invalid Opcode 0x%02X\n", opcode);
             return INTERPRET_RUNTIME_ERROR;
@@ -633,6 +643,11 @@ InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
             case OP_LOAD_FIELD:
             case OP_STORE_FIELD:
             case OP_NEW_OBJECT:
+            case OP_JUMP:
+            case OP_JUMP_IF_TRUE:
+            case OP_JUMP_IF_FALSE:
+            case OP_JUMP_IF_NULL:
+            case OP_JUMP_IF_NOT_NULL:
                 operand_size = 4;
                 break;
             default:
@@ -1407,6 +1422,59 @@ InterpretResult execute_method_bytecode(VM* vm, Method* method, Value object) {
     }
     
     return result;
+}
+
+// ============================================================================
+// JUMP OPERATIONS
+// ============================================================================
+
+InterpretResult op_jmp(VM* vm, int32_t offset) {
+    if (!vm || !vm->context || !vm->context->current_frame) return INTERPRET_RUNTIME_ERROR;
+    
+    // For now, we'll implement a simple PC modification
+    // In a real implementation, this would need to handle block-based jumps
+    vm->context->current_frame->ip += offset;
+    return INTERPRET_OK;
+}
+
+InterpretResult op_jmp_if_true(VM* vm, int32_t offset) {
+    if (!vm || !vm->context || !vm->context->current_frame) return INTERPRET_RUNTIME_ERROR;
+    
+    Value condition = stack_pop(vm->stack);
+    if (condition.type == VALUE_BOOL && condition.data.bool_value) {
+        vm->context->current_frame->ip += offset;
+    }
+    return INTERPRET_OK;
+}
+
+InterpretResult op_jmp_if_false(VM* vm, int32_t offset) {
+    if (!vm || !vm->context || !vm->context->current_frame) return INTERPRET_RUNTIME_ERROR;
+    
+    Value condition = stack_pop(vm->stack);
+    if (condition.type == VALUE_BOOL && !condition.data.bool_value) {
+        vm->context->current_frame->ip += offset;
+    }
+    return INTERPRET_OK;
+}
+
+InterpretResult op_jmp_if_null(VM* vm, int32_t offset) {
+    if (!vm || !vm->context || !vm->context->current_frame) return INTERPRET_RUNTIME_ERROR;
+    
+    Value value = stack_pop(vm->stack);
+    if (value.type == VALUE_NULL) {
+        vm->context->current_frame->ip += offset;
+    }
+    return INTERPRET_OK;
+}
+
+InterpretResult op_jmp_if_not_null(VM* vm, int32_t offset) {
+    if (!vm || !vm->context || !vm->context->current_frame) return INTERPRET_RUNTIME_ERROR;
+    
+    Value value = stack_pop(vm->stack);
+    if (value.type != VALUE_NULL) {
+        vm->context->current_frame->ip += offset;
+    }
+    return INTERPRET_OK;
 }
 
 const char* interpret_result_to_string(InterpretResult result) {

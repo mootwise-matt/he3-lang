@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 // Load project from JSON file
 He3Project* he3_project_load(const char* project_file) {
@@ -45,6 +46,9 @@ He3Project* he3_project_load(const char* project_file) {
     char* last_slash = strrchr(project_dir, '/');
     if (last_slash) {
         *last_slash = '\0';
+    } else {
+        // If no slash, assume current directory
+        strcpy(project_dir, ".");
     }
     
     // Generate output filename based on project directory name
@@ -53,6 +57,11 @@ He3Project* he3_project_load(const char* project_file) {
         dir_name++; // Skip the slash
     } else {
         dir_name = project_dir;
+    }
+    
+    // If directory name is ".", use "output" instead
+    if (strcmp(dir_name, ".") == 0) {
+        dir_name = "output";
     }
     
     // Create output path with directory name
@@ -64,7 +73,6 @@ He3Project* he3_project_load(const char* project_file) {
     // Look for source files in src/ directory
     char src_dir[512];
     snprintf(src_dir, sizeof(src_dir), "%s/src", project_dir);
-    
     
     // Count .he3 files
     project->source_count = 0;

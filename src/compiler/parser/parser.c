@@ -134,10 +134,6 @@ void parser_synchronize(Parser* parser) {
             case TK_VAR:
             case TK_LET:
             case TK_NEW:
-            case TK_IF:
-            case TK_WHILE:
-            case TK_FOR:
-            case TK_RETURN:
             case TK_DOMAIN:
             case TK_IMPORT:
                 return;
@@ -630,6 +626,14 @@ Ast* parse_block_statement(Parser* parser) {
         Ast* stmt = parse_statement(parser);
         if (stmt) {
             ast_add_child(block, stmt);
+        } else {
+            // If statement parsing failed, synchronize and continue
+            if (parser->panic_mode) {
+                parser_synchronize(parser);
+            } else {
+                // If not in panic mode, advance to avoid infinite loop
+                parser_advance(parser);
+            }
         }
     }
     
@@ -1322,7 +1326,57 @@ Ast* parse_constructor_declaration(Parser* parser) {
     
     return constructor;
 }
-Ast* parse_if_statement(Parser* parser) { return NULL; }
+Ast* parse_if_statement(Parser* parser) {
+    if (!parser) return NULL;
+    
+    // Create if statement node
+    Ast* if_stmt = create_ast_node(AST_IF);
+    if (!if_stmt) return NULL;
+    
+    // Parse condition
+    if (!parser_match(parser, TK_LPAREN)) {
+        parser_error(parser, "Expected '(' after 'if'");
+        ast_destroy(if_stmt);
+        return NULL;
+    }
+    
+    Ast* condition = parse_expression(parser);
+    if (!condition) {
+        parser_error(parser, "Expected condition after 'if'");
+        ast_destroy(if_stmt);
+        return NULL;
+    }
+    
+    if (!parser_match(parser, TK_RPAREN)) {
+        parser_error(parser, "Expected ')' after if condition");
+        ast_destroy(if_stmt);
+        ast_destroy(condition);
+        return NULL;
+    }
+    
+    // Parse then block
+    Ast* then_block = parse_block_statement(parser);
+    if (!then_block) {
+        parser_error(parser, "Expected block after if condition");
+        ast_destroy(if_stmt);
+        ast_destroy(condition);
+        return NULL;
+    }
+    
+    // Add condition and then block as children
+    ast_add_child(if_stmt, condition);
+    ast_add_child(if_stmt, then_block);
+    
+    // Parse optional else clause
+    if (parser_match(parser, TK_ELSE)) {
+        Ast* else_block = parse_block_statement(parser);
+        if (else_block) {
+            ast_add_child(if_stmt, else_block);
+        }
+    }
+    
+    return if_stmt;
+}
 Ast* parse_while_statement(Parser* parser) { return NULL; }
 Ast* parse_for_statement(Parser* parser) { return NULL; }
 Ast* parse_match_statement(Parser* parser) { return NULL; }

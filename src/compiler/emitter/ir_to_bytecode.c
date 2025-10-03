@@ -213,6 +213,36 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
         case IR_RETURN:
             return ir_to_bytecode_emit_instruction(translator, OP_RETURN, NULL, 0);
         
+        case IR_JMP: {
+            // Unconditional jump
+            if (instruction->operand_count > 0) {
+                uint32_t target_block_id = instruction->operands[0].data.temp_id;
+                return ir_to_bytecode_emit_instruction(translator, OP_JUMP, 
+                                                     (uint8_t*)&target_block_id, sizeof(uint32_t));
+            }
+            return ir_to_bytecode_emit_instruction(translator, OP_JUMP, NULL, 0);
+        }
+        
+        case IR_JMPF: {
+            // Jump if false
+            if (instruction->operand_count > 0) {
+                uint32_t target_block_id = instruction->operands[0].data.temp_id;
+                return ir_to_bytecode_emit_instruction(translator, OP_JUMP_IF_FALSE, 
+                                                     (uint8_t*)&target_block_id, sizeof(uint32_t));
+            }
+            return ir_to_bytecode_emit_instruction(translator, OP_JUMP_IF_FALSE, NULL, 0);
+        }
+        
+        case IR_JMPT: {
+            // Jump if true
+            if (instruction->operand_count > 0) {
+                uint32_t target_block_id = instruction->operands[0].data.temp_id;
+                return ir_to_bytecode_emit_instruction(translator, OP_JUMP_IF_TRUE, 
+                                                     (uint8_t*)&target_block_id, sizeof(uint32_t));
+            }
+            return ir_to_bytecode_emit_instruction(translator, OP_JUMP_IF_TRUE, NULL, 0);
+        }
+        
         case IR_JMP_GE:
             // For now, just emit a comparison - the jump will be handled separately
             return ir_to_bytecode_emit_instruction(translator, OP_GE, NULL, 0);

@@ -82,7 +82,10 @@ InterpretResult op_not(VM* vm);
 // Control flow operations
 InterpretResult op_jmp(VM* vm, int32_t offset);
 InterpretResult op_jmp_if(VM* vm, int32_t offset);
+InterpretResult op_jmp_if_true(VM* vm, int32_t offset);
 InterpretResult op_jmp_if_false(VM* vm, int32_t offset);
+InterpretResult op_jmp_if_null(VM* vm, int32_t offset);
+InterpretResult op_jmp_if_not_null(VM* vm, int32_t offset);
 InterpretResult op_call(VM* vm, uint32_t method_index);
 InterpretResult op_ret(VM* vm);
 InterpretResult op_ret_val(VM* vm);
