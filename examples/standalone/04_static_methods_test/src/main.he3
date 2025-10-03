@@ -1,0 +1,20 @@
+domain Program {
+    class Main {
+        function main(): integer {
+            // Test Sys.print() with string literal
+            Sys.print("Test 1: ");
+            Sys.println("Hello from static method test!");
+            
+            // Test Sys.println() with string literal
+            Sys.println("Test 2: Sys.println with newline");
+            
+            // Test multiple calls
+            Sys.print("Test 3: Multiple calls - ");
+            Sys.print("1 ");
+            Sys.print("2 ");
+            Sys.println("3");
+            
+            return 0;
+        }
+    }
+}

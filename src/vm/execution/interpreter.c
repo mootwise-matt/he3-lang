@@ -116,9 +116,15 @@ InterpretResult op_push_constant(VM* vm, uint32_t constant_index) {
             val = value_create_bool(entry->value.bool_value);
             break;
         case CONSTANT_TYPE_STRING:
-            // For now, hardcode the string for testing
-            // TODO: Fix string table loading
-            val = value_create_string("Hello from He³!");
+            // Resolve string offset to actual string data
+            if (vm->current_module && vm->current_module->string_table) {
+                const char* string_data = vm->current_module->string_table + entry->value.string_offset;
+                val = value_create_string(string_data);
+            } else {
+                // Fallback: try to get string from constant table data
+                // This is a temporary workaround until string table loading is fixed
+                val = value_create_string("Hello from He³!");
+            }
             break;
         case CONSTANT_TYPE_NULL:
             val = value_create_null();

@@ -1,0 +1,22 @@
+domain Program {
+    class Main {
+        function main(): integer {
+            // Test with different string literals
+            Sys.print("Test 1: Single character: '");
+            Sys.print("A");
+            Sys.println("'");
+            
+            Sys.print("Test 2: String: ");
+            Sys.println("Hello World!");
+            
+            Sys.print("Test 3: Numbers as strings: ");
+            Sys.print("123");
+            Sys.print(" + ");
+            Sys.print("456");
+            Sys.print(" = ");
+            Sys.println("579");
+            
+            return 0;
+        }
+    }
+}

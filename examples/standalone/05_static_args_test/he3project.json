@@ -1,0 +1,7 @@
+{
+  "name": "static_args_test",
+  "version": "1.0.0",
+  "type": "executable",
+  "main": "src/main.he3",
+  "description": "Test static methods with different argument types"
+}
