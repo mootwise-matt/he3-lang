@@ -52,6 +52,17 @@ VM* vm_create(void) {
         free(vm);
         return NULL;
     }
+    
+    // Initialize string manager
+    if (!string_manager_init(&vm->string_manager, vm)) {
+        fprintf(stderr, "Failed to initialize string manager\n");
+        if (vm->stack) stack_destroy(vm->stack);
+        if (vm->context) execution_context_destroy(vm->context);
+        if (vm->heap) heap_destroy(vm->heap);
+        if (vm->module_registry) module_registry_destroy(vm->module_registry);
+        free(vm);
+        return NULL;
+    }
     vm->running = false;
     vm->exit_code = 0;
     
@@ -92,6 +103,9 @@ void vm_destroy(VM* vm) {
     if (vm->module_registry) {
         module_registry_destroy(vm->module_registry);
     }
+    
+    // Clean up string manager
+    string_manager_cleanup(&vm->string_manager);
     
     // Clean up global registries
     module_registry_cleanup();

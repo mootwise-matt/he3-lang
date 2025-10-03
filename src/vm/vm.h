@@ -18,6 +18,7 @@ struct Class;
 #include "memory/heap.h"
 #include "objects/object.h"
 #include "modules/module_registry.h"
+#include "string_manager/global_string_registry.h"
 
 // VM Value types
 typedef enum {
@@ -71,6 +72,7 @@ typedef struct VM {
     struct Heap* heap;              // Memory heap
     struct Class* classes;          // Loaded classes
     ModuleRegistry* module_registry; // Module registry
+    StringManager string_manager;   // String manager
     bool running;                   // VM running state
     int exit_code;                  // VM exit code
 } VM;

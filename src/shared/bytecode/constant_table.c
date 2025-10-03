@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 // ============================================================================
 // CONSTANT TABLE OPERATIONS
@@ -29,14 +30,14 @@ void constant_table_destroy(ConstantTable* table) {
 
 uint32_t constant_table_add_constant(ConstantTable* table, const ConstantEntry* entry) {
     if (!table || !entry) {
-        return 0;
+        return UINT32_MAX;
     }
     
     // Resize entries array if needed
     ConstantEntry* new_entries = realloc(table->entries, 
                                        (table->count + 1) * sizeof(ConstantEntry));
     if (!new_entries) {
-        return 0;
+        return UINT32_MAX;
     }
     
     table->entries = new_entries;
@@ -88,7 +89,9 @@ uint32_t constant_table_add_boolean(ConstantTable* table, bool value) {
 }
 
 uint32_t constant_table_add_string(ConstantTable* table, uint32_t string_offset) {
-    if (!table) return 0;
+    if (!table) {
+        return UINT32_MAX;
+    }
     
     ConstantEntry entry;
     entry.type = CONSTANT_TYPE_STRING;

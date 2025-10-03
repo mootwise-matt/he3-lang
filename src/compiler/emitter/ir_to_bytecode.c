@@ -439,14 +439,17 @@ uint32_t ir_to_bytecode_add_string_constant(IRToBytecodeTranslator* translator, 
     }
     
     // Add string to string table first
-    uint32_t string_offset = string_table_add_string(translator->string_table, value);
-    if (string_offset == 0) {
+    uint32_t string_index = string_table_add_string(translator->string_table, value);
+    if (string_index == 0) {
         return 0;
     }
     
+    // Convert index to offset
+    uint32_t string_offset = translator->string_table->entries[string_index].offset;
+    
     // Add string constant to constant table
     uint32_t constant_index = constant_table_add_string(translator->constant_table, string_offset);
-    if (constant_index == 0) {
+    if (constant_index == UINT32_MAX) {
         return 0;
     }
     
