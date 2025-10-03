@@ -171,7 +171,9 @@ Ast* create_ast_literal(TokenKind token_kind, Token token) {
     }
     
     // Also check for other invalid token kinds
-    if (token_kind >= TK_DOMAIN && token_kind <= TK_UNDERSCORE) {
+    // Allow TK_TRUE and TK_FALSE as they are literals
+    if (token_kind >= TK_DOMAIN && token_kind <= TK_UNDERSCORE && 
+        token_kind != TK_TRUE && token_kind != TK_FALSE) {
         printf("ERROR: create_ast_literal called with non-literal token kind %d (%s)!\n", 
                token_kind, token_kind_to_string(token_kind));
         printf("       Token content: '%.*s'\n", token.len, token.start);
@@ -234,6 +236,9 @@ Ast* create_ast_identifier(Token token) {
 Ast* create_ast_binary(Ast* left, Token operator, Ast* right) {
     Ast* node = ast_create(AST_BINARY, NULL, operator.line, operator.col);
     if (!node) return NULL;
+    
+    // Store the operator token kind as text
+    node->text = (char*)token_kind_to_string(operator.kind);
     
     ast_add_child(node, left);
     ast_add_child(node, right);
@@ -805,7 +810,7 @@ Ast* parse_term_expression(Parser* parser) {
 Ast* parse_factor_expression(Parser* parser) {
     Ast* expr = parse_unary_expression(parser);
     
-    while (parser_match(parser, TK_STAR) || parser_match(parser, TK_SLASH)) {
+    while (parser_match(parser, TK_STAR) || parser_match(parser, TK_SLASH) || parser_match(parser, TK_MODULO)) {
         Token operator = parser->previous;
         Ast* right = parse_unary_expression(parser);
         if (right) {

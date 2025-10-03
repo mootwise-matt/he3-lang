@@ -177,6 +177,39 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
         case IR_DEC:
             return ir_to_bytecode_emit_instruction(translator, OP_DEC, NULL, 0);
         
+        case IR_MOD:
+            return ir_to_bytecode_emit_instruction(translator, OP_MOD, NULL, 0);
+        
+        case IR_NEG:
+            return ir_to_bytecode_emit_instruction(translator, OP_NEG, NULL, 0);
+        
+        case IR_EQ:
+            return ir_to_bytecode_emit_instruction(translator, OP_EQ, NULL, 0);
+        
+        case IR_NE:
+            return ir_to_bytecode_emit_instruction(translator, OP_NE, NULL, 0);
+        
+        case IR_LT:
+            return ir_to_bytecode_emit_instruction(translator, OP_LT, NULL, 0);
+        
+        case IR_LE:
+            return ir_to_bytecode_emit_instruction(translator, OP_LE, NULL, 0);
+        
+        case IR_GT:
+            return ir_to_bytecode_emit_instruction(translator, OP_GT, NULL, 0);
+        
+        case IR_GE:
+            return ir_to_bytecode_emit_instruction(translator, OP_GE, NULL, 0);
+        
+        case IR_AND:
+            return ir_to_bytecode_emit_instruction(translator, OP_AND, NULL, 0);
+        
+        case IR_OR:
+            return ir_to_bytecode_emit_instruction(translator, OP_OR, NULL, 0);
+        
+        case IR_NOT:
+            return ir_to_bytecode_emit_instruction(translator, OP_NOT, NULL, 0);
+        
         case IR_RETURN:
             return ir_to_bytecode_emit_instruction(translator, OP_RETURN, NULL, 0);
         

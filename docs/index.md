@@ -258,6 +258,18 @@ domain Program {
   - **Sys.currentTimeMillis()** - Get current timestamp
   - **Additional Sys methods** - File I/O, environment, and system utilities
 - **Type System** - Built-in types and generics
+- **Arithmetic Operations** - Complete arithmetic support
+  - Addition (`+`), Subtraction (`-`), Multiplication (`*`), Division (`/`)
+  - Modulo (`%`), Negation (`-`)
+  - Mixed-type operations (integer + float)
+- **Comparison Operations** - Complete comparison support
+  - Equality (`==`), Inequality (`!=`)
+  - Less Than (`<`), Less Equal (`<=`)
+  - Greater Than (`>`), Greater Equal (`>=`)
+  - String, boolean, and mixed-type comparisons
+- **Logical Operations** - Complete logical support
+  - Logical AND (`&&`), Logical OR (`||`), Logical NOT (`!`)
+  - Boolean type checking and validation
 - **Methods** - Async methods with parameters and return types
 - **Fields** - Mutable and immutable field declarations
 - **Constructors** - Parameterized object construction

@@ -36,7 +36,18 @@ A modern, object-oriented programming language with Pascal roots and Java/C#-sty
   - **Inheritance**: Not yet implemented
 - **Type System**: Basic built-in types (System.Int64, System.Float64, System.Boolean, System.String)
 - **Variables**: Local variable declarations work
-- **Arithmetic**: Basic arithmetic operations work
+- **Arithmetic Operations**: Complete arithmetic support
+  - Addition (`+`), Subtraction (`-`), Multiplication (`*`), Division (`/`)
+  - Modulo (`%`), Negation (`-`)
+  - Mixed-type operations (integer + float)
+- **Comparison Operations**: Complete comparison support
+  - Equality (`==`), Inequality (`!=`)
+  - Less Than (`<`), Less Equal (`<=`)
+  - Greater Than (`>`), Greater Equal (`>=`)
+  - String, boolean, and mixed-type comparisons
+- **Logical Operations**: Complete logical support
+  - Logical AND (`&&`), Logical OR (`||`), Logical NOT (`!`)
+  - Boolean type checking and validation
 - **Return Statements**: Basic return value handling works
 - **String Literals**: String constants work correctly with proper memory management
 
@@ -69,6 +80,11 @@ A modern, object-oriented programming language with Pascal roots and Java/C#-sty
   - Stack operations and execution context
   - Instruction execution and method dispatch
   - Module registry for class and method discovery
+  - **Complete Arithmetic Support**: All arithmetic operations (+, -, *, /, %, -)
+  - **Complete Comparison Support**: All comparison operations (==, !=, <, <=, >, >=)
+  - **Complete Logical Support**: All logical operations (&&, ||, !)
+  - **Type Coercion**: Mixed-type operations (integer + float)
+  - **Error Handling**: Division by zero, type checking, stack overflow protection
   - **.bx File Support**: Can load and execute raw bytecode files
 
 ### ✅ **Phase 2 Complete - Module System**

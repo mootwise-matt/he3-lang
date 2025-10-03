@@ -354,9 +354,38 @@ IRValue ast_to_ir_translate_binary_expression(AstToIRTranslator* translator, Ast
     ast_to_ir_translate_expression(translator, ast->children[0]);
     ast_to_ir_translate_expression(translator, ast->children[1]);
     
-    // For now, default to addition
-    // In a full implementation, we'd need to store the operator type in the AST
-    IROp op = IR_ADD;
+    // Determine the operation based on the stored operator text
+    IROp op = IR_ADD; // Default
+    
+    if (ast->text) {
+        if (strcmp(ast->text, "PLUS") == 0) {
+            op = IR_ADD;
+        } else if (strcmp(ast->text, "MINUS") == 0) {
+            op = IR_SUB;
+        } else if (strcmp(ast->text, "STAR") == 0) {
+            op = IR_MUL;
+        } else if (strcmp(ast->text, "SLASH") == 0) {
+            op = IR_DIV;
+        } else if (strcmp(ast->text, "MODULO") == 0) {
+            op = IR_MOD;
+        } else if (strcmp(ast->text, "EQUAL") == 0) {
+            op = IR_EQ;
+        } else if (strcmp(ast->text, "NOT_EQUAL") == 0) {
+            op = IR_NE;
+        } else if (strcmp(ast->text, "LESS") == 0) {
+            op = IR_LT;
+        } else if (strcmp(ast->text, "LESS_EQUAL") == 0) {
+            op = IR_LE;
+        } else if (strcmp(ast->text, "GREATER") == 0) {
+            op = IR_GT;
+        } else if (strcmp(ast->text, "GREATER_EQUAL") == 0) {
+            op = IR_GE;
+        } else if (strcmp(ast->text, "AND") == 0) {
+            op = IR_AND;
+        } else if (strcmp(ast->text, "OR") == 0) {
+            op = IR_OR;
+        }
+    }
     
     IRInstruction* instruction = ir_builder_create_instruction(translator->ir_builder, op);
     if (!instruction) {

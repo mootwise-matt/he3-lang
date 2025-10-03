@@ -48,9 +48,52 @@ domain Program {
 ```
 
 **Features Demonstrated**:
-- String literals with proper memory management
-- Static method calls (Sys.print)
-- String constant handling
+- String literals
+- Static method calls (`Sys.print()`)
+- Basic output
+
+### 04_operations_demo - Arithmetic, Comparison, and Logical Operations
+```he3
+domain Program {
+    class Main {
+        function main(): System.Int64 {
+            let a: System.Int64 = 15;
+            let b: System.Int64 = 4;
+            
+            // Arithmetic operations
+            let sum: System.Int64 = a + b;        // 19
+            let diff: System.Int64 = a - b;       // 11
+            let prod: System.Int64 = a * b;       // 60
+            let quot: System.Int64 = a / b;       // 3
+            let mod: System.Int64 = a % b;        // 3
+            let neg: System.Int64 = -a;           // -15
+            
+            // Comparison operations
+            let eq: System.Boolean = (a == b);    // false
+            let ne: System.Boolean = (a != b);    // true
+            let lt: System.Boolean = (a < b);     // false
+            let gt: System.Boolean = (a > b);     // true
+            
+            // Logical operations
+            let true_val: System.Boolean = true;
+            let false_val: System.Boolean = false;
+            let and_result: System.Boolean = (true_val && false_val);  // false
+            let or_result: System.Boolean = (true_val || false_val);   // true
+            let not_result: System.Boolean = !true_val;                // false
+            
+            return 0;
+        }
+    }
+}
+```
+
+**Features Demonstrated**:
+- Complete arithmetic operations (+, -, *, /, %, -)
+- Complete comparison operations (==, !=, <, >, <=, >=)
+- Complete logical operations (&&, ||, !)
+- Mixed-type operations (integer + float)
+- Boolean literals (true, false)
+- Type checking and validation
 
 ### 02_types.he3 - Type System Examples
 ```he3

@@ -83,7 +83,9 @@ typedef struct Object {
 - **Stack Operations**: PUSH, POP, DUP, SWAP
 - **Local Variables**: LOAD_LOCAL, STORE_LOCAL
 - **Field Access**: LOAD_FIELD, STORE_FIELD
-- **Arithmetic**: ADD, SUB, MUL, DIV, MOD
+- **Arithmetic**: ADD, SUB, MUL, DIV, MOD, NEG
+- **Comparison**: EQ, NE, LT, LE, GT, GE
+- **Logical**: AND, OR, NOT
 - **Control Flow**: JMP, JMPF, JMPT
 - **Method Calls**: CALL, CALLV, CALLI, RETURN
 - **Object Operations**: NEW, CAST, INSTANCEOF

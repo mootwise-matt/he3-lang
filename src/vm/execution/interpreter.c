@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 // ============================================================================
 // INTERPRETER IMPLEMENTATION
@@ -60,6 +61,10 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
             return op_mul(vm);
         case OP_DIV:
             return op_div(vm);
+        case OP_MOD:
+            return op_mod(vm);
+        case OP_NEG:
+            return op_neg(vm);
         case OP_LOAD_LOCAL:
             return op_load_local(vm, *(uint32_t*)operands);
         case OP_STORE_LOCAL:
@@ -70,6 +75,22 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
             return op_dec(vm);
         case OP_GE:
             return op_ge(vm);
+        case OP_EQ:
+            return op_eq(vm);
+        case OP_NE:
+            return op_ne(vm);
+        case OP_LT:
+            return op_lt(vm);
+        case OP_LE:
+            return op_le(vm);
+        case OP_GT:
+            return op_gt(vm);
+        case OP_AND:
+            return op_and(vm);
+        case OP_OR:
+            return op_or(vm);
+        case OP_NOT:
+            return op_not(vm);
         case OP_RETURN:
             return op_ret(vm);
         case OP_NEW_OBJECT:
@@ -428,6 +449,73 @@ InterpretResult op_div(VM* vm) {
     return INTERPRET_OK;
 }
 
+InterpretResult op_mod(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_size(vm->stack) < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value val2 = stack_pop(vm->stack);
+    Value val1 = stack_pop(vm->stack);
+    
+    if (val1.type == VALUE_I64 && val2.type == VALUE_I64) {
+        if (val2.data.i64_value == 0) {
+            fprintf(stderr, "Runtime error: Modulo by zero\n");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        Value result = value_create_i64(val1.data.i64_value % val2.data.i64_value);
+        if (!stack_push(vm->stack, result)) {
+            return INTERPRET_STACK_OVERFLOW;
+        }
+    } else if (val1.type == VALUE_F64 && val2.type == VALUE_F64) {
+        if (val2.data.f64_value == 0.0) {
+            fprintf(stderr, "Runtime error: Modulo by zero\n");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        Value result = value_create_f64(fmod(val1.data.f64_value, val2.data.f64_value));
+        if (!stack_push(vm->stack, result)) {
+            return INTERPRET_STACK_OVERFLOW;
+        }
+    } else {
+        fprintf(stderr, "Runtime error: Invalid operands for modulo\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_neg(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_size(vm->stack) < 1) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value val = stack_pop(vm->stack);
+    
+    if (val.type == VALUE_I64) {
+        Value result = value_create_i64(-val.data.i64_value);
+        if (!stack_push(vm->stack, result)) {
+            return INTERPRET_STACK_OVERFLOW;
+        }
+    } else if (val.type == VALUE_F64) {
+        Value result = value_create_f64(-val.data.f64_value);
+        if (!stack_push(vm->stack, result)) {
+            return INTERPRET_STACK_OVERFLOW;
+        }
+    } else {
+        fprintf(stderr, "Runtime error: Invalid operand for negation\n");
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    return INTERPRET_OK;
+}
+
 // ============================================================================
 // LOCAL VARIABLE OPERATIONS
 // ============================================================================
@@ -640,6 +728,279 @@ InterpretResult op_ge(VM* vm) {
         result = a.data.i64_value >= b.data.i64_value;
     } else if (a.type == VALUE_F64 && b.type == VALUE_F64) {
         result = a.data.f64_value >= b.data.f64_value;
+    } else if ((a.type == VALUE_I64 && b.type == VALUE_F64) || 
+               (a.type == VALUE_F64 && b.type == VALUE_I64)) {
+        // Mixed types: convert both to float
+        double va = (a.type == VALUE_I64) ? (double)a.data.i64_value : a.data.f64_value;
+        double vb = (b.type == VALUE_I64) ? (double)b.data.i64_value : b.data.f64_value;
+        result = va >= vb;
+    } else {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value result_value = value_create_bool(result);
+    if (!stack_push(vm->stack, result_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_eq(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (vm->stack->top < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value b = stack_pop(vm->stack);
+    Value a = stack_pop(vm->stack);
+    
+    bool result = false;
+    if (a.type == VALUE_I64 && b.type == VALUE_I64) {
+        result = a.data.i64_value == b.data.i64_value;
+    } else if (a.type == VALUE_F64 && b.type == VALUE_F64) {
+        result = a.data.f64_value == b.data.f64_value;
+    } else if (a.type == VALUE_BOOL && b.type == VALUE_BOOL) {
+        result = a.data.bool_value == b.data.bool_value;
+    } else if (a.type == VALUE_STRING && b.type == VALUE_STRING) {
+        result = strcmp(a.data.string_value, b.data.string_value) == 0;
+    } else if ((a.type == VALUE_I64 && b.type == VALUE_F64) || 
+               (a.type == VALUE_F64 && b.type == VALUE_I64)) {
+        // Mixed types: convert both to float
+        double va = (a.type == VALUE_I64) ? (double)a.data.i64_value : a.data.f64_value;
+        double vb = (b.type == VALUE_I64) ? (double)b.data.i64_value : b.data.f64_value;
+        result = va == vb;
+    } else {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value result_value = value_create_bool(result);
+    if (!stack_push(vm->stack, result_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_ne(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (vm->stack->top < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value b = stack_pop(vm->stack);
+    Value a = stack_pop(vm->stack);
+    
+    bool result = false;
+    if (a.type == VALUE_I64 && b.type == VALUE_I64) {
+        result = a.data.i64_value != b.data.i64_value;
+    } else if (a.type == VALUE_F64 && b.type == VALUE_F64) {
+        result = a.data.f64_value != b.data.f64_value;
+    } else if (a.type == VALUE_BOOL && b.type == VALUE_BOOL) {
+        result = a.data.bool_value != b.data.bool_value;
+    } else if (a.type == VALUE_STRING && b.type == VALUE_STRING) {
+        result = strcmp(a.data.string_value, b.data.string_value) != 0;
+    } else if ((a.type == VALUE_I64 && b.type == VALUE_F64) || 
+               (a.type == VALUE_F64 && b.type == VALUE_I64)) {
+        // Mixed types: convert both to float
+        double va = (a.type == VALUE_I64) ? (double)a.data.i64_value : a.data.f64_value;
+        double vb = (b.type == VALUE_I64) ? (double)b.data.i64_value : b.data.f64_value;
+        result = va != vb;
+    } else {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value result_value = value_create_bool(result);
+    if (!stack_push(vm->stack, result_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_lt(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (vm->stack->top < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value b = stack_pop(vm->stack);
+    Value a = stack_pop(vm->stack);
+    
+    bool result = false;
+    if (a.type == VALUE_I64 && b.type == VALUE_I64) {
+        result = a.data.i64_value < b.data.i64_value;
+    } else if (a.type == VALUE_F64 && b.type == VALUE_F64) {
+        result = a.data.f64_value < b.data.f64_value;
+    } else if ((a.type == VALUE_I64 && b.type == VALUE_F64) || 
+               (a.type == VALUE_F64 && b.type == VALUE_I64)) {
+        // Mixed types: convert both to float
+        double va = (a.type == VALUE_I64) ? (double)a.data.i64_value : a.data.f64_value;
+        double vb = (b.type == VALUE_I64) ? (double)b.data.i64_value : b.data.f64_value;
+        result = va < vb;
+    } else {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value result_value = value_create_bool(result);
+    if (!stack_push(vm->stack, result_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_le(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (vm->stack->top < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value b = stack_pop(vm->stack);
+    Value a = stack_pop(vm->stack);
+    
+    bool result = false;
+    if (a.type == VALUE_I64 && b.type == VALUE_I64) {
+        result = a.data.i64_value <= b.data.i64_value;
+    } else if (a.type == VALUE_F64 && b.type == VALUE_F64) {
+        result = a.data.f64_value <= b.data.f64_value;
+    } else if ((a.type == VALUE_I64 && b.type == VALUE_F64) || 
+               (a.type == VALUE_F64 && b.type == VALUE_I64)) {
+        // Mixed types: convert both to float
+        double va = (a.type == VALUE_I64) ? (double)a.data.i64_value : a.data.f64_value;
+        double vb = (b.type == VALUE_I64) ? (double)b.data.i64_value : b.data.f64_value;
+        result = va <= vb;
+    } else {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value result_value = value_create_bool(result);
+    if (!stack_push(vm->stack, result_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_gt(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (vm->stack->top < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value b = stack_pop(vm->stack);
+    Value a = stack_pop(vm->stack);
+    
+    bool result = false;
+    if (a.type == VALUE_I64 && b.type == VALUE_I64) {
+        result = a.data.i64_value > b.data.i64_value;
+    } else if (a.type == VALUE_F64 && b.type == VALUE_F64) {
+        result = a.data.f64_value > b.data.f64_value;
+    } else if ((a.type == VALUE_I64 && b.type == VALUE_F64) || 
+               (a.type == VALUE_F64 && b.type == VALUE_I64)) {
+        // Mixed types: convert both to float
+        double va = (a.type == VALUE_I64) ? (double)a.data.i64_value : a.data.f64_value;
+        double vb = (b.type == VALUE_I64) ? (double)b.data.i64_value : b.data.f64_value;
+        result = va > vb;
+    } else {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value result_value = value_create_bool(result);
+    if (!stack_push(vm->stack, result_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+// ============================================================================
+// LOGICAL OPERATIONS
+// ============================================================================
+
+InterpretResult op_and(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (vm->stack->top < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value b = stack_pop(vm->stack);
+    Value a = stack_pop(vm->stack);
+    
+    bool result = false;
+    if (a.type == VALUE_BOOL && b.type == VALUE_BOOL) {
+        result = a.data.bool_value && b.data.bool_value;
+    } else {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value result_value = value_create_bool(result);
+    if (!stack_push(vm->stack, result_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_or(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (vm->stack->top < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value b = stack_pop(vm->stack);
+    Value a = stack_pop(vm->stack);
+    
+    bool result = false;
+    if (a.type == VALUE_BOOL && b.type == VALUE_BOOL) {
+        result = a.data.bool_value || b.data.bool_value;
+    } else {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value result_value = value_create_bool(result);
+    if (!stack_push(vm->stack, result_value)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_not(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (vm->stack->top < 1) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value a = stack_pop(vm->stack);
+    
+    bool result = false;
+    if (a.type == VALUE_BOOL) {
+        result = !a.data.bool_value;
     } else {
         return INTERPRET_RUNTIME_ERROR;
     }

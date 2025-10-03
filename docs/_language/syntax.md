@@ -46,6 +46,58 @@ match (session) {
 }
 ```
 
+## Operators
+
+### Arithmetic Operators
+```he3
+let a: integer = 10;
+let b: integer = 3;
+
+// Basic arithmetic
+let sum: integer = a + b;        // 13
+let diff: integer = a - b;       // 7
+let prod: integer = a * b;       // 30
+let quot: integer = a / b;       // 3
+let mod: integer = a % b;        // 1
+let neg: integer = -a;           // -10
+
+// Mixed types (integer + float)
+let mixed: float = a + 3.14;     // 13.14
+```
+
+### Comparison Operators
+```he3
+let x: integer = 15;
+let y: integer = 4;
+
+// Comparison operations
+let eq: boolean = (x == y);      // false
+let ne: boolean = (x != y);      // true
+let lt: boolean = (x < y);       // false
+let le: boolean = (x <= y);      // false
+let gt: boolean = (x > y);       // true
+let ge: boolean = (x >= y);      // true
+
+// String comparisons
+let str1: string = "hello";
+let str2: string = "world";
+let str_eq: boolean = (str1 == str2);  // false
+```
+
+### Logical Operators
+```he3
+let p: boolean = true;
+let q: boolean = false;
+
+// Logical operations
+let and_result: boolean = p && q;     // false
+let or_result: boolean = p || q;      // true
+let not_result: boolean = !p;         // false
+
+// Complex logical expressions
+let complex: boolean = (x > 10) && (y < 5) || (p && !q);  // true
+```
+
 ## Event Syntax
 ```he3
 // Event creation
