@@ -598,7 +598,8 @@ void allocation_remove(Heap* heap, void* ptr) {
 
 // Generation management
 Generation* generation_create(void* start, size_t size) {
-    printf("Creating generation at %p with size %zu\n", start, size);
+    // Debug output controlled by VM debug flag
+    // printf("Creating generation at %p with size %zu\n", start, size);
     
     Generation* gen = malloc(sizeof(Generation));
     if (!gen) {
@@ -613,7 +614,8 @@ Generation* generation_create(void* start, size_t size) {
     gen->object_capacity = 1024; // Initial capacity
     gen->next = NULL;
     
-    printf("Allocating object array...\n");
+    // Debug output controlled by VM debug flag
+    // printf("Allocating object array...\n");
     gen->objects = malloc(sizeof(struct Object*) * gen->object_capacity);
     if (!gen->objects) {
         printf("Failed to allocate object array\n");
@@ -621,7 +623,8 @@ Generation* generation_create(void* start, size_t size) {
         return NULL;
     }
     
-    printf("Generation created successfully\n");
+    // Debug output controlled by VM debug flag
+    // printf("Generation created successfully\n");
     return gen;
 }
 

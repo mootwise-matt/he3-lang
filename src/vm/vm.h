@@ -75,11 +75,15 @@ typedef struct VM {
     StringManager string_manager;   // String manager
     bool running;                   // VM running state
     int exit_code;                  // VM exit code
+    bool debug;                     // Debug output flag
 } VM;
 
 // VM Creation and Destruction
 VM* vm_create(void);
 void vm_destroy(VM* vm);
+
+// VM Configuration
+void vm_set_debug(VM* vm, bool debug);
 
 // VM Execution
 int vm_load_helium3_module(VM* vm, const char* filename);

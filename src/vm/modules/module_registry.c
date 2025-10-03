@@ -95,7 +95,8 @@ bool module_registry_register_module(ModuleRegistry* registry, const char* filen
     registry->modules = entry;
     registry->module_count++;
     
-    printf("Registered module: %s (ID: %u)\n", module_name, entry->module_id);
+    // Debug output controlled by VM debug flag
+    // printf("Registered module: %s (ID: %u)\n", module_name, entry->module_id);
     
     // Discover classes, methods, and fields from this module
     module_registry_discover_classes_from_module(registry, entry->module_id);
@@ -214,8 +215,9 @@ bool class_registry_register_class(ClassRegistryEntry* entry) {
     entry->next = g_class_registry;
     g_class_registry = entry;
     
-    printf("Registered class: %s (type_id=%u, module_id=%u)\n", 
-           entry->class_name, entry->type_id, entry->module_id);
+    // Debug output controlled by VM debug flag
+    // printf("Registered class: %s (type_id=%u, module_id=%u)\n", 
+    //        entry->class_name, entry->type_id, entry->module_id);
     
     return true;
 }
@@ -287,8 +289,9 @@ bool method_registry_register_method(MethodRegistryEntry* entry) {
     entry->next = g_method_registry;
     g_method_registry = entry;
     
-    printf("Registered method: %s (method_id=%u, type_id=%u, module_id=%u)\n", 
-           entry->method_name, entry->method_id, entry->type_id, entry->module_id);
+    // Debug output controlled by VM debug flag
+    // printf("Registered method: %s (method_id=%u, type_id=%u, module_id=%u)\n", 
+    //        entry->method_name, entry->method_id, entry->type_id, entry->module_id);
     
     return true;
 }

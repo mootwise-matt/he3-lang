@@ -35,7 +35,7 @@ He3Project* he3_project_load(const char* project_file) {
     project->dependency_count = 0;
     project->output_path = strdup("build/output.helium3");
     project->optimize = false;
-    project->debug = true;
+    project->debug = false;
     
     // Simple heuristic: find all .he3 files in the project directory
     char project_dir[512];

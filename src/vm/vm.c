@@ -42,6 +42,7 @@ VM* vm_create(void) {
     }
     
     vm->classes = NULL;
+    vm->debug = false;
     
     vm->module_registry = module_registry_create();
     if (!vm->module_registry) {
@@ -111,6 +112,13 @@ void vm_destroy(VM* vm) {
     module_registry_cleanup();
     
     free(vm);
+}
+
+// VM Configuration
+void vm_set_debug(VM* vm, bool debug) {
+    if (vm) {
+        vm->debug = debug;
+    }
 }
 
 // VM Execution
@@ -279,7 +287,9 @@ int vm_execute_method(VM* vm, HeliumModule* module, uint32_t method_id) {
     }
     
     vm->running = false;
-    printf("Method execution completed successfully\n");
+    if (vm->debug) {
+        printf("Method execution completed successfully\n");
+    }
     
     // Get return value from stack
     int return_value = 0;
@@ -294,7 +304,9 @@ int vm_execute_method(VM* vm, HeliumModule* module, uint32_t method_id) {
         value_destroy(&result_value);
     }
     
-    printf("Method execution completed with result: %d\n", return_value);
+    if (vm->debug) {
+        printf("Method execution completed with result: %d\n", return_value);
+    }
     return return_value;
 }
 

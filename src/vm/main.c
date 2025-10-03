@@ -97,6 +97,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    // Set debug mode
+    vm_set_debug(vm, debug_mode);
+    
     if (debug_mode) {
         printf("VM created successfully\n");
     }
