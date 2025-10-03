@@ -95,6 +95,48 @@ domain Program {
 - Boolean literals (true, false)
 - Type checking and validation
 
+### 05_control_flow_demo - Control Flow Constructs
+```he3
+domain Program {
+    class Main {
+        function main(): System.Int64 {
+            let age: System.Int64 = 18;
+            
+            // If-else statements
+            if (age >= 18) {
+                Sys.println("You are an adult");
+            } else {
+                Sys.println("You are a minor");
+            }
+            
+            // While loops
+            let counter: System.Int64 = 0;
+            while (counter < 5) {
+                Sys.println("Counter: " + counter);
+                counter = counter + 1;
+            }
+            
+            // For loops
+            let sum: System.Int64 = 0;
+            for (let i: System.Int64 = 1; i <= 10; i = i + 1) {
+                sum = sum + i;
+            }
+            Sys.println("Sum of 1 to 10: " + sum);
+            
+            return 0;
+        }
+    }
+}
+```
+
+**Features Demonstrated**:
+- Complete if/else conditional statements
+- Complete while loop parsing and execution
+- Complete for loop parsing and execution with init/condition/update/body
+- Complex logical expressions in conditions
+- Nested control flow structures
+- Jump instruction generation and execution
+
 ### 02_types.he3 - Type System Examples
 ```he3
 domain app.types;

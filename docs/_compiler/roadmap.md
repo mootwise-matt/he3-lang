@@ -67,6 +67,21 @@ src/
 
 **Success Criteria**: Generate .helium3 module for `class Program { function main(): integer { return 42; } }`
 
+### **Phase 3A: Essential Control Flow (Week 3)** ✅ **COMPLETE**
+**Goal**: Implement basic control flow constructs
+
+**Deliverables**:
+- [x] **Comparison Operations** - Complete comparison operators (==, !=, <, <=, >, >=)
+- [x] **Logical Operations** - Complete logical operators (&&, ||, !)
+- [x] **Arithmetic Operations** - Complete arithmetic operators (+, -, *, /, %, negation)
+- [x] **Conditional Statements** - Complete if/else statement parsing and execution
+- [x] **While Loops** - Complete while loop parsing and execution
+- [x] **For Loops** - Complete for loop parsing and execution
+- [x] **Bytecode Generation** - Complete control flow opcodes (JUMP, JUMP_IF_FALSE, etc.)
+- [x] **VM Integration** - Complete control flow execution in VM interpreter
+
+**Success Criteria**: All control flow constructs parse, compile, and execute correctly ✅ **ACHIEVED**
+
 ### **Phase 4: Enhanced Features (Week 4+)** ✅ **OO FEATURES COMPLETE**
 **Goal**: Add more language features incrementally
 
@@ -77,6 +92,7 @@ src/
 - [x] **VM Integration** - Module loading and class registration
 - [x] **Method Execution** - Complete method execution with bytecode interpretation
 - [x] **Field Access** - Complete field loading and storage with type safety
+- [x] **Control Flow** - Complete if/else, while, and for loop support
 - [ ] Security annotations
 - [ ] Event system
 - [ ] Async/await

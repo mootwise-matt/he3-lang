@@ -270,6 +270,11 @@ domain Program {
 - **Logical Operations** - Complete logical support
   - Logical AND (`&&`), Logical OR (`||`), Logical NOT (`!`)
   - Boolean type checking and validation
+- **Control Flow** - Complete control flow constructs
+  - **Conditional Statements** - Complete if/else statement parsing and execution
+  - **While Loops** - Complete while loop parsing and execution with condition evaluation
+  - **For Loops** - Complete for loop parsing and execution with init/condition/update/body structure
+  - **Jump Instructions** - Complete jump opcodes (JUMP, JUMP_IF_FALSE, JUMP_IF_TRUE) for control flow
 - **Methods** - Async methods with parameters and return types
 - **Fields** - Mutable and immutable field declarations
 - **Constructors** - Parameterized object construction

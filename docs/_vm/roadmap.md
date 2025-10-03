@@ -10,11 +10,12 @@ title: roadmap
 - ✅ **Phase 2**: Shared bytecode format, opcode utilities, VM-compiler integration
 - ✅ **Phase 3**: Object-Oriented Programming, Module Registry, Class Discovery
 - ✅ **Phase 4**: Method resolution, virtual dispatch, field access implementation, method execution
-- Phase 5: Option/Result, match statements
-- Phase 6: Async/await, scheduler
-- Phase 7: Nullables, boxing/unboxing
-- Phase 8: Records, interfaces, properties
-- Phase 9: Generics, package manager
+- ✅ **Phase 5**: Control Flow - Comparison, logical, arithmetic operations, if/else, while/for loops
+- Phase 6: Option/Result, match statements
+- Phase 7: Async/await, scheduler
+- Phase 8: Nullables, boxing/unboxing
+- Phase 9: Records, interfaces, properties
+- Phase 10: Generics, package manager
 - Future: JIT, LLVM backend
 
 ## ✅ **Phase 2 Complete: Shared Bytecode Format**
@@ -43,6 +44,18 @@ title: roadmap
 - **Type Safety**: Runtime type validation and checking
 - **Stack Management**: Proper call stack handling for method calls
 - **Status**: Complete Object-Oriented Programming system fully functional
+
+## ✅ **Phase 5 Complete: Control Flow Implementation**
+- **Comparison Operations**: Complete comparison operators (==, !=, <, <=, >, >=) with mixed-type support
+- **Logical Operations**: Complete logical operators (&&, ||, !) with short-circuit evaluation
+- **Arithmetic Operations**: Complete arithmetic operators (+, -, *, /, %, negation) with type coercion
+- **Conditional Statements**: Complete if/else statement parsing and execution with proper jump instructions
+- **While Loops**: Complete while loop parsing and execution with condition evaluation and loop control
+- **For Loops**: Complete for loop parsing and execution with init/condition/update/body structure
+- **Jump Instructions**: Complete jump opcodes (JUMP, JUMP_IF_FALSE, JUMP_IF_TRUE) for control flow
+- **Bytecode Generation**: Complete IR to bytecode translation for all control flow constructs
+- **VM Integration**: Complete control flow execution in VM interpreter with proper stack management
+- **Status**: Complete control flow system fully functional
 
 ## Engineering Guidelines (from He3)
 - **Build Process**: modular compilation → `.bx` → packager → `.helium3`.

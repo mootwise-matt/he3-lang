@@ -98,6 +98,76 @@ let not_result: boolean = !p;         // false
 let complex: boolean = (x > 10) && (y < 5) || (p && !q);  // true
 ```
 
+## Control Flow
+
+### Conditional Statements
+```he3
+let age: integer = 18;
+
+// Simple if statement
+if (age >= 18) {
+    Sys.println("You are an adult");
+}
+
+// If-else statement
+if (age >= 18) {
+    Sys.println("You can vote");
+} else {
+    Sys.println("You cannot vote yet");
+}
+
+// Nested if statements
+if (age >= 18) {
+    if (age >= 21) {
+        Sys.println("You can drink alcohol");
+    } else {
+        Sys.println("You can vote but cannot drink");
+    }
+} else {
+    Sys.println("You are a minor");
+}
+```
+
+### While Loops
+```he3
+let counter: integer = 0;
+
+// Basic while loop
+while (counter < 5) {
+    Sys.println("Counter: " + counter);
+    counter = counter + 1;
+}
+
+// While loop with complex condition
+let sum: integer = 0;
+let i: integer = 1;
+while (i <= 10 && sum < 50) {
+    sum = sum + i;
+    i = i + 1;
+}
+Sys.println("Sum: " + sum);
+```
+
+### For Loops
+```he3
+// Basic for loop with initialization, condition, and update
+for (let i: integer = 0; i < 5; i = i + 1) {
+    Sys.println("Iteration: " + i);
+}
+
+// For loop with complex expressions
+let total: integer = 0;
+for (let i: integer = 1; i <= 10; i = i + 1) {
+    total = total + i;
+}
+Sys.println("Sum of 1 to 10: " + total);
+
+// For loop with multiple variables (if supported)
+for (let i: integer = 0, j: integer = 10; i < j; i = i + 1, j = j - 1) {
+    Sys.println("i: " + i + ", j: " + j);
+}
+```
+
 ## Event Syntax
 ```he3
 // Event creation
