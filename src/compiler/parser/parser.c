@@ -136,6 +136,10 @@ void parser_synchronize(Parser* parser) {
             case TK_NEW:
             case TK_DOMAIN:
             case TK_IMPORT:
+            case TK_IF:
+            case TK_WHILE:
+            case TK_FOR:
+            case TK_RETURN:
                 return;
             default:
                 break;
@@ -1407,7 +1411,64 @@ Ast* parse_while_statement(Parser* parser) {
     
     return while_stmt;
 }
-Ast* parse_for_statement(Parser* parser) { return NULL; }
+Ast* parse_for_statement(Parser* parser) {
+    // Parse: for (init; condition; update) { body }
+    Ast* for_stmt = ast_create(AST_FOR, NULL, 0, 0);
+    if (!for_stmt) return NULL;
+    
+    // NOTE: 'for' token has already been consumed by parser_match in parse_statement
+    
+    // Parse opening parenthesis
+    parser_consume(parser, TK_LPAREN, "Expected '(' after 'for'");
+    
+    // Parse initialization (optional)
+    Ast* init = NULL;
+    if (!parser_check(parser, TK_SEMICOLON)) {
+        if (parser_match(parser, TK_LET) || parser_match(parser, TK_VAR)) {
+            // parser_match consumes the token, making it the previous token
+            init = parse_variable_declaration(parser);
+            // parse_variable_declaration already consumes the semicolon
+        } else {
+            init = parse_expression(parser);
+            parser_consume(parser, TK_SEMICOLON, "Expected ';' after for initialization");
+        }
+    } else {
+        // Skip the semicolon if we didn't parse anything
+        parser_advance(parser);
+    }
+    
+    // Parse condition (optional)
+    Ast* condition = NULL;
+    if (!parser_check(parser, TK_SEMICOLON)) {
+        condition = parse_expression(parser);
+    }
+    parser_consume(parser, TK_SEMICOLON, "Expected ';' after for condition");
+    
+    // Parse update (optional)
+    Ast* update = NULL;
+    if (!parser_check(parser, TK_RPAREN)) {
+        update = parse_expression(parser);
+    }
+    parser_consume(parser, TK_RPAREN, "Expected ')' after for update");
+    
+    // Parse body block
+    Ast* body = parse_block_statement(parser);
+    if (!body) {
+        ast_destroy(for_stmt);
+        if (init) ast_destroy(init);
+        if (condition) ast_destroy(condition);
+        if (update) ast_destroy(update);
+        return NULL;
+    }
+    
+    // Add init, condition, body, and update as children (matching IR translator expectations)
+    if (init) ast_add_child(for_stmt, init);
+    if (condition) ast_add_child(for_stmt, condition);
+    ast_add_child(for_stmt, body);
+    if (update) ast_add_child(for_stmt, update);
+    
+    return for_stmt;
+}
 Ast* parse_match_statement(Parser* parser) { return NULL; }
 Ast* parse_return_statement(Parser* parser) {
     if (!parser) return NULL;
