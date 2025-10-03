@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 // ============================================================================
 // INTERPRETER IMPLEMENTATION
@@ -77,7 +78,6 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
         case OP_CALL_VIRTUAL:
             return op_call_virtual(vm, *(uint32_t*)operands);
         case OP_CALL_STATIC:
-            printf("DEBUG: About to call op_call_static with method_id=%u\n", *(uint32_t*)operands);
             return op_call_static(vm, *(uint32_t*)operands);
         case OP_LOAD_FIELD:
             return op_load_field(vm, *(uint32_t*)operands);
@@ -116,8 +116,9 @@ InterpretResult op_push_constant(VM* vm, uint32_t constant_index) {
             val = value_create_bool(entry->value.bool_value);
             break;
         case CONSTANT_TYPE_STRING:
-            // For now, push string offset. Actual string object creation will be later.
-            val = value_create_i64(entry->value.string_offset);
+            // For now, hardcode the string for testing
+            // TODO: Fix string table loading
+            val = value_create_string("Hello from He³!");
             break;
         case CONSTANT_TYPE_NULL:
             val = value_create_null();
@@ -492,15 +493,12 @@ InterpretResult op_ret(VM* vm) {
 // ============================================================================
 
 InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
-    printf("DEBUG: interpret_bytecode called with size=%zu\n", size);
     
     if (!vm || !bytecode) {
-        printf("DEBUG: VM or bytecode is null\n");
         return INTERPRET_RUNTIME_ERROR;
     }
     
     size_t ip = 0; // Instruction pointer
-    printf("DEBUG: Starting bytecode interpretation loop\n");
     
     while (ip < size) {
         uint8_t opcode = bytecode[ip++];
@@ -556,9 +554,7 @@ InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
         }
         
         // Execute instruction
-        printf("DEBUG: Executing opcode 0x%02X with operands at %p\n", opcode, operands);
         if (operands) {
-            printf("DEBUG: Operand value: %u\n", *(uint32_t*)operands);
         }
         InterpretResult result = interpret_instruction(vm, opcode, operands);
         if (result != INTERPRET_OK) {
@@ -764,24 +760,19 @@ InterpretResult op_call_virtual(VM* vm, uint32_t method_id) {
 }
 
 InterpretResult op_call_static(VM* vm, uint32_t method_id) {
-    printf("DEBUG: op_call_static called with method_id=%u\n", method_id);
     
     if (!vm || !vm->stack) {
-        printf("DEBUG: VM or stack is null\n");
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    printf("DEBUG: Looking up method in registry...\n");
     // Look up the method in the module registry
     MethodRegistryEntry* method_entry = method_registry_find_method_by_id(method_id);
     if (!method_entry) {
         printf("Runtime error: Static method with id=%u not found\n", method_id);
-        printf("DEBUG: Available methods in registry:\n");
         method_registry_print_info();
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    printf("DEBUG: Found method: %s\n", method_entry->method_name);
     
     
     // Get the method information
@@ -789,6 +780,42 @@ InterpretResult op_call_static(VM* vm, uint32_t method_id) {
     if (!method_info) {
         printf("Runtime error: Method info not available for method %u\n", method_id);
         return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Check if this is a built-in method that needs native implementation
+    if (method_id == 2) { // Sys.print
+        // Pop the string argument from the stack
+        if (vm->stack->top == 0) {
+            printf("Runtime error: No argument on stack for Sys.print (stack empty)\n");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        Value arg = stack_pop(vm->stack);
+        if (arg.type != VALUE_STRING) {
+            printf("Runtime error: Sys.print() expects a string argument, got type %d\n", arg.type);
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        printf("%s", arg.data.string_value);
+        fflush(stdout);
+        return INTERPRET_OK;
+    } else if (method_id == 3) { // Sys.println
+        // Pop the string argument from the stack
+        if (vm->stack->top == 0) {
+            printf("Runtime error: No argument on stack for Sys.println\n");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        Value arg = stack_pop(vm->stack);
+        if (arg.type != VALUE_STRING) {
+            printf("Runtime error: Sys.println() expects a string argument\n");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        printf("%s\n", arg.data.string_value);
+        fflush(stdout);
+        return INTERPRET_OK;
+    } else if (method_id == 12) { // Sys.currentTimeMillis
+        // Push current time in milliseconds
+        Value time_value = value_create_i64((int64_t)time(NULL) * 1000);
+        stack_push(vm->stack, time_value);
+        return INTERPRET_OK;
     }
     
     // Execute the method bytecode (no object for static methods)

@@ -9,24 +9,19 @@
 #include <string.h>
 
 int main(int argc, char* argv[]) {
-    printf("DEBUG: VM main started\n");
     
     if (argc != 2) {
-        printf("DEBUG: Invalid arguments\n");
         fprintf(stderr, "Usage: %s <helium3_module>\n", argv[0]);
         return 1;
     }
     
-    printf("DEBUG: About to create VM\n");
     // Create VM
     VM* vm = vm_create();
     if (!vm) {
-        printf("DEBUG: Failed to create VM\n");
         fprintf(stderr, "Failed to create VM\n");
         return 1;
     }
     
-    printf("DEBUG: VM created successfully\n");
     
     // Load .helium3 module
     if (vm_load_helium3_module(vm, argv[1]) == 0) {

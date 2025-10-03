@@ -185,7 +185,6 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             return ir_to_bytecode_emit_instruction(translator, OP_GE, NULL, 0);
         
         case IR_CALL: {
-            printf("DEBUG: Processing IR_CALL instruction\n");
             // IR_CALL has: callee, argument count, and arguments
             if (instruction->operand_count < 2) {
                 ir_to_bytecode_translator_set_error(translator, "IR_CALL requires callee and argument count");
@@ -201,13 +200,11 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             uint32_t method_id = 0; // Built-in function ID
             
             // Emit CALL instruction with method ID
-            printf("DEBUG: Emitting OP_CALL with method_id=%u\n", method_id);
             return ir_to_bytecode_emit_instruction(translator, OP_CALL, 
                                                  (uint8_t*)&method_id, sizeof(uint32_t));
         }
         
         case IR_CALL_STATIC: {
-            printf("DEBUG: Processing IR_CALL_STATIC instruction\n");
             // IR_CALL_STATIC has: callee, argument count, and arguments
             if (instruction->operand_count < 2) {
                 ir_to_bytecode_translator_set_error(translator, "IR_CALL_STATIC requires callee and argument count");

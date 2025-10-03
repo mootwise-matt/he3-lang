@@ -833,7 +833,6 @@ Ast* parse_call_expression(Parser* parser) {
     
     while (true) {
         if (parser_match(parser, TK_LPAREN)) {
-            printf("DEBUG: Parsing call expression\n");
             expr = finish_call_expression(parser, expr);
         } else if (parser_match(parser, TK_DOT)) {
             Token name = parser_consume(parser, TK_IDENTIFIER, "Expected property name after '.'");

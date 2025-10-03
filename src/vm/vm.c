@@ -11,39 +11,30 @@
 
 // VM Creation and Destruction
 VM* vm_create(void) {
-    printf("DEBUG: vm_create called\n");
     
     VM* vm = malloc(sizeof(VM));
     if (!vm) {
-        printf("DEBUG: Failed to allocate VM\n");
         return NULL;
     }
     
-    printf("DEBUG: VM allocated, initializing components\n");
     // Initialize VM
     vm->current_module = NULL;
     
-    printf("DEBUG: Creating stack\n");
     vm->stack = stack_create(1024); // Initial stack capacity
     if (!vm->stack) {
-        printf("DEBUG: Failed to create stack\n");
         free(vm);
         return NULL;
     }
     
-    printf("DEBUG: Creating execution context\n");
     vm->context = execution_context_create();
     if (!vm->context) {
-        printf("DEBUG: Failed to create execution context\n");
         stack_destroy(vm->stack);
         free(vm);
         return NULL;
     }
     
-    printf("DEBUG: Creating heap\n");
     vm->heap = heap_create(16 * 1024 * 1024); // 16MB heap
     if (!vm->heap) {
-        printf("DEBUG: Failed to create heap\n");
         execution_context_destroy(vm->context);
         stack_destroy(vm->stack);
         free(vm);
@@ -52,7 +43,6 @@ VM* vm_create(void) {
     
     vm->classes = NULL;
     
-    printf("DEBUG: Creating module registry\n");
     vm->module_registry = module_registry_create();
     if (!vm->module_registry) {
         fprintf(stderr, "Failed to create module registry\n");
@@ -111,31 +101,25 @@ void vm_destroy(VM* vm) {
 
 // VM Execution
 int vm_load_helium3_module(VM* vm, const char* filename) {
-    printf("DEBUG: vm_load_helium3_module called with filename=%s\n", filename);
     
     if (!vm || !filename) {
-        printf("DEBUG: Invalid VM or filename\n");
         return 0;
     }
     
     // Check file extension
     const char* extension = strrchr(filename, '.');
     if (!extension || strcmp(extension, ".helium3") != 0) {
-        printf("DEBUG: Invalid file format\n");
         fprintf(stderr, "Invalid file format: %s (expected .helium3)\n", filename);
         return 0;
     }
     
-    printf("DEBUG: About to load .helium3 module...\n");
     // Load the .helium3 module directly
     HeliumModule* module = helium_module_load(filename);
     if (!module) {
-        printf("DEBUG: Failed to load module\n");
         fprintf(stderr, "Failed to load .helium3 module: %s\n", filename);
         return 0;
     }
     
-    printf("DEBUG: Module loaded successfully\n");
     
     // Set as current module
     vm->current_module = module;
@@ -175,15 +159,12 @@ int vm_load_helium3_module(VM* vm, const char* filename) {
 }
 
 int vm_execute(VM* vm) {
-    printf("DEBUG: vm_execute called\n");
     
     if (!vm || !vm->current_module) {
-        printf("DEBUG: No module loaded\n");
         fprintf(stderr, "No .helium3 module loaded\n");
         return 1;
     }
     
-    printf("DEBUG: Module loaded, setting running=true\n");
     vm->running = true;
     
     // Check if module has an entry point
@@ -265,8 +246,6 @@ int vm_execute_method(VM* vm, HeliumModule* module, uint32_t method_id) {
     }
     
     // Execute bytecode
-    printf("DEBUG: About to execute method bytecode, offset=%u, size=%u\n", 
-           method->bytecode_offset, method->bytecode_size);
     InterpretResult result = interpret_bytecode(vm,
         module->bytecode + method->bytecode_offset,
         method->bytecode_size);
