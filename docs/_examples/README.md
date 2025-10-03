@@ -303,49 +303,93 @@ record Point {
 
 ## Running Examples
 
-### Compile and Run
+### Quick Testing
 ```bash
-# Compile a standalone example
-./he3 examples/standalone/01_hello.he3
+# Test all working examples quickly
+./working_tests.sh
 
-# Show tokens
-./he3 --tokens examples/standalone/01_hello.he3
+# Test core functionality during development
+./quick_test.sh
+```
 
-# Show AST
-./he3 --ast examples/standalone/01_hello.he3
+### Individual Example Testing
+```bash
+# Compile and run a standalone example
+./he3build examples/standalone/01_minimal/he3project.json
+./he3vm build/01_minimal.helium3
 
-# Compile a project
-./he3 examples/projects/01_hello_project/
+# Compile and run a project
+./he3build examples/projects/01_minimal_project/he3project.json
+./he3vm build/01_minimal_project.helium3
+
+# Show compilation details
+./he3 --ast examples/standalone/01_minimal/src/main.he3
+./he3 --tokens examples/standalone/01_minimal/src/main.he3
+```
+
+### Comprehensive Testing
+```bash
+# Run full regression test suite
+./regression_test.sh
+
+# Run with verbose output for debugging
+./regression_test.sh --verbose
+
+# Keep test files for inspection
+./regression_test.sh --no-cleanup
 ```
 
 ### Expected Output
 
-**01_hello.he3 AST**:
+**01_minimal.he3**:
 ```
-AST[COMPUNIT]: 
-  AST[DOMAIN]: ('app.hello')
-  AST[CLASS]: ('Program')
-    AST[METHOD]: ('main')
-      AST[ARGUMENTS]: 
-      AST[LITERAL]: 
-      AST[BLOCK]: 
-        AST[FUNCTION_CALL]: ('print')
-          AST[ARGUMENTS]: 
-            AST[LITERAL]: ('"Hello, He³ World!"')
-        AST[RETURN]: 
-          AST[LITERAL]: (0)
+Method execution completed with result: 0
+Execution completed successfully with result: 0
+```
+
+**02_arithmetic.he3**:
+```
+Method execution completed with result: 50
+Execution completed successfully with result: 50
+```
+
+**03_print_demo.he3**:
+```
+Hello from He³!
+Method execution completed with result: 0
+Execution completed successfully with result: 0
 ```
 
 ## Testing Examples
 
-All examples are tested as part of the compiler's regression test suite:
+All examples are tested as part of the comprehensive regression test suite:
 
+### **Test Scripts**
+- **`working_tests.sh`** - Tests only confirmed working features
+- **`quick_test.sh`** - Fast development testing
+- **`regression_test.sh`** - Full comprehensive testing
+
+### **Test Coverage**
+- ✅ **Basic compilation and execution**
+- ✅ **Arithmetic operations** (42 + 8 = 50)
+- ✅ **Sys.print() functionality** (Hello from He³!)
+- ✅ **Control flow** (if/else, while, for loops)
+- ✅ **Project build system**
+- ✅ **Object-oriented programming**
+
+### **Running Tests**
 ```bash
-# Run all example tests
-make test-examples
+# Quick verification
+./working_tests.sh
 
-# Test specific example
-make test-example EXAMPLE=01_hello.he3
+# Development testing
+./quick_test.sh
+
+# Full regression testing
+./regression_test.sh
+
+# View detailed test report
+cat TEST_REPORT.md
 ```
 
 ## Contributing Examples

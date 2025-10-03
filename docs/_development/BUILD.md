@@ -302,6 +302,49 @@ Enable optimizations in project configuration:
 ./he3vm -debug module.helium3
 ```
 
+## Testing Integration
+
+### Test Scripts
+The build system integrates with comprehensive testing:
+
+```bash
+# Quick development testing
+./quick_test.sh
+
+# Test only working features
+./working_tests.sh
+
+# Full regression testing
+./regression_test.sh
+
+# Verbose testing with debugging
+./regression_test.sh --verbose
+```
+
+### Test Coverage
+- ✅ **Compilation pipeline** - Source to .helium3
+- ✅ **VM execution** - Bytecode interpretation
+- ✅ **Language features** - All implemented constructs
+- ✅ **Project builds** - Single and multi-file projects
+- ✅ **Error handling** - Compilation and runtime errors
+
+### Continuous Integration
+The build system supports CI/CD workflows:
+
+```bash
+# CI/CD pipeline example
+make clean
+make
+./regression_test.sh --verbose
+if [ $? -eq 0 ]; then
+    echo "Build and tests successful"
+    # Deploy or package
+else
+    echo "Build or tests failed"
+    exit 1
+fi
+```
+
 ## Future Enhancements
 
 ### Planned Features
@@ -310,7 +353,7 @@ Enable optimizations in project configuration:
 - Advanced optimizations
 - IDE integration
 - Package management
-- Testing framework
+- Enhanced testing framework
 
 ### Build System Improvements
 - Incremental compilation
@@ -318,3 +361,4 @@ Enable optimizations in project configuration:
 - Dependency tracking
 - Build caching
 - Configuration validation
+- Automated testing integration

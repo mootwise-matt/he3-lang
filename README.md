@@ -301,10 +301,32 @@ examples/standalone/01_minimal/
 
 ## 🧪 **Testing**
 
-The compiler includes comprehensive regression tests:
+The He³ compiler includes comprehensive regression testing with multiple test suites:
 
+### **Quick Testing** (Development)
 ```bash
-# Run all tests
+# Fast verification of core functionality
+./quick_test.sh
+
+# Test only confirmed working features
+./working_tests.sh
+```
+
+### **Comprehensive Testing** (CI/CD)
+```bash
+# Full regression test suite with detailed reporting
+./regression_test.sh
+
+# Verbose mode for debugging
+./regression_test.sh --verbose
+
+# Keep test files for inspection
+./regression_test.sh --no-cleanup
+```
+
+### **Unit Testing** (Component-level)
+```bash
+# Run all unit tests
 make test
 
 # Run specific test suites
@@ -315,10 +337,17 @@ make ast-to-ir-test
 make statement-translation-test
 make method-translation-test
 make error-recovery-test
-
-# Test specific example
-./he3 --ast examples/standalone/01_hello.he3
 ```
+
+### **Test Coverage**
+- ✅ **Core Compilation Pipeline** - Lexer → Parser → AST → IR → Bytecode → Packager → .helium3
+- ✅ **Language Features** - OOP, arithmetic, comparison, logical, control flow
+- ✅ **Virtual Machine** - Memory management, module registry, method execution
+- ✅ **Build System** - Single-file and multi-file project support
+- ✅ **System Functions** - Sys.print(), Sys.println(), and other built-ins
+
+### **Test Results**
+All core He³ language features are working correctly with comprehensive test coverage. See `TEST_REPORT.md` for detailed results and performance metrics.
 
 ## 🤝 **Contributing**
 
