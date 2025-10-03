@@ -36,6 +36,8 @@ typedef struct HeliumHeader {
     // Section offsets and sizes
     uint32_t string_table_offset;     // Offset to string table
     uint32_t string_table_size;       // Size of string table
+    uint32_t constant_table_offset;   // Offset to constant table
+    uint32_t constant_table_size;     // Size of constant table
     uint32_t type_table_offset;       // Offset to type table
     uint32_t type_table_size;         // Size of type table
     uint32_t method_table_offset;     // Offset to method table
@@ -62,6 +64,7 @@ typedef struct HeliumModule {
     
     // Tables (reuse from bytecode_format.h)
     StringTable* string_table_obj;    // String table object
+    ConstantTable* constant_table;    // Constant table
     TypeTable* type_table;            // Type table
     MethodTable* method_table;        // Method table
     FieldTable* field_table;          // Field table

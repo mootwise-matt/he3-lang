@@ -214,7 +214,6 @@ void ir_builder_add_instruction(IRBuilder* builder, IRInstruction* instruction) 
         }
     }
     
-    printf("DEBUG: Adding instruction to block: op=%d, count=%u\n", instruction->op, block->instruction_count);
     block->instructions[block->instruction_count++] = instruction;
 }
 

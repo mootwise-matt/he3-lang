@@ -39,8 +39,9 @@ make install PREFIX=/usr/local
 ```
 
 ### Build Targets
-- `he3` - Main compiler executable
-- `he3vm` - Virtual machine executable
+- `he3` - Main compiler executable (source to bytecode)
+- `he3vm` - Virtual machine executable (executes .helium3 modules)
+- `he3build` - Project packager (packages projects into .helium3 modules)
 - `libhe3` - Compiler library (planned)
 
 ## Project Structure
@@ -52,23 +53,55 @@ he3/
 │   │   ├── ast/           # Unified AST definitions
 │   │   ├── bytecode/      # Shared bytecode format and opcodes
 │   │   ├── types/         # Common type definitions
+│   │   ├── stdlib/        # Standard library implementation
 │   │   └── tokens.h       # Common token definitions
 │   ├── compiler/          # Compiler implementation
 │   │   ├── lexer/         # Lexical analysis
 │   │   ├── parser/        # Syntax analysis
 │   │   ├── ir/            # Intermediate representation
-│   │   ├── emitter/       # Code generation
+│   │   ├── emitter/       # Code generation (AST to IR, IR to bytecode)
+│   │   ├── packager/      # Project packaging and linking
+│   │   ├── he3build.c     # Project packager entry point
 │   │   └── main.c         # Compiler entry point
 │   └── vm/                # Virtual Machine implementation
 │       ├── execution/     # VM execution engine
 │       ├── memory/        # Memory management
 │       ├── objects/       # Object system
-│       └── main.c         # VM entry point
+│       ├── modules/       # Module registry system
+│       ├── bytecode/      # Bytecode loading and .helium3 support
+│       └── vm_main.c      # VM entry point
 ├── examples/              # Example programs
+│   ├── standalone/        # Single-file examples
+│   └── projects/          # Multi-file project examples
 ├── docs/                  # Documentation
 ├── build/                 # Build artifacts
 ├── Makefile              # Build configuration
 └── README.md             # Project overview
+```
+
+## Complete Build Workflow
+
+### Single File Compilation
+```bash
+# Compile source to bytecode
+./he3 examples/standalone/01_hello.he3
+
+# Execute bytecode directly
+./he3vm 01_hello.bx
+```
+
+### Multi-File Project Compilation
+```bash
+# Package project into .helium3 module
+./he3build examples/standalone/01_minimal/he3project.json
+
+# Execute packaged module
+./he3vm ./build/output.helium3
+```
+
+### Build Pipeline
+```
+Source (.he3) → Lexer → Parser → AST → IR → Bytecode (.bx) → Packager → Module (.helium3) → VM
 ```
 
 ## Development Workflow

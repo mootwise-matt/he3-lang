@@ -92,7 +92,6 @@ int vm_load_helium3_module(VM* vm, const char* filename) {
     }
     
     // Load the .helium3 module directly
-    printf("DEBUG: Loading .helium3 module: %s\n", filename);
     HeliumModule* module = helium_module_load(filename);
     if (!module) {
         fprintf(stderr, "Failed to load .helium3 module: %s\n", filename);
@@ -153,7 +152,6 @@ int vm_execute(VM* vm) {
     
     // Find the entry point method
     uint32_t entry_point_id = vm->current_module->header.entry_point_method_id;
-    printf("DEBUG: Looking for entry point method ID: %u\n", entry_point_id);
     
     if (!vm->current_module->method_table) {
         fprintf(stderr, "Method table is null\n");
@@ -174,19 +172,11 @@ int vm_execute(VM* vm) {
         return 1;
     }
     
-    printf("DEBUG: Entry point method found\n");
-    printf("DEBUG: Method ID: %u\n", entry_method->method_id);
-    printf("DEBUG: Method name offset: %u\n", entry_method->name_offset);
-    printf("DEBUG: Method signature offset: %u\n", entry_method->signature_offset);
-    printf("DEBUG: Bytecode offset: %u, size: %u\n", entry_method->bytecode_offset, entry_method->bytecode_size);
-    
     // Get method name for debugging
     const char* method_name = helium_module_get_string(vm->current_module, entry_method->name_offset);
     if (method_name) {
-        printf("DEBUG: Method name: %s\n", method_name);
+        printf("Executing method: %s\n", method_name);
     }
-    
-    printf("Executing entry point method...\n");
     
     // Execute the entry point method
     return vm_execute_method(vm, vm->current_module, entry_point_id);
@@ -212,8 +202,6 @@ int vm_execute_method(VM* vm, HeliumModule* module, uint32_t method_id) {
         return 1;
     }
     
-    printf("DEBUG: Executing method ID %u\n", method_id);
-    printf("DEBUG: Bytecode offset: %u, size: %u\n", method->bytecode_offset, method->bytecode_size);
     
     // Create call frame for the method
     CallFrame* method_frame = call_frame_create(
@@ -234,7 +222,7 @@ int vm_execute_method(VM* vm, HeliumModule* module, uint32_t method_id) {
     }
     
     // Execute bytecode
-    InterpretResult result = interpret_bytecode(vm, 
+    InterpretResult result = interpret_bytecode(vm,
         module->bytecode + method->bytecode_offset,
         method->bytecode_size);
     
@@ -245,29 +233,25 @@ int vm_execute_method(VM* vm, HeliumModule* module, uint32_t method_id) {
         if (frame) call_frame_destroy(frame);
         return 1;
     }
-    
+
     // Clean up call frame
     CallFrame* frame = execution_context_pop_frame(vm->context);
-    if (frame) call_frame_destroy(frame);
+    if (frame) {
+        call_frame_destroy(frame);
+    }
     
     vm->running = false;
     printf("Method execution completed successfully\n");
     
     // Get return value from stack
     int return_value = 0;
-    printf("Final stack size: %zu\n", stack_size(vm->stack));
-    
+
     if (!stack_is_empty(vm->stack)) {
         Value result_value = stack_pop(vm->stack);
-        printf("Popped value type: %d\n", result_value.type);
         if (result_value.type == VALUE_I64) {
-            printf("Popped integer value: %lld\n", result_value.data.i64_value);
             return_value = (int)result_value.data.i64_value;
         } else if (result_value.type == VALUE_F64) {
-            printf("Popped float value: %f\n", result_value.data.f64_value);
             return_value = (int)result_value.data.f64_value;
-        } else {
-            printf("Popped value: %lld (unexpected type)\n", result_value.data.i64_value);
         }
         value_destroy(&result_value);
     }

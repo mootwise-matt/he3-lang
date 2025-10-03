@@ -33,7 +33,9 @@ void module_registry_destroy(ModuleRegistry* registry) {
         
         if (current->module_name) free(current->module_name);
         if (current->module_version) free(current->module_version);
-        if (current->helium_module) helium_module_destroy(current->helium_module);
+        // Don't destroy helium_module here as it might be in use by the VM
+        // The VM will handle its own module cleanup
+        // if (current->helium_module) helium_module_destroy(current->helium_module);
         // Don't destroy bytecode_file here as it might be in use by the VM
         // The VM will handle its own bytecode file cleanup
         
@@ -78,15 +80,11 @@ bool module_registry_register_module(ModuleRegistry* registry, const char* filen
     entry->module_name = module_name;
     
     // Handle null module version gracefully
-    printf("DEBUG: Getting module version, offset: %u\n", module->header.module_version_offset);
     const char* version_str = helium_module_get_string(module, module->header.module_version_offset);
-    printf("DEBUG: Module version string: %s\n", version_str ? version_str : "NULL");
     if (version_str) {
         entry->module_version = strdup(version_str);
-        printf("DEBUG: Duplicated version string\n");
     } else {
         entry->module_version = strdup("1.0.0"); // Default version
-        printf("DEBUG: Using default version\n");
     }
     
     entry->module_id = registry->next_module_id++;
@@ -428,23 +426,16 @@ void field_registry_print_info(void) {
 
 // Module loading and discovery
 bool module_registry_load_helium3_module(ModuleRegistry* registry, const char* filename) {
-    printf("DEBUG: Loading helium3 module: %s\n", filename);
     if (!registry || !filename) {
-        printf("DEBUG: Invalid parameters\n");
         return false;
     }
     
-    printf("DEBUG: Calling helium_module_load\n");
     HeliumModule* module = helium_module_load(filename);
     if (!module) {
-        printf("DEBUG: helium_module_load failed\n");
         return false;
     }
-    printf("DEBUG: helium_module_load succeeded\n");
     
-    printf("DEBUG: Calling module_registry_register_module\n");
     bool result = module_registry_register_module(registry, filename, module);
-    printf("DEBUG: module_registry_register_module result: %s\n", result ? "success" : "failed");
     return result;
 }
 

@@ -1,0 +1,7 @@
+{
+    "name": "arithmetic",
+    "version": "1.0.0",
+    "type": "executable",
+    "source_dir": "src",
+    "output": "build/arithmetic.helium3"
+}

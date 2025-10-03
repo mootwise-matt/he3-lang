@@ -22,12 +22,9 @@ IRToBytecodeTranslator* ir_to_bytecode_translator_create(void) {
     translator->method_table = method_table_create();
     translator->type_table = type_table_create();
     
-    printf("DEBUG: Translator tables created - string_table=%p, constant_table=%p\n", 
-           translator->string_table, translator->constant_table);
     
     if (!translator->string_table || !translator->constant_table || 
         !translator->method_table || !translator->type_table) {
-        printf("DEBUG: Failed to create translator tables\n");
         ir_to_bytecode_translator_destroy(translator);
         return NULL;
     }
@@ -100,9 +97,7 @@ bool ir_to_bytecode_translate_block(IRToBytecodeTranslator* translator, IRBlock*
     translator->current_block = block;
     
     // Translate all instructions in the block
-    printf("DEBUG: Block has %zu instructions\n", block->instruction_count);
     for (size_t i = 0; i < block->instruction_count; i++) {
-        printf("DEBUG: Processing instruction %zu: op=%d\n", i, block->instructions[i]->op);
         if (!ir_to_bytecode_translate_instruction(translator, block->instructions[i])) {
             return false;
         }
@@ -114,11 +109,8 @@ bool ir_to_bytecode_translate_block(IRToBytecodeTranslator* translator, IRBlock*
 bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IRInstruction* instruction) {
     if (!translator || !instruction) return false;
     
-    printf("DEBUG: Translating IR instruction: op=%d, operand_count=%u\n", instruction->op, instruction->operand_count);
     
     // Debug: Print all enum values
-    printf("DEBUG: IR_LOAD_CONST=%d, IR_INC=%d, IR_DEC=%d, IR_RETURN=%d, IR_JMP_GE=%d\n", 
-           IR_LOAD_CONST, IR_INC, IR_DEC, IR_RETURN, IR_JMP_GE);
     
     switch (instruction->op) {
         case IR_LOAD_CONST: {
@@ -151,7 +143,6 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
         }
         
         case IR_LOAD_STATIC:
-            printf("DEBUG: Handling IR_LOAD_STATIC\n");
             // For built-in functions, we'll push a special built-in function reference
             // This will be handled by the VM when the function is called
             uint32_t builtin_id = 0; // Built-in function ID (0 = print)
@@ -190,12 +181,10 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             return ir_to_bytecode_emit_instruction(translator, OP_RETURN, NULL, 0);
         
         case IR_JMP_GE:
-            printf("DEBUG: Handling IR_JMP_GE\n");
             // For now, just emit a comparison - the jump will be handled separately
             return ir_to_bytecode_emit_instruction(translator, OP_GE, NULL, 0);
         
         case IR_CALL: {
-            printf("DEBUG: Handling IR_CALL\n");
             // IR_CALL has: callee, argument count, and arguments
             if (instruction->operand_count < 2) {
                 ir_to_bytecode_translator_set_error(translator, "IR_CALL requires callee and argument count");
@@ -216,12 +205,10 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
         }
         
         case IR_RETURN_VAL:
-            printf("DEBUG: Handling IR_RETURN_VAL\n");
             // For now, just emit a return - return values will be handled later
             return ir_to_bytecode_emit_instruction(translator, OP_RETURN, NULL, 0);
         
         case IR_NEW: {
-            printf("DEBUG: Handling IR_NEW\n");
             // IR_NEW has: class name (string), argument count (i64)
             if (instruction->operand_count < 2) {
                 ir_to_bytecode_translator_set_error(translator, "IR_NEW requires class name and argument count");
@@ -249,7 +236,6 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
         }
         
         case IR_LOAD_FIELD: {
-            printf("DEBUG: Handling IR_LOAD_FIELD\n");
             // IR_LOAD_FIELD has: object, field
             if (instruction->operand_count < 2) {
                 ir_to_bytecode_translator_set_error(translator, "IR_LOAD_FIELD requires object and field");
@@ -266,8 +252,6 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
         }
         
         default:
-            printf("DEBUG: Unknown instruction type: %d (expected IR_CALL=4)\n", instruction->op);
-            printf("DEBUG: Instruction operand count: %u\n", instruction->operand_count);
             ir_to_bytecode_translator_set_error(translator, "Unknown instruction type");
             return false;
     }
@@ -421,29 +405,23 @@ uint32_t ir_to_bytecode_add_boolean_constant(IRToBytecodeTranslator* translator,
 
 uint32_t ir_to_bytecode_add_string_constant(IRToBytecodeTranslator* translator, const char* value) {
     if (!translator || !value) {
-        printf("DEBUG: ir_to_bytecode_add_string_constant failed - translator=%p, value=%p\n", translator, value);
         return 0;
     }
     
-    printf("DEBUG: Adding string constant: '%s'\n", value);
     
     // Add string to string table first
     uint32_t string_offset = string_table_add_string(translator->string_table, value);
     if (string_offset == 0) {
-        printf("DEBUG: string_table_add_string failed\n");
         return 0;
     }
     
-    printf("DEBUG: string_table_add_string success - offset=%u\n", string_offset);
     
     // Add string constant to constant table
     uint32_t constant_index = constant_table_add_string(translator->constant_table, string_offset);
     if (constant_index == 0) {
-        printf("DEBUG: constant_table_add_string failed\n");
         return 0;
     }
     
-    printf("DEBUG: constant_table_add_string success - index=%u\n", constant_index);
     return constant_index;
 }
 
@@ -457,24 +435,18 @@ uint32_t ir_to_bytecode_add_method(IRToBytecodeTranslator* translator, const cha
     if (!translator || !name || !signature) return 0;
     
     // Add method name to string table
-    printf("DEBUG: Adding method name '%s' to string table\n", name);
     uint32_t name_offset = string_table_add_string(translator->string_table, name);
-    printf("DEBUG: name_offset = %u\n", name_offset);
     // Note: 0 is a valid string table index, so we don't check for 0 here
     
     // Add signature to string table
-    printf("DEBUG: Adding signature '%s' to string table\n", signature);
     uint32_t signature_offset = string_table_add_string(translator->string_table, signature);
-    printf("DEBUG: signature_offset = %u\n", signature_offset);
     // Note: 0 is a valid string table index, so we don't check for 0 here
     
     // Get local count from current function if available
     uint32_t local_count = 0;
     if (translator->current_function) {
         local_count = translator->current_function->local_count;
-        printf("DEBUG: Using local_count from IR function: %u\n", local_count);
     } else {
-        printf("DEBUG: No current function, using local_count = 0\n");
     }
     
     // Create method entry
@@ -504,10 +476,8 @@ uint32_t ir_to_bytecode_add_type(IRToBytecodeTranslator* translator, const char*
     if (!translator || !name) return 0;
     
     // Add type name to string table
-    printf("DEBUG: Adding type name '%s' to string table\n", name);
     uint32_t name_offset = string_table_add_string(translator->string_table, name);
     // Note: string table indices are 0-based, so 0 is a valid index
-    printf("DEBUG: string_table_add_string result for type name, offset=%u\n", name_offset);
     
     // Create type entry
     TypeEntry entry;
@@ -522,12 +492,9 @@ uint32_t ir_to_bytecode_add_type(IRToBytecodeTranslator* translator, const char*
     entry.vtable_offset = 0;
     
     // Add to type table
-    printf("DEBUG: Adding type '%s' to type table (count=%u)\n", name, translator->type_table->count);
     if (!type_table_add_type(translator->type_table, &entry)) {
-        printf("DEBUG: type_table_add_type failed\n");
         return 0;
     }
-    printf("DEBUG: type_table_add_type success (new count=%u)\n", translator->type_table->count);
     
     return entry.type_id;
 }
@@ -537,16 +504,12 @@ BytecodeFile* ir_to_bytecode_generate_file(IRToBytecodeTranslator* translator) {
     if (!translator) return NULL;
     
     // Add a basic type for the main class if none exists
-    printf("DEBUG: type_table=%p, count=%u\n", translator->type_table, translator->type_table ? translator->type_table->count : 0);
     if (translator->type_table->count == 0) {
-        printf("DEBUG: Creating Program type\n");
         uint32_t type_id = ir_to_bytecode_add_type(translator, "Program", 0, 0); // System.Object is parent (0)
         if (type_id == 0) {
-            printf("DEBUG: ir_to_bytecode_add_type returned 0\n");
             ir_to_bytecode_translator_set_error(translator, "Failed to create Program type");
             return NULL;
         }
-        printf("DEBUG: Program type created with ID %u\n", type_id);
     }
     
     // Method should already be added before function translation
@@ -558,16 +521,17 @@ BytecodeFile* ir_to_bytecode_generate_file(IRToBytecodeTranslator* translator) {
     translator->bytecode_file->method_table = translator->method_table;
     
     // Set bytecode
+    fflush(stdout);
+    
     translator->bytecode_file->bytecode = translator->current_bytecode;
     translator->bytecode_file->bytecode_size = translator->current_bytecode_size;
+    
+    fflush(stdout);
     
     // Update method table entries with bytecode information
     if (translator->method_table && translator->method_table->count > 0) {
         translator->method_table->entries[0].bytecode_offset = 0; // First method starts at beginning
         translator->method_table->entries[0].bytecode_size = translator->current_bytecode_size;
-        printf("DEBUG: Updated method table entry 0: offset=%u, size=%u\n", 
-               translator->method_table->entries[0].bytecode_offset,
-               translator->method_table->entries[0].bytecode_size);
     }
     
     // Set entry point

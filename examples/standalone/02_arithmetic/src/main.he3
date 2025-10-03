@@ -1,0 +1,8 @@
+domain arithmetic {
+    function main() -> System.Int64 {
+        let x: System.Int64 = 42;
+        let y: System.Int64 = 8;
+        let result: System.Int64 = x + y;
+        return result;
+    }
+}

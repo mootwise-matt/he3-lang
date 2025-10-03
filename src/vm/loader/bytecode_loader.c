@@ -29,7 +29,6 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     }
     
     // Validate magic number
-    printf("DEBUG: Read magic: %.4s, expected: %s\n", header.magic, BYTECODE_MAGIC);
     if (memcmp(header.magic, BYTECODE_MAGIC, BYTECODE_MAGIC_SIZE) != 0) {
         fprintf(stderr, "Invalid bytecode magic number\n");
         fclose(file);
@@ -37,9 +36,6 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     }
     
     // Validate version
-    printf("DEBUG: Read version: %u.%u, expected: %u.%u\n", 
-           header.version_major, header.version_minor, 
-           BYTECODE_VERSION_MAJOR, BYTECODE_VERSION_MINOR);
     if (header.version_major != BYTECODE_VERSION_MAJOR || 
         header.version_minor != BYTECODE_VERSION_MINOR) {
         fprintf(stderr, "Unsupported bytecode version: %u.%u\n", 
@@ -67,8 +63,6 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     bytecode_file->bytecode_size = 0;
     
     // Load string table
-    printf("DEBUG: Loading string table (size=%u, offset=%u)\n", 
-           header.string_table_size, header.string_table_offset);
     if (header.string_table_size > 0) {
         fseek(file, header.string_table_offset, SEEK_SET);
         bytecode_file->string_table = string_table_create();
@@ -101,8 +95,6 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     }
     
     // Load constant table
-    printf("DEBUG: Loading constant table (size=%u, offset=%u)\n", 
-           header.constant_table_size, header.constant_table_offset);
     if (header.constant_table_size > 0) {
         fseek(file, header.constant_table_offset, SEEK_SET);
         bytecode_file->constant_table = constant_table_create();
@@ -124,8 +116,6 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     }
     
     // Load type table
-    printf("DEBUG: Loading type table (size=%u, offset=%u)\n", 
-           header.type_table_size, header.type_table_offset);
     if (header.type_table_size > 0) {
         fseek(file, header.type_table_offset, SEEK_SET);
         bytecode_file->type_table = type_table_create();
@@ -147,8 +137,6 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     }
     
     // Load method table
-    printf("DEBUG: Loading method table (size=%u, offset=%u)\n", 
-           header.method_table_size, header.method_table_offset);
     if (header.method_table_size > 0) {
         fseek(file, header.method_table_offset, SEEK_SET);
         bytecode_file->method_table = method_table_create();
@@ -170,8 +158,6 @@ BytecodeFile* bytecode_load_file(const char* filename) {
     }
     
     // Load bytecode
-    printf("DEBUG: Loading bytecode (size=%u, offset=%u)\n", 
-           header.bytecode_size, header.bytecode_offset);
     if (header.bytecode_size > 0) {
         fseek(file, header.bytecode_offset, SEEK_SET);
         bytecode_file->bytecode = malloc(header.bytecode_size);
@@ -184,7 +170,6 @@ BytecodeFile* bytecode_load_file(const char* filename) {
             }
             
             bytecode_file->bytecode_size = bytecode_file->header.bytecode_size;
-            printf("DEBUG: Bytecode loaded successfully\n");
         }
     }
     

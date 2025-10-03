@@ -50,7 +50,6 @@ He3Project* he3_project_load(const char* project_file) {
     char src_dir[512];
     snprintf(src_dir, sizeof(src_dir), "%s/src", project_dir);
     
-    printf("DEBUG: Looking for source files in: %s\n", src_dir);
     
     // Count .he3 files
     project->source_count = 0;
@@ -167,13 +166,20 @@ ProjectPackager* project_packager_create(He3Project* project) {
     
     // Initialize compilation units
     for (uint32_t i = 0; i < packager->unit_count; i++) {
+        fflush(stdout);
+        
         packager->units[i].filename = strdup(project->source_files[i]);
         packager->units[i].source_code = NULL;
         packager->units[i].ast = NULL;
         packager->units[i].bytecode = NULL;
         packager->units[i].compiled = false;
         packager->units[i].error_message = NULL;
+        packager->units[i].bytecode_translator = NULL;  // Initialize to NULL
+        
+        fflush(stdout);
     }
+    
+    fflush(stdout);
     
     return packager;
 }
@@ -196,12 +202,30 @@ void project_packager_destroy(ProjectPackager* packager) {
 
 // Compile all source files
 bool project_packager_compile_all(ProjectPackager* packager) {
-    if (!packager) return false;
+    fflush(stdout);
     
-    printf("Compiling %u source files...\n", packager->unit_count);
+    if (!packager) {
+        fflush(stdout);
+        return false;
+    }
+    
+    fflush(stdout);
+    
+    fflush(stdout);
     
     for (uint32_t i = 0; i < packager->unit_count; i++) {
-        printf("Compiling %s...\n", packager->units[i].filename);
+        fflush(stdout);
+        
+        if (packager->units[i].filename) {
+            // Print filename carefully to avoid crash
+            for (int j = 0; j < 100 && packager->units[i].filename[j] != '\0'; j++) {
+                putchar(packager->units[i].filename[j]);
+            }
+            printf("\n");
+            fflush(stdout);
+        } else {
+            printf("ERROR: filename is NULL for unit %u\n", i);
+        }
         
         if (!compile_single_file(packager->units[i].filename, &packager->units[i])) {
             packager->has_errors = true;
@@ -216,12 +240,16 @@ bool project_packager_compile_all(ProjectPackager* packager) {
 
 // Link all compilation units into final module
 bool project_packager_link(ProjectPackager* packager) {
+    fflush(stdout);
+    
     if (!packager || packager->has_errors) return false;
     
     printf("Linking %u compilation units...\n", packager->unit_count);
     
     // Create final helium module
+    fflush(stdout);
     packager->final_module = helium_module_create();
+    fflush(stdout);
     if (!packager->final_module) {
         fprintf(stderr, "Error: Failed to create final helium module\n");
         return false;
@@ -232,12 +260,14 @@ bool project_packager_link(ProjectPackager* packager) {
     printf("  Skipping Sys class addition (not implemented yet)\n");
     
     // Merge all bytecode files
+    fflush(stdout);
     if (!merge_bytecode_files(packager)) {
         fprintf(stderr, "Error: Failed to merge bytecode files\n");
         helium_module_destroy(packager->final_module);
         packager->final_module = NULL;
         return false;
     }
+    fflush(stdout);
     
     // Set module metadata
     packager->final_module->header.module_name_offset = helium_module_add_string(packager->final_module, packager->project->name);
@@ -249,57 +279,88 @@ bool project_packager_link(ProjectPackager* packager) {
 
 // Save final module
 bool project_packager_save(ProjectPackager* packager, const char* output_path) {
+    fflush(stdout);
+    
     if (!packager || !packager->final_module) return false;
     
     const char* path = output_path ? output_path : packager->project->output_path;
+    fflush(stdout);
     
+    fflush(stdout);
     if (!helium_module_save(packager->final_module, path)) {
         fprintf(stderr, "Error: Failed to save final module to %s\n", path);
         return false;
     }
     
+    fflush(stdout);
     printf("Final module saved to %s\n", path);
     return true;
 }
 
 // Compile single file
 bool compile_single_file(const char* filename, CompilationUnit* unit) {
-    if (!unit) return false;
+    fflush(stdout);
+    
+    if (!unit) {
+        fflush(stdout);
+        return false;
+    }
+    
+    fflush(stdout);
     
     // Read source file
+    fflush(stdout);
+    
     FILE* file = fopen(filename, "r");
+    
+    fflush(stdout);
+    
     if (!file) {
+        fflush(stdout);
         unit->error_message = strdup("Could not open file");
         return false;
     }
     
+    fflush(stdout);
+    
     // Get file size
+    fflush(stdout);
     fseek(file, 0, SEEK_END);
     long size = ftell(file);
+    fflush(stdout);
     fseek(file, 0, SEEK_SET);
     
     // Allocate buffer
+    fflush(stdout);
     unit->source_code = malloc(size + 1);
     if (!unit->source_code) {
         unit->error_message = strdup("Out of memory");
         fclose(file);
         return false;
     }
+    fflush(stdout);
     
     // Read file
+    fflush(stdout);
     size_t bytes_read = fread(unit->source_code, 1, size, file);
     unit->source_code[bytes_read] = '\0';
+    fflush(stdout);
     fclose(file);
+    fflush(stdout);
     
     // Create lexer
+    fflush(stdout);
     Lexer* lexer = lexer_create(unit->source_code);
+    fflush(stdout);
     if (!lexer) {
         unit->error_message = strdup("Failed to create lexer");
         return false;
     }
     
     // Create parser
+    fflush(stdout);
     Parser* parser = parser_create(lexer);
+    fflush(stdout);
     if (!parser) {
         unit->error_message = strdup("Failed to create parser");
         lexer_destroy(lexer);
@@ -307,7 +368,9 @@ bool compile_single_file(const char* filename, CompilationUnit* unit) {
     }
     
     // Parse to AST
+    fflush(stdout);
     unit->ast = parse_compilation_unit(parser);
+    fflush(stdout);
     if (!unit->ast) {
         unit->error_message = strdup("Failed to parse file");
         parser_destroy(parser);
@@ -316,7 +379,9 @@ bool compile_single_file(const char* filename, CompilationUnit* unit) {
     }
     
     // Generate IR
+    fflush(stdout);
     AstToIRTranslator* ir_translator = ast_to_ir_translator_create();
+    fflush(stdout);
     if (!ir_translator) {
         unit->error_message = strdup("Failed to create IR translator");
         parser_destroy(parser);
@@ -324,7 +389,9 @@ bool compile_single_file(const char* filename, CompilationUnit* unit) {
         return false;
     }
     
+    fflush(stdout);
     IRFunction* ir_function = ast_to_ir_translate_compilation_unit(ir_translator, unit->ast);
+    fflush(stdout);
     if (!ir_function) {
         unit->error_message = strdup("Failed to generate IR");
         ast_to_ir_translator_destroy(ir_translator);
@@ -334,7 +401,9 @@ bool compile_single_file(const char* filename, CompilationUnit* unit) {
     }
     
     // Generate bytecode
+    fflush(stdout);
     IRToBytecodeTranslator* bytecode_translator = ir_to_bytecode_translator_create();
+    fflush(stdout);
     if (!bytecode_translator) {
         unit->error_message = strdup("Failed to create bytecode translator");
         ast_to_ir_translator_destroy(ir_translator);
@@ -343,10 +412,13 @@ bool compile_single_file(const char* filename, CompilationUnit* unit) {
         return false;
     }
     
+    fflush(stdout);
     bytecode_translator->current_function = ir_function;
     
     // Add method to bytecode translator
+    fflush(stdout);
     uint32_t method_id = ir_to_bytecode_add_method(bytecode_translator, "main", "()I", 1);
+    fflush(stdout);
     if (method_id == 0) {
         unit->error_message = strdup("Failed to add method to bytecode translator");
         ir_to_bytecode_translator_destroy(bytecode_translator);
@@ -357,6 +429,7 @@ bool compile_single_file(const char* filename, CompilationUnit* unit) {
     }
     
     // Translate IR to bytecode
+    fflush(stdout);
     if (!ir_to_bytecode_translate_function(bytecode_translator, ir_function)) {
         unit->error_message = strdup("Failed to translate IR to bytecode");
         ir_to_bytecode_translator_destroy(bytecode_translator);
@@ -365,9 +438,12 @@ bool compile_single_file(const char* filename, CompilationUnit* unit) {
         lexer_destroy(lexer);
         return false;
     }
+    fflush(stdout);
     
     // Get bytecode file
+    fflush(stdout);
     unit->bytecode = ir_to_bytecode_generate_file(bytecode_translator);
+    fflush(stdout);
     if (!unit->bytecode) {
         unit->error_message = strdup("Failed to get bytecode file");
         ir_to_bytecode_translator_destroy(bytecode_translator);
@@ -377,16 +453,28 @@ bool compile_single_file(const char* filename, CompilationUnit* unit) {
         return false;
     }
     
+    fflush(stdout);
     unit->compiled = true;
     
     // Cleanup (but preserve bytecode file)
     // Don't destroy bytecode_translator yet - we need the bytecode file
+    fflush(stdout);
     ast_to_ir_translator_destroy(ir_translator);
+    fflush(stdout);
+    
+    fflush(stdout);
     parser_destroy(parser);
+    fflush(stdout);
+    
+    fflush(stdout);
     lexer_destroy(lexer);
+    fflush(stdout);
     
     // Store the translator for later cleanup
+    fflush(stdout);
     unit->bytecode_translator = bytecode_translator;
+    
+    fflush(stdout);
     
     return true;
 }
@@ -422,23 +510,77 @@ bool merge_bytecode_files(ProjectPackager* packager) {
     if (!first_unit->compiled || !first_unit->bytecode) return false;
     
     // Copy bytecode data
-    packager->final_module->bytecode = malloc(first_unit->bytecode->header.bytecode_size);
+    fflush(stdout);
+    
+    packager->final_module->bytecode = malloc(first_unit->bytecode->bytecode_size);
     if (!packager->final_module->bytecode) return false;
+    
+    fflush(stdout);
     
     memcpy(packager->final_module->bytecode, 
            first_unit->bytecode->bytecode, 
-           first_unit->bytecode->header.bytecode_size);
+           first_unit->bytecode->bytecode_size);
     
-    packager->final_module->bytecode_size = first_unit->bytecode->header.bytecode_size;
+    fflush(stdout);
+    
+    packager->final_module->bytecode_size = first_unit->bytecode->bytecode_size;
     
     // Set entry point method ID (for now, use 1 as the main method)
     packager->final_module->header.entry_point_method_id = 1;
     
     // Set bytecode size in header (this is what the save function uses)
-    packager->final_module->header.bytecode_size = first_unit->bytecode->header.bytecode_size;
+    packager->final_module->header.bytecode_size = first_unit->bytecode->bytecode_size;
     
-    // Don't copy tables for now - just create a minimal working module
-    // This avoids the memory management issues with table copying
+    // Merge all bytecode files into the helium module
+    // This involves collecting metadata from all .bx files and merging bytecode
+    
+    // For now, just transfer ownership of the first unit's data
+    // TODO: Implement proper merging of multiple .bx files
+    
+    // Transfer ownership of type table (set to NULL to prevent double-free)
+    if (first_unit->bytecode->type_table) {
+        packager->final_module->type_table = first_unit->bytecode->type_table;
+        first_unit->bytecode->type_table = NULL;  // Transfer ownership
+    }
+    
+    // Transfer ownership of method table
+    if (first_unit->bytecode->method_table) {
+        packager->final_module->method_table = first_unit->bytecode->method_table;
+        first_unit->bytecode->method_table = NULL;  // Transfer ownership
+    }
+    
+    // Transfer ownership of field table
+    if (first_unit->bytecode->field_table) {
+        packager->final_module->field_table = first_unit->bytecode->field_table;
+        first_unit->bytecode->field_table = NULL;  // Transfer ownership
+    }
+    
+    // Transfer ownership of string table
+    if (first_unit->bytecode->string_table) {
+        packager->final_module->string_table_obj = first_unit->bytecode->string_table;
+        first_unit->bytecode->string_table = NULL;  // Transfer ownership
+    }
+    
+    // Transfer ownership of constant table
+    fflush(stdout);
+    if (first_unit->bytecode->constant_table) {
+        fflush(stdout);
+        packager->final_module->constant_table = first_unit->bytecode->constant_table;
+        first_unit->bytecode->constant_table = NULL;  // Transfer ownership
+        fflush(stdout);
+    } else {
+        fflush(stdout);
+    }
+    
+    // Clear the bytecode translator's table pointers since we transferred ownership
+    if (first_unit->bytecode_translator) {
+        IRToBytecodeTranslator* translator = (IRToBytecodeTranslator*)first_unit->bytecode_translator;
+        translator->string_table = NULL;
+        translator->constant_table = NULL;
+        translator->type_table = NULL;
+        translator->method_table = NULL;
+    }
+    
     
     return true;
 }

@@ -160,22 +160,17 @@ IRFunction* ast_to_ir_translate_compilation_unit(AstToIRTranslator* translator, 
         return NULL;
     }
     
-    printf("DEBUG: AST compilation unit has %u children\n", ast->child_count);
     
     // For now, we'll translate the first function we find
     // In a full implementation, we'd handle multiple functions and classes
     for (uint32_t i = 0; i < ast->child_count; i++) {
         Ast* child = ast->children[i];
-        printf("DEBUG: Child %u: kind=%d, identifier=%s\n", i, child->kind, child->identifier ? child->identifier : "NULL");
         
         if (child->kind == AST_CLASS) {
-            printf("DEBUG: Found class '%s' with %u children\n", child->identifier ? child->identifier : "NULL", child->child_count);
             // Look for methods inside the class
             for (uint32_t j = 0; j < child->child_count; j++) {
                 Ast* method = child->children[j];
-                printf("DEBUG: Class child %u: kind=%d, identifier=%s\n", j, method->kind, method->identifier ? method->identifier : "NULL");
                 if (method->kind == AST_METHOD) {
-                    printf("DEBUG: Found method '%s'\n", method->identifier ? method->identifier : "NULL");
                     return ast_to_ir_translate_function(translator, method);
                 }
             }
@@ -483,7 +478,6 @@ IRValue ast_to_ir_translate_method_call(AstToIRTranslator* translator, Ast* ast)
         return null_value;
     }
     
-    printf("DEBUG: Created IR_CALL instruction with op=%d\n", call_instruction->op);
     
     // Add callee as first operand
     ir_instruction_add_operand(call_instruction, callee);
@@ -505,7 +499,6 @@ IRValue ast_to_ir_translate_method_call(AstToIRTranslator* translator, Ast* ast)
     ir_instruction_set_result(call_instruction, result);
     
     // Add instruction to current block
-    printf("DEBUG: Adding IR_CALL instruction to IR function\n");
     ir_builder_add_instruction(translator->ir_builder, call_instruction);
     
     return result;

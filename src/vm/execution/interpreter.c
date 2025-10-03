@@ -93,11 +93,11 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
 // ============================================================================
 
 InterpretResult op_push_constant(VM* vm, uint32_t constant_index) {
-    if (!vm || !vm->stack || !vm->bytecode || !vm->bytecode->constant_table) {
+    if (!vm || !vm->stack || !vm->current_module || !vm->current_module->constant_table) {
         return INTERPRET_RUNTIME_ERROR;
     }
 
-    const ConstantEntry* entry = constant_table_get_constant(vm->bytecode->constant_table, constant_index);
+    const ConstantEntry* entry = constant_table_get_constant(vm->current_module->constant_table, constant_index);
     if (!entry) {
         fprintf(stderr, "Runtime error: Invalid constant index %u\n", constant_index);
         return INTERPRET_RUNTIME_ERROR;
@@ -289,17 +289,14 @@ InterpretResult op_add(VM* vm) {
     Value val2 = stack_pop(vm->stack);
     Value val1 = stack_pop(vm->stack);
     
-    printf("DEBUG: op_add - val1.type=%d, val2.type=%d\n", val1.type, val2.type);
     
     if (val1.type == VALUE_I64 && val2.type == VALUE_I64) {
         Value result = value_create_i64(val1.data.i64_value + val2.data.i64_value);
-        printf("DEBUG: op_add - result=%lld\n", result.data.i64_value);
         if (!stack_push(vm->stack, result)) {
             return INTERPRET_STACK_OVERFLOW;
         }
     } else if (val1.type == VALUE_F64 && val2.type == VALUE_F64) {
         Value result = value_create_f64(val1.data.f64_value + val2.data.f64_value);
-        printf("DEBUG: op_add - result=%f\n", result.data.f64_value);
         if (!stack_push(vm->stack, result)) {
             return INTERPRET_STACK_OVERFLOW;
         }
@@ -309,7 +306,6 @@ InterpretResult op_add(VM* vm) {
         double v1 = (val1.type == VALUE_I64) ? (double)val1.data.i64_value : val1.data.f64_value;
         double v2 = (val2.type == VALUE_I64) ? (double)val2.data.i64_value : val2.data.f64_value;
         Value result = value_create_f64(v1 + v2);
-        printf("DEBUG: op_add - mixed types result=%f\n", result.data.f64_value);
         if (!stack_push(vm->stack, result)) {
             return INTERPRET_STACK_OVERFLOW;
         }
@@ -655,7 +651,6 @@ InterpretResult op_new_object(VM* vm, uint32_t type_id) {
         return INTERPRET_STACK_OVERFLOW;
     }
     
-    printf("DEBUG: Created object with type_id=%u\n", type_id);
     return INTERPRET_OK;
 }
 
@@ -708,8 +703,6 @@ InterpretResult op_call(VM* vm, uint32_t method_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    printf("DEBUG: Calling method '%s' (id=%u) from type %u\n", 
-           method_entry->method_name, method_id, method_entry->type_id);
     
     // Check if this is a static method
     if (method_entry->method_info && method_entry->method_info->is_static) {
@@ -731,8 +724,6 @@ InterpretResult op_call_virtual(VM* vm, uint32_t method_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    printf("DEBUG: Virtual call to method '%s' (id=%u)\n", 
-           method_entry->method_name, method_id);
     
     // For virtual calls, we need to pop the object from the stack
     if (vm->stack->top == 0) {
@@ -769,8 +760,6 @@ InterpretResult op_call_static(VM* vm, uint32_t method_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    printf("DEBUG: Static call to method '%s' (id=%u)\n", 
-           method_entry->method_name, method_id);
     
     // Get the method information
     Method* method_info = method_entry->method_info;
@@ -796,8 +785,6 @@ InterpretResult op_load_field(VM* vm, uint32_t field_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    printf("DEBUG: Loading field '%s' (id=%u) from type %u\n", 
-           field_entry->field_name, field_id, field_entry->type_id);
     
     // Pop the object from the stack
     if (vm->stack->top == 0) {
@@ -874,8 +861,6 @@ InterpretResult op_store_field(VM* vm, uint32_t field_id) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    printf("DEBUG: Storing field '%s' (id=%u) in type %u\n", 
-           field_entry->field_name, field_id, field_entry->type_id);
     
     // Pop the value and object from the stack
     if (vm->stack->top < 2) {
@@ -968,12 +953,9 @@ InterpretResult execute_method_bytecode(VM* vm, Method* method, Value object) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    printf("DEBUG: Executing method '%s' with %u bytes of bytecode\n", 
-           method->name, method->bytecode_size);
     
     // If no bytecode, return default value
     if (!method->bytecode || method->bytecode_size == 0) {
-        printf("DEBUG: Method has no bytecode, returning default value\n");
         Value result = value_create_i64(0);
         if (!stack_push(vm->stack, result)) {
             return INTERPRET_STACK_OVERFLOW;

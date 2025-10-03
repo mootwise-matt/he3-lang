@@ -414,16 +414,13 @@ void string_table_destroy(StringTable* table) {
 
 uint32_t string_table_add_string(StringTable* table, const char* str) {
     if (!table || !str) {
-        printf("DEBUG: string_table_add_string failed - table=%p, str=%p\n", table, str);
         return 0;
     }
     
-    printf("DEBUG: string_table_add_string - adding '%s'\n", str);
     
     // Check if string already exists
     for (uint32_t i = 0; i < table->count; i++) {
         if (strcmp(table->data + table->entries[i].offset, str) == 0) {
-            printf("DEBUG: string_table_add_string - found existing string at index %u\n", i);
             return i;
         }
     }
@@ -434,7 +431,6 @@ uint32_t string_table_add_string(StringTable* table, const char* str) {
     // Resize data buffer
     char* new_data = realloc(table->data, table->total_size + len);
     if (!new_data) {
-        printf("DEBUG: string_table_add_string failed - realloc data failed\n");
         return 0;
     }
     
@@ -443,7 +439,6 @@ uint32_t string_table_add_string(StringTable* table, const char* str) {
     // Resize entries array
     StringEntry* new_entries = realloc(table->entries, (table->count + 1) * sizeof(StringEntry));
     if (!new_entries) {
-        printf("DEBUG: string_table_add_string failed - realloc entries failed\n");
         return 0;
     }
     
@@ -461,7 +456,6 @@ uint32_t string_table_add_string(StringTable* table, const char* str) {
     table->count++;
     table->total_size += len;
     
-    printf("DEBUG: string_table_add_string success - index=%u, offset=%u\n", index, table->entries[index].offset);
     return index;
 }
 

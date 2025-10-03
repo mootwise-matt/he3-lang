@@ -29,7 +29,6 @@ void constant_table_destroy(ConstantTable* table) {
 
 uint32_t constant_table_add_constant(ConstantTable* table, const ConstantEntry* entry) {
     if (!table || !entry) {
-        printf("DEBUG: constant_table_add_constant failed - table=%p, entry=%p\n", table, entry);
         return 0;
     }
     
@@ -37,7 +36,6 @@ uint32_t constant_table_add_constant(ConstantTable* table, const ConstantEntry* 
     ConstantEntry* new_entries = realloc(table->entries, 
                                        (table->count + 1) * sizeof(ConstantEntry));
     if (!new_entries) {
-        printf("DEBUG: constant_table_add_constant failed - realloc failed\n");
         return 0;
     }
     
@@ -48,7 +46,6 @@ uint32_t constant_table_add_constant(ConstantTable* table, const ConstantEntry* 
     uint32_t index = table->count;
     table->count++;
     
-    printf("DEBUG: constant_table_add_constant success - index=%u, type=%d\n", index, entry->type);
     return index;
 }
 

@@ -18,6 +18,7 @@ HeliumModule* helium_module_create(void) {
     
     // Initialize tables
     module->string_table_obj = string_table_create();
+    module->constant_table = constant_table_create();
     module->type_table = type_table_create();
     module->method_table = method_table_create();
     module->field_table = field_table_create();
@@ -45,6 +46,10 @@ void helium_module_destroy(HeliumModule* module) {
     
     if (module->string_table_obj) {
         string_table_destroy(module->string_table_obj);
+    }
+    
+    if (module->constant_table) {
+        constant_table_destroy(module->constant_table);
     }
     
     if (module->type_table) {
@@ -80,6 +85,15 @@ bool helium_module_save(HeliumModule* module, const char* filename) {
             sizeof(StringEntry) * module->string_table_obj->count + 
             module->string_table_obj->total_size;
         current_offset += module->header.string_table_size;
+    }
+    
+    // Constant table offset
+    module->header.constant_table_offset = current_offset;
+    if (module->constant_table) {
+        module->header.constant_table_size = 
+            sizeof(uint32_t) + 
+            sizeof(ConstantEntry) * module->constant_table->count;
+        current_offset += module->header.constant_table_size;
     }
     
     // Type table offset
@@ -137,6 +151,19 @@ bool helium_module_save(HeliumModule* module, const char* filename) {
         }
         
         if (fwrite(module->string_table_obj->data, 1, module->string_table_obj->total_size, file) != module->string_table_obj->total_size) {
+            fclose(file);
+            return false;
+        }
+    }
+    
+    // Write constant table
+    if (module->constant_table && module->header.constant_table_size > 0) {
+        if (fwrite(&module->constant_table->count, sizeof(uint32_t), 1, file) != 1) {
+            fclose(file);
+            return false;
+        }
+        
+        if (fwrite(module->constant_table->entries, sizeof(ConstantEntry), module->constant_table->count, file) != module->constant_table->count) {
             fclose(file);
             return false;
         }
@@ -221,18 +248,14 @@ HeliumModule* helium_module_load(const char* filename) {
     }
     
     // Load string table
-    printf("DEBUG: String table size: %u\n", module->header.string_table_size);
     if (module->header.string_table_size > 0) {
-        printf("DEBUG: Loading string table at offset %u\n", module->header.string_table_offset);
         fseek(file, module->header.string_table_offset, SEEK_SET);
         module->string_table_obj = string_table_create();
         if (!module->string_table_obj) {
-            printf("DEBUG: Failed to create string table\n");
             free(module);
             fclose(file);
             return NULL;
         }
-        printf("DEBUG: String table created successfully\n");
         
         if (fread(&module->string_table_obj->count, sizeof(uint32_t), 1, file) != 1) {
             string_table_destroy(module->string_table_obj);
@@ -279,6 +302,36 @@ HeliumModule* helium_module_load(const char* filename) {
         }
     }
     
+    // Load constant table
+    if (module->header.constant_table_size > 0) {
+        fseek(file, module->header.constant_table_offset, SEEK_SET);
+        module->constant_table = constant_table_create();
+        if (!module->constant_table) {
+            helium_module_destroy(module);
+            fclose(file);
+            return NULL;
+        }
+        
+        if (fread(&module->constant_table->count, sizeof(uint32_t), 1, file) != 1) {
+            helium_module_destroy(module);
+            fclose(file);
+            return NULL;
+        }
+        
+        module->constant_table->entries = malloc(sizeof(ConstantEntry) * module->constant_table->count);
+        if (!module->constant_table->entries) {
+            helium_module_destroy(module);
+            fclose(file);
+            return NULL;
+        }
+        
+        if (fread(module->constant_table->entries, sizeof(ConstantEntry), module->constant_table->count, file) != module->constant_table->count) {
+            helium_module_destroy(module);
+            fclose(file);
+            return NULL;
+        }
+    }
+    
     // Load type table
     if (module->header.type_table_size > 0) {
         fseek(file, module->header.type_table_offset, SEEK_SET);
@@ -310,18 +363,14 @@ HeliumModule* helium_module_load(const char* filename) {
     }
     
     // Load method table
-    printf("DEBUG: Method table size: %u\n", module->header.method_table_size);
     if (module->header.method_table_size > 0) {
-        printf("DEBUG: Loading method table at offset %u\n", module->header.method_table_offset);
         fseek(file, module->header.method_table_offset, SEEK_SET);
         module->method_table = method_table_create();
         if (!module->method_table) {
-            printf("DEBUG: Failed to create method table\n");
             helium_module_destroy(module);
             fclose(file);
             return NULL;
         }
-        printf("DEBUG: Method table created successfully\n");
         
         if (fread(&module->method_table->count, sizeof(uint32_t), 1, file) != 1) {
             helium_module_destroy(module);
@@ -421,21 +470,14 @@ bool helium_module_validate(HeliumModule* module) {
 
 // Get string from module
 const char* helium_module_get_string(HeliumModule* module, uint32_t offset) {
-    printf("DEBUG: helium_module_get_string called with offset %u\n", offset);
     if (!module || !module->string_table_obj || !module->string_table_obj->data) {
-        printf("DEBUG: helium_module_get_string returning NULL (module=%p, string_table_obj=%p, data=%p)\n", 
-               module, module ? module->string_table_obj : NULL, 
-               module && module->string_table_obj ? module->string_table_obj->data : NULL);
         return NULL;
     }
     
     if (offset >= module->string_table_obj->total_size) {
-        printf("DEBUG: helium_module_get_string returning NULL (offset %u >= total_size %u)\n", 
-               offset, module->string_table_obj->total_size);
         return NULL;
     }
     
-    printf("DEBUG: helium_module_get_string returning string at offset %u\n", offset);
     return module->string_table_obj->data + offset;
 }
 

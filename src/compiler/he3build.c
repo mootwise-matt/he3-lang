@@ -30,6 +30,8 @@ void print_version() {
 }
 
 int main(int argc, char* argv[]) {
+    fflush(stdout);
+    
     bool show_help = false;
     bool show_version = false;
     bool debug = false;
@@ -85,25 +87,30 @@ int main(int argc, char* argv[]) {
     }
     
     // Load project
-    printf("Loading project: %s\n", project_file);
+    fflush(stdout);
     He3Project* project = he3_project_load(project_file);
+    fflush(stdout);
     if (!project) {
         fprintf(stderr, "Error: Failed to load project\n");
         return 1;
     }
     
     // Validate project
+    fflush(stdout);
     if (!he3_project_validate(project)) {
         fprintf(stderr, "Error: Invalid project configuration\n");
         he3_project_destroy(project);
         return 1;
     }
+    fflush(stdout);
     
     printf("Project: %s v%s (%s)\n", project->name, project->version, project->type);
     printf("Source files: %u\n", project->source_count);
     
     // Create packager
+    fflush(stdout);
     ProjectPackager* packager = project_packager_create(project);
+    fflush(stdout);
     if (!packager) {
         fprintf(stderr, "Error: Failed to create project packager\n");
         he3_project_destroy(project);
@@ -122,25 +129,34 @@ int main(int argc, char* argv[]) {
     
     // Link if not compile-only
     if (!compile_only) {
+        fflush(stdout);
         if (!project_packager_link(packager)) {
             fprintf(stderr, "Error: Linking failed\n");
             project_packager_destroy(packager);
             he3_project_destroy(project);
             return 1;
         }
+        fflush(stdout);
         
         // Save final module
+        fflush(stdout);
         if (!project_packager_save(packager, output_filename)) {
             fprintf(stderr, "Error: Failed to save final module\n");
             project_packager_destroy(packager);
             he3_project_destroy(project);
             return 1;
         }
+        fflush(stdout);
     }
     
     // Cleanup
+    fflush(stdout);
     project_packager_destroy(packager);
+    fflush(stdout);
+    
+    fflush(stdout);
     he3_project_destroy(project);
+    fflush(stdout);
     
     printf("Build completed successfully!\n");
     return 0;

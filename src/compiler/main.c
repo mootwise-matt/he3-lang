@@ -228,13 +228,10 @@ int compile_file(const char* input_filename, const char* output_filename,
     }
     
     // Set current function in translator before adding method
-    printf("DEBUG: Setting current function in translator\n");
     bytecode_translator->current_function = ir_function;
     
     // Add method to method table before translating
-    printf("DEBUG: Adding method to bytecode translator\n");
     uint32_t method_id = ir_to_bytecode_add_method(bytecode_translator, "main", "()I", 1);
-    printf("DEBUG: method_id = %u\n", method_id);
     if (method_id == 0) {
         fprintf(stderr, "Error: Failed to add method to bytecode translator\n");
         ir_to_bytecode_translator_destroy(bytecode_translator);
