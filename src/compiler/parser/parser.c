@@ -1377,7 +1377,36 @@ Ast* parse_if_statement(Parser* parser) {
     
     return if_stmt;
 }
-Ast* parse_while_statement(Parser* parser) { return NULL; }
+Ast* parse_while_statement(Parser* parser) {
+    // Parse: while (condition) { body }
+    Ast* while_stmt = ast_create(AST_WHILE, NULL, 0, 0);
+    if (!while_stmt) return NULL;
+    
+    // NOTE: 'while' token has already been consumed by parser_match in parse_statement
+    
+    // Parse condition in parentheses
+    parser_consume(parser, TK_LPAREN, "Expected '(' after 'while'");
+    Ast* condition = parse_expression(parser);
+    if (!condition) {
+        ast_destroy(while_stmt);
+        return NULL;
+    }
+    parser_consume(parser, TK_RPAREN, "Expected ')' after while condition");
+    
+    // Parse body block
+    Ast* body = parse_block_statement(parser);
+    if (!body) {
+        ast_destroy(while_stmt);
+        ast_destroy(condition);
+        return NULL;
+    }
+    
+    // Add condition and body as children
+    ast_add_child(while_stmt, condition);
+    ast_add_child(while_stmt, body);
+    
+    return while_stmt;
+}
 Ast* parse_for_statement(Parser* parser) { return NULL; }
 Ast* parse_match_statement(Parser* parser) { return NULL; }
 Ast* parse_return_statement(Parser* parser) {
