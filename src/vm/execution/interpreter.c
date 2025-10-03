@@ -77,6 +77,7 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
         case OP_CALL_VIRTUAL:
             return op_call_virtual(vm, *(uint32_t*)operands);
         case OP_CALL_STATIC:
+            printf("DEBUG: About to call op_call_static with method_id=%u\n", *(uint32_t*)operands);
             return op_call_static(vm, *(uint32_t*)operands);
         case OP_LOAD_FIELD:
             return op_load_field(vm, *(uint32_t*)operands);
@@ -491,11 +492,15 @@ InterpretResult op_ret(VM* vm) {
 // ============================================================================
 
 InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
+    printf("DEBUG: interpret_bytecode called with size=%zu\n", size);
+    
     if (!vm || !bytecode) {
+        printf("DEBUG: VM or bytecode is null\n");
         return INTERPRET_RUNTIME_ERROR;
     }
     
     size_t ip = 0; // Instruction pointer
+    printf("DEBUG: Starting bytecode interpretation loop\n");
     
     while (ip < size) {
         uint8_t opcode = bytecode[ip++];
@@ -525,6 +530,12 @@ InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
             case OP_PUSH_CONSTANT:
             case OP_LOAD_LOCAL:
             case OP_STORE_LOCAL:
+            case OP_CALL:
+            case OP_CALL_VIRTUAL:
+            case OP_CALL_STATIC:
+            case OP_LOAD_FIELD:
+            case OP_STORE_FIELD:
+            case OP_NEW_OBJECT:
                 operand_size = 4;
                 break;
             default:
@@ -545,6 +556,10 @@ InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
         }
         
         // Execute instruction
+        printf("DEBUG: Executing opcode 0x%02X with operands at %p\n", opcode, operands);
+        if (operands) {
+            printf("DEBUG: Operand value: %u\n", *(uint32_t*)operands);
+        }
         InterpretResult result = interpret_instruction(vm, opcode, operands);
         if (result != INTERPRET_OK) {
             return result;
@@ -749,16 +764,24 @@ InterpretResult op_call_virtual(VM* vm, uint32_t method_id) {
 }
 
 InterpretResult op_call_static(VM* vm, uint32_t method_id) {
+    printf("DEBUG: op_call_static called with method_id=%u\n", method_id);
+    
     if (!vm || !vm->stack) {
+        printf("DEBUG: VM or stack is null\n");
         return INTERPRET_RUNTIME_ERROR;
     }
     
+    printf("DEBUG: Looking up method in registry...\n");
     // Look up the method in the module registry
     MethodRegistryEntry* method_entry = method_registry_find_method_by_id(method_id);
     if (!method_entry) {
         printf("Runtime error: Static method with id=%u not found\n", method_id);
+        printf("DEBUG: Available methods in registry:\n");
+        method_registry_print_info();
         return INTERPRET_RUNTIME_ERROR;
     }
+    
+    printf("DEBUG: Found method: %s\n", method_entry->method_name);
     
     
     // Get the method information

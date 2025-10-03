@@ -21,6 +21,7 @@ Ast* ast_create(AstKind kind, const char* identifier, uint32_t line, uint32_t co
     node->type_index = 0;
     node->is_resolved = false;
     node->is_mutable = false;
+    node->is_static = false;
     
     // Initialize literal union
     memset(&node->literal, 0, sizeof(node->literal));

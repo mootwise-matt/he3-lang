@@ -64,6 +64,7 @@ typedef enum {
     IR_CALL,            // Call method
     IR_CALLV,           // Virtual method call
     IR_CALLI,           // Interface method call
+    IR_CALL_STATIC,     // Static method call
     IR_RETURN,          // Return from method
     IR_RETURN_VAL,      // Return with value
     
@@ -118,6 +119,7 @@ typedef struct IRValue {
         void* object;
         uint32_t string_id;
         uint32_t temp_id;
+        const char* string_value;
     } data;
 } IRValue;
 

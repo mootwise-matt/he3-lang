@@ -1,4 +1,4 @@
-domain System {
+domain Program {
     function main(): integer {
         // Test basic functionality first
         return 42;

@@ -191,15 +191,19 @@ Ast* create_ast_literal(TokenKind token_kind, Token token) {
         case TK_FLOAT:
             node->literal.float_value = strtod(token.start, NULL);
             break;
-        case TK_STRING:
-            // Copy string value
-            node->text = malloc(token.len + 1);
+        case TK_STRING: {
+            // Copy string value (without quotes)
+            // token.literal.string_value points to the string content without quotes
+            // The actual length is token.len - 2 (excluding opening and closing quotes)
+            size_t string_len = token.len - 2;
+            node->text = malloc(string_len + 1);
             if (node->text) {
-                strncpy((char*)node->text, token.start, token.len);
-                ((char*)node->text)[token.len] = '\0';
+                strncpy((char*)node->text, token.literal.string_value, string_len);
+                ((char*)node->text)[string_len] = '\0';
                 node->literal.string_offset = 0;
             }
             break;
+        }
         case TK_TRUE:
             node->literal.bool_value = true;
             break;
@@ -350,12 +354,21 @@ Ast* parse_compilation_unit(Parser* parser) {
             if (parser->panic_mode) {
                 parser_synchronize(parser);
             }
+        } else if (parser_match(parser, TK_FUNCTION) || parser_match(parser, TK_PROCEDURE)) {
+            // Handle standalone functions/procedures at top level
+            Ast* method = parse_method_declaration(parser);
+            if (method) {
+                ast_add_child(compunit, method);
+            }
+            if (parser->panic_mode) {
+                parser_synchronize(parser);
+            }
         } else if (parser_match(parser, TK_NEW)) {
             // Skip 'new' at top level - this shouldn't happen in valid code
             parser_advance(parser);
         } else {
             // Unexpected token - report error and synchronize
-            parser_error_at_current(parser, "Expected declaration (domain, import, class, record, enum, or interface)");
+            parser_error_at_current(parser, "Expected declaration (domain, import, class, record, enum, interface, or function)");
             parser_synchronize(parser);
         }
     }
@@ -552,6 +565,9 @@ Ast* parse_method_declaration(Parser* parser) {
     Ast* method = ast_create(AST_METHOD, NULL, 0, 0);
     if (!method) return NULL;
     
+    // Check if it's static
+    bool is_static = parser_match(parser, TK_STATIC);
+    
     // Check if it's async
     bool is_async = (parser->previous.kind == TK_ASYNC);
     
@@ -562,6 +578,9 @@ Ast* parse_method_declaration(Parser* parser) {
         strncpy(method->identifier, name.start, name.len);
         method->identifier[name.len] = '\0';
     }
+    
+    // Set static flag
+    method->is_static = is_static;
     
     // Parse optional type parameters
     if (parser_match(parser, TK_LT)) {
@@ -579,8 +598,8 @@ Ast* parse_method_declaration(Parser* parser) {
     }
     parser_consume(parser, TK_RPAREN, "Expected ')' after method parameters");
     
-    // Parse return type
-    if (parser_match(parser, TK_COLON)) {
+    // Parse return type (support both : and -> syntax)
+    if (parser_match(parser, TK_COLON) || parser_match(parser, TK_ARROW)) {
         Ast* return_type = parse_type(parser);
         if (return_type) {
             ast_add_child(method, return_type);
@@ -814,6 +833,7 @@ Ast* parse_call_expression(Parser* parser) {
     
     while (true) {
         if (parser_match(parser, TK_LPAREN)) {
+            printf("DEBUG: Parsing call expression\n");
             expr = finish_call_expression(parser, expr);
         } else if (parser_match(parser, TK_DOT)) {
             Token name = parser_consume(parser, TK_IDENTIFIER, "Expected property name after '.'");
@@ -903,10 +923,46 @@ Ast* parse_type(Parser* parser) {
     }
 
     if (parser_match(parser, TK_IDENTIFIER)) {
-        return create_ast_identifier(parser->previous);
+        // Handle qualified type names (e.g., System.Int64)
+        Token first_part = parser->previous;
+        char* qualified_name = malloc(first_part.len + 1);
+        if (!qualified_name) return NULL;
+        strncpy(qualified_name, first_part.start, first_part.len);
+        qualified_name[first_part.len] = '\0';
+        
+        // Parse additional parts of qualified name (e.g., "System.Int64")
+        while (parser_match(parser, TK_DOT)) {
+            if (parser_match(parser, TK_IDENTIFIER)) {
+                Token part = parser->previous;
+                
+                // Reallocate and append the new part
+                size_t new_len = strlen(qualified_name) + 1 + part.len + 1; // +1 for dot, +1 for null terminator
+                char* new_name = realloc(qualified_name, new_len);
+                if (!new_name) {
+                    free(qualified_name);
+                    return NULL;
+                }
+                qualified_name = new_name;
+                strcat(qualified_name, ".");
+                strncat(qualified_name, part.start, part.len);
+            } else {
+                parser_error_at_current(parser, "Expected identifier after '.' in qualified type name");
+                free(qualified_name);
+                return NULL;
+            }
+        }
+        
+        // Create a type node with the qualified name
+        Ast* type_node = ast_create(AST_TYPE, NULL, first_part.line, first_part.col);
+        if (type_node) {
+            type_node->identifier = qualified_name;
+        } else {
+            free(qualified_name);
+        }
+        return type_node;
     }
     
-        return NULL;
+    return NULL;
 }
 
 // Helper function for parameter list parsing

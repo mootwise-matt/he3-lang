@@ -163,23 +163,36 @@ IRFunction* ast_to_ir_translate_compilation_unit(AstToIRTranslator* translator, 
     
     // For now, we'll translate the first function we find
     // In a full implementation, we'd handle multiple functions and classes
+    printf("DEBUG: Translating compilation unit, child count: %d\n", ast->child_count);
     for (uint32_t i = 0; i < ast->child_count; i++) {
         Ast* child = ast->children[i];
+        printf("DEBUG: Compilation unit child %d, kind: %d\n", i, child->kind);
         
         if (child->kind == AST_CLASS) {
+            printf("DEBUG: Processing class with %d children\n", child->child_count);
             // Look for methods inside the class
             for (uint32_t j = 0; j < child->child_count; j++) {
                 Ast* method = child->children[j];
+                printf("DEBUG: Class child %d, kind: %d\n", j, method->kind);
                 if (method->kind == AST_METHOD) {
+                    printf("DEBUG: Found method, translating function\n");
                     return ast_to_ir_translate_function(translator, method);
                 }
             }
         } else if (child->kind == AST_DOMAIN) {
             // Look for methods inside the domain
             for (uint32_t j = 0; j < child->child_count; j++) {
-                Ast* method = child->children[j];
-                if (method->kind == AST_METHOD) {
-                    return ast_to_ir_translate_function(translator, method);
+                Ast* domain_child = child->children[j];
+                if (domain_child->kind == AST_METHOD) {
+                    return ast_to_ir_translate_function(translator, domain_child);
+                } else if (domain_child->kind == AST_CLASS) {
+                    // Look for methods inside classes within the domain
+                    for (uint32_t k = 0; k < domain_child->child_count; k++) {
+                        Ast* method = domain_child->children[k];
+                        if (method->kind == AST_METHOD) {
+                            return ast_to_ir_translate_function(translator, method);
+                        }
+                    }
                 }
             }
         } else if (child->kind == AST_METHOD) {
@@ -255,6 +268,9 @@ IRFunction* ast_to_ir_translate_function(AstToIRTranslator* translator, Ast* ast
         return NULL;
     }
     
+    // Set static flag from AST
+    function->is_static = ast->is_static;
+    
     // Set parameter types
     if (param_count > 0) {
         function->param_count = param_count;
@@ -285,14 +301,19 @@ IRFunction* ast_to_ir_translate_function(AstToIRTranslator* translator, Ast* ast
     }
     
     // Translate function body
+    printf("DEBUG: Translating function body, child count: %d\n", ast->child_count);
     for (uint32_t i = 0; i < ast->child_count; i++) {
         Ast* child = ast->children[i];
+        printf("DEBUG: Function child %d, kind: %d\n", i, child->kind);
         if (child->kind == AST_BLOCK) {
+            printf("DEBUG: Processing block with %d children\n", child->child_count);
             // Translate all statements in the block
             for (uint32_t j = 0; j < child->child_count; j++) {
+                printf("DEBUG: Block child %d, kind: %d\n", j, child->children[j]->kind);
                 ast_to_ir_translate_statement(translator, child->children[j]);
             }
         } else if (child->kind != AST_ARGUMENTS && child->kind != AST_LITERAL) {
+            printf("DEBUG: Processing non-block child, kind: %d\n", child->kind);
             ast_to_ir_translate_statement(translator, child);
         }
     }
@@ -307,6 +328,7 @@ IRValue ast_to_ir_translate_expression(AstToIRTranslator* translator, Ast* ast) 
         return null_value;
     }
     
+    printf("DEBUG: Translating expression, kind: %d\n", ast->kind);
     switch (ast->kind) {
         case AST_BINARY:
             return ast_to_ir_translate_binary_expression(translator, ast);
@@ -317,6 +339,7 @@ IRValue ast_to_ir_translate_expression(AstToIRTranslator* translator, Ast* ast) 
         case AST_IDENTIFIER:
             return ast_to_ir_translate_identifier(translator, ast);
         case AST_CALL:
+            printf("DEBUG: Processing AST_CALL\n");
             return ast_to_ir_translate_method_call(translator, ast);
         case AST_FIELD_ACCESS:
             return ast_to_ir_translate_field_access(translator, ast);
@@ -467,9 +490,6 @@ IRValue ast_to_ir_translate_method_call(AstToIRTranslator* translator, Ast* ast)
         return null_value;
     }
     
-    // Translate callee (object.method or function name)
-    IRValue callee = ast_to_ir_translate_expression(translator, ast->children[0]);
-    
     // Translate arguments
     Ast* args_ast = ast->children[1];
     if (args_ast->kind != AST_ARGUMENTS) {
@@ -481,14 +501,86 @@ IRValue ast_to_ir_translate_method_call(AstToIRTranslator* translator, Ast* ast)
     // Count arguments
     uint32_t arg_count = args_ast->child_count;
     
+    // Determine if this is a static method call
+    // Check if the callee is a field access (e.g., Sys.print)
+    bool is_static_call = false;
+    bool is_sys_call = false;
+    fprintf(stderr, "DEBUG: Method call detection - AST kind: %d, child count: %d\n", ast->children[0]->kind, ast->children[0]->child_count);
+    fflush(stderr);
+    if (ast->children[0]->kind == AST_FIELD_ACCESS) {
+        fprintf(stderr, "DEBUG: Found field access\n");
+        fflush(stderr);
+        // This is a field access like Sys.print
+        // Check if it's a Sys method call
+        Ast* field_access = ast->children[0];
+        fprintf(stderr, "DEBUG: Field access child count: %d, identifier: %s\n", 
+               field_access->child_count, 
+               field_access->identifier ? field_access->identifier : "NULL");
+        fflush(stderr);
+        if (field_access->child_count >= 1) {
+            fprintf(stderr, "DEBUG: Field access child 0 kind: %d, identifier: %s\n", 
+                   field_access->children[0]->kind, 
+                   field_access->children[0]->identifier ? field_access->children[0]->identifier : "NULL");
+        }
+        // The field access structure is: identifier = method name, child[0] = object
+        if (field_access->child_count >= 1 && field_access->identifier) {
+            Ast* object = field_access->children[0];
+            const char* method_name = field_access->identifier;
+            fprintf(stderr, "DEBUG: Object kind: %d, method name: %s\n", object->kind, method_name);
+            fflush(stderr);
+            if (object->kind == AST_IDENTIFIER && object->identifier) {
+                fprintf(stderr, "DEBUG: Object identifier: %s, method identifier: %s\n", object->identifier, method_name);
+                fflush(stderr);
+                if (strcmp(object->identifier, "Sys") == 0) {
+                    // This is a Sys method call - treat as static
+                    fprintf(stderr, "DEBUG: Detected Sys method call\n");
+                    fflush(stderr);
+                    is_static_call = true;
+                    is_sys_call = true;
+                }
+            }
+        }
+    } else {
+        fprintf(stderr, "DEBUG: Not a field access, kind: %d\n", ast->children[0]->kind);
+        fflush(stderr);
+    }
+    
+    // Translate callee (object.method or function name)
+    IRValue callee;
+    if (is_sys_call) {
+        // For Sys calls, create a special marker value
+        Ast* field_access = ast->children[0];
+        const char* method_name = field_access->identifier;
+        
+        // Store the method name as a special marker
+        // We'll detect this in bytecode generation by checking if it's a static call
+        callee.type = IR_VALUE_I64;
+        if (strcmp(method_name, "print") == 0) {
+            callee.data.i64 = 2; // Sys.print method ID
+        } else if (strcmp(method_name, "println") == 0) {
+            callee.data.i64 = 3; // Sys.println method ID
+        } else if (strcmp(method_name, "currentTimeMillis") == 0) {
+            callee.data.i64 = 12; // Sys.currentTimeMillis method ID
+        } else {
+            callee.data.i64 = 0; // Unknown method
+        }
+    } else {
+        callee = ast_to_ir_translate_expression(translator, ast->children[0]);
+    }
+    
     // Create call instruction
-    IRInstruction* call_instruction = ir_builder_create_instruction(translator->ir_builder, IR_CALL);
+    IROp call_op = is_static_call ? IR_CALL_STATIC : IR_CALL;
+    fprintf(stderr, "DEBUG: Creating IR instruction: %s (is_static_call=%d)\n", 
+           call_op == IR_CALL_STATIC ? "IR_CALL_STATIC" : "IR_CALL", is_static_call);
+    fflush(stderr);
+    fprintf(stderr, "DEBUG: Method call AST kind: %d, child count: %d\n", ast->children[0]->kind, ast->children[0]->child_count);
+    fflush(stderr);
+    IRInstruction* call_instruction = ir_builder_create_instruction(translator->ir_builder, call_op);
     if (!call_instruction) {
         ast_to_ir_translator_set_error(translator, "Failed to create call instruction");
         IRValue null_value = {0};
         return null_value;
     }
-    
     
     // Add callee as first operand
     ir_instruction_add_operand(call_instruction, callee);
@@ -583,6 +675,7 @@ IRValue ast_to_ir_translate_array_access(AstToIRTranslator* translator, Ast* ast
 void ast_to_ir_translate_statement(AstToIRTranslator* translator, Ast* ast) {
     if (!translator || !ast) return;
     
+    printf("DEBUG: Translating statement, kind: %d\n", ast->kind);
     switch (ast->kind) {
         case AST_VAR_DECL:
             ast_to_ir_translate_declaration(translator, ast);
@@ -1141,7 +1234,7 @@ IRValue ast_to_ir_translate_new_expression(AstToIRTranslator* translator, Ast* a
     // Add class name as string operand
     IRValue class_name_value = {0};
     class_name_value.type = IR_VALUE_STRING;
-    class_name_value.data.string_id = (uint32_t)(uintptr_t)ast->identifier;
+    class_name_value.data.string_value = ast->identifier;
     ir_instruction_add_operand(instruction, class_name_value);
     
     // Add argument count as operand
@@ -1178,7 +1271,8 @@ IRValue ast_to_ir_create_literal_value(Ast* ast) {
     if (ast->text && ast->text[0] != '\0') {
         // String literal (has text content)
         value.type = IR_VALUE_STRING;
-        value.data.string_id = (uint32_t)(uintptr_t)ast->text;
+        // Store the string content directly instead of casting pointer to integer
+        value.data.string_value = ast->text;
         return value;
     } else if (ast->literal.int_value != 0) {
         // Integer literal (check this before float to avoid union confusion)
@@ -1228,3 +1322,4 @@ void ast_to_ir_register_builtin_functions(AstToIRTranslator* translator) {
 
 // These functions are not used in the current simplified implementation
 // They would be needed for a full implementation that stores operator types in AST
+

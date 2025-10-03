@@ -133,6 +133,29 @@ Token lexer_make_literal_token(Lexer* lexer, TokenKind kind) {
     return token;
 }
 
+Token lexer_make_number_literal_token(Lexer* lexer, TokenKind kind, const char* start, size_t len) {
+    Token token;
+    token.kind = kind;
+    token.start = start;
+    token.len = len;
+    token.line = lexer->line;
+    token.col = lexer->col - len;
+    
+    // Set literal values
+    switch (kind) {
+        case TK_INT:
+            token.literal.int_value = strtol(token.start, NULL, 10);
+            break;
+        case TK_FLOAT:
+            token.literal.float_value = strtod(token.start, NULL);
+            break;
+        default:
+            break;
+    }
+    
+    return token;
+}
+
 Token lexer_make_identifier_token(Lexer* lexer) {
     const char* start = lexer->current - 1;
     while (lexer_is_alphanumeric(lexer_peek(lexer))) {
@@ -186,6 +209,7 @@ Token lexer_make_identifier_token(Lexer* lexer) {
         else if (strncmp(start, "delete", 6) == 0) kind = TK_DELETE;
         else if (strncmp(start, "module", 6) == 0) kind = TK_MODULE;
         else if (strncmp(start, "export", 6) == 0) kind = TK_EXPORT;
+        else if (strncmp(start, "static", 6) == 0) kind = TK_STATIC;
     } else if (len == 7) {
         if (strncmp(start, "boolean", 7) == 0) kind = TK_BOOLEAN;
         else if (strncmp(start, "integer", 7) == 0) kind = TK_INTEGER;
@@ -218,6 +242,7 @@ Token lexer_make_identifier_token(Lexer* lexer) {
 
 Token lexer_make_number_token(Lexer* lexer) {
     const char* start = lexer->current - 1;
+    
     while (lexer_is_digit(lexer_peek(lexer))) {
         lexer_advance(lexer);
     }
@@ -228,14 +253,15 @@ Token lexer_make_number_token(Lexer* lexer) {
         while (lexer_is_digit(lexer_peek(lexer))) {
             lexer_advance(lexer);
         }
-        return lexer_make_literal_token(lexer, TK_FLOAT);
+        return lexer_make_number_literal_token(lexer, TK_FLOAT, start, lexer->current - start);
     }
     
-    return lexer_make_literal_token(lexer, TK_INT);
+    return lexer_make_number_literal_token(lexer, TK_INT, start, lexer->current - start);
 }
 
 Token lexer_make_string_token(Lexer* lexer) {
     const char* start = lexer->current - 1; // Points to opening quote
+    
     while (lexer_peek(lexer) != '"' && !lexer_is_at_end(lexer)) {
         if (lexer_peek(lexer) == '\n') {
             lexer->line++;
@@ -283,7 +309,12 @@ Token lexer_make_operator_token(Lexer* lexer, char c) {
         case '?': return lexer_make_token(lexer, TK_QUESTION);
         case ':': return lexer_make_token(lexer, TK_COLON);
         case '+': return lexer_make_token(lexer, TK_PLUS);
-        case '-': return lexer_make_token(lexer, TK_MINUS);
+        case '-': 
+            if (lexer_peek(lexer) == '>') {
+                lexer_advance(lexer);
+                return lexer_make_token(lexer, TK_ARROW);
+            }
+            return lexer_make_token(lexer, TK_MINUS);
         case '*': return lexer_make_token(lexer, TK_STAR);
         case '/': return lexer_make_token(lexer, TK_SLASH);
         case '%': return lexer_make_token(lexer, TK_MODULO);
@@ -412,6 +443,7 @@ const char* token_kind_to_string(TokenKind kind) {
         case TK_LET: return "LET";
         case TK_RETURN: return "RETURN";
         case TK_PROPERTY: return "PROPERTY";
+        case TK_STATIC: return "STATIC";
         case TK_IF: return "IF";
         case TK_ELSE: return "ELSE";
         case TK_WHILE: return "WHILE";

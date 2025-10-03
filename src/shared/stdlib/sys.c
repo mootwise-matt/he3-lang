@@ -1,26 +1,26 @@
 #include <string.h>
 #include "sys.h"
 
-// Sys method definitions
+// Sys method definitions - all methods are static
 static const SysMethodInfo sys_methods[] = {
-    {"print", "(string)void", false},
-    {"println", "(string)void", false},
-    {"readLine", "()string", false},
-    {"fileExists", "(string)boolean", false},
-    {"readFile", "(string)string", false},
-    {"writeFile", "(string,string)void", false},
-    {"listDir", "(string)string[]", false},
-    {"createDir", "(string)void", false},
-    {"deleteFile", "(string)void", false},
-    {"deleteDir", "(string)void", false},
-    {"currentTimeMillis", "()integer", false},
-    {"exit", "(integer)void", false},
-    {"argc", "()integer", false},
-    {"argv", "(integer)string", false},
-    {"workingDir", "()string", false},
-    {"changeDir", "(string)void", false},
-    {"envGet", "(string)string", false},
-    {"envSet", "(string,string)void", false}
+    {"print", "(string)void", true},
+    {"println", "(string)void", true},
+    {"readLine", "()string", true},
+    {"fileExists", "(string)boolean", true},
+    {"readFile", "(string)string", true},
+    {"writeFile", "(string,string)void", true},
+    {"listDir", "(string)string[]", true},
+    {"createDir", "(string)void", true},
+    {"deleteFile", "(string)void", true},
+    {"deleteDir", "(string)void", true},
+    {"currentTimeMillis", "()integer", true},
+    {"exit", "(integer)void", true},
+    {"argc", "()integer", true},
+    {"argv", "(integer)string", true},
+    {"workingDir", "()string", true},
+    {"changeDir", "(string)void", true},
+    {"envGet", "(string)string", true},
+    {"envSet", "(string,string)void", true}
 };
 
 static const SysClassInfo sys_class_info = {

@@ -126,8 +126,8 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
                     constant_index = constant_table_add_boolean(translator->constant_table, instruction->operands[0].data.boolean);
                     break;
                 case IR_VALUE_STRING: {
-                    // Convert string_id back to string pointer
-                    const char* string_value = (const char*)(uintptr_t)instruction->operands[0].data.string_id;
+                    // Use string_value directly
+                    const char* string_value = instruction->operands[0].data.string_value;
                     constant_index = ir_to_bytecode_add_string_constant(translator, string_value);
                     break;
                 }
@@ -185,6 +185,7 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             return ir_to_bytecode_emit_instruction(translator, OP_GE, NULL, 0);
         
         case IR_CALL: {
+            printf("DEBUG: Processing IR_CALL instruction\n");
             // IR_CALL has: callee, argument count, and arguments
             if (instruction->operand_count < 2) {
                 ir_to_bytecode_translator_set_error(translator, "IR_CALL requires callee and argument count");
@@ -200,13 +201,45 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             uint32_t method_id = 0; // Built-in function ID
             
             // Emit CALL instruction with method ID
+            printf("DEBUG: Emitting OP_CALL with method_id=%u\n", method_id);
             return ir_to_bytecode_emit_instruction(translator, OP_CALL, 
                                                  (uint8_t*)&method_id, sizeof(uint32_t));
         }
         
+        case IR_CALL_STATIC: {
+            printf("DEBUG: Processing IR_CALL_STATIC instruction\n");
+            // IR_CALL_STATIC has: callee, argument count, and arguments
+            if (instruction->operand_count < 2) {
+                ir_to_bytecode_translator_set_error(translator, "IR_CALL_STATIC requires callee and argument count");
+                return false;
+            }
+            
+            // Get argument count from second operand
+            uint32_t arg_count = (uint32_t)instruction->operands[1].data.i64;
+            
+            // For static method calls, we need to look up the method ID
+            uint32_t method_id = 0; // Default to built-in function ID
+            
+            // For static calls, the method ID is already stored in the callee
+            if (instruction->operands[0].type == IR_VALUE_I64) {
+                method_id = (uint32_t)instruction->operands[0].data.i64;
+            }
+            
+            // Emit CALL_STATIC instruction with method ID
+            return ir_to_bytecode_emit_instruction(translator, OP_CALL_STATIC, 
+                                                 (uint8_t*)&method_id, sizeof(uint32_t));
+        }
+        
         case IR_RETURN_VAL:
-            // For now, just emit a return - return values will be handled later
-            return ir_to_bytecode_emit_instruction(translator, OP_RETURN, NULL, 0);
+            // Push the return value onto the stack first
+            if (instruction->operand_count > 0) {
+                // The return value is already on the stack from the expression evaluation
+                // Just emit the return instruction
+                return ir_to_bytecode_emit_instruction(translator, OP_RETURN, NULL, 0);
+            } else {
+                // No return value, just return
+                return ir_to_bytecode_emit_instruction(translator, OP_RETURN, NULL, 0);
+            }
         
         case IR_NEW: {
             // IR_NEW has: class name (string), argument count (i64)
@@ -216,7 +249,7 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             }
             
             // Get class name from first operand
-            const char* class_name = (const char*)(uintptr_t)instruction->operands[0].data.string_id;
+            const char* class_name = instruction->operands[0].data.string_value;
             uint32_t class_name_offset = ir_to_bytecode_add_string_constant(translator, class_name);
             if (class_name_offset == 0) {
                 ir_to_bytecode_translator_set_error(translator, "Failed to add class name to string table");
@@ -464,7 +497,19 @@ uint32_t ir_to_bytecode_add_method(IRToBytecodeTranslator* translator, const cha
     entry.local_count = local_count;
     entry.param_count = 0;
     entry.return_type_id = 0;
+    
+    // Set flags based on current function properties
     entry.flags = 0;
+    if (translator->current_function && translator->current_function->is_static) {
+        entry.flags |= METHOD_FLAG_STATIC;
+    }
+    if (translator->current_function && translator->current_function->is_virtual) {
+        entry.flags |= METHOD_FLAG_VIRTUAL;
+    }
+    if (translator->current_function && translator->current_function->is_async) {
+        entry.flags |= METHOD_FLAG_ASYNC;
+    }
+    
     entry.line_number = 0;
     entry.column_number = 0;
     

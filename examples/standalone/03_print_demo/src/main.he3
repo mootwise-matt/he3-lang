@@ -1,6 +1,8 @@
-domain System;
-
-function main(): integer {
-    print("Hello from He³!");
-    return 0;
+domain Program {
+    class Main {
+        function main(): integer {
+            Sys.print("Hello from He³!");
+            return 0;
+        }
+    }
 }

@@ -55,6 +55,7 @@ struct Ast {
   uint32_t type_index;       // Index in type table
   bool is_resolved;          // Whether type has been resolved
   bool is_mutable;           // Whether variable is mutable (var vs let)
+  bool is_static;            // Whether method is static
   
   // Additional data
   union {
