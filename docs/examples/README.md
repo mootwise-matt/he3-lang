@@ -18,14 +18,13 @@ examples/
 
 ## Standalone Examples
 
-### 01_hello.he3 - Basic Hello World
+### 01_minimal - Basic Hello World
 ```he3
-domain app.hello;
-
-class Program {
-    function main(): integer {
-        print("Hello, He³ World!");
-        return 0;
+domain Program {
+    class Main {
+        function main(): integer {
+            return 0;
+        }
     }
 }
 ```
@@ -34,8 +33,24 @@ class Program {
 - Domain declarations
 - Class definitions
 - Method declarations
-- String literals
 - Return statements
+
+### 03_print_demo - String Literals and Static Methods
+```he3
+domain Program {
+    class Main {
+        function main(): integer {
+            Sys.print("Hello from He³!");
+            return 0;
+        }
+    }
+}
+```
+
+**Features Demonstrated**:
+- String literals with proper memory management
+- Static method calls (Sys.print)
+- String constant handling
 
 ### 02_types.he3 - Type System Examples
 ```he3

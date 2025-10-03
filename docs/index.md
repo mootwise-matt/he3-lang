@@ -112,6 +112,8 @@ Helium3 Module (.helium3)
     ↓
 VM Loader → Module Manifest
     ↓
+String Manager → Global String Registry
+    ↓
 Object System → Classes & Methods
     ↓
 Memory Manager → Heap & GC

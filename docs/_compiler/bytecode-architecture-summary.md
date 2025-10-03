@@ -34,7 +34,7 @@ typedef struct Object {
 } Object;
 ```
 
-### 2. .helium Module Format
+### 2. .helium3 Module Format
 
 **Key Files:**
 - `docs/bytecode/helium-module-format.md` - Complete module file specification
@@ -209,6 +209,28 @@ Object Data (variable):
 ├── field1 (8 bytes)
 ├── field2 (8 bytes)
 └── ... more fields
+```
+
+## String Management System
+
+### Global String Registry
+- **Hash Table**: O(1) average case string lookup
+- **String Deduplication**: Identical strings share global IDs
+- **Module Mapping**: Maps module string offsets to global IDs
+- **Memory Efficiency**: Cached string data with reference counting
+- **Cross-Module Sharing**: Modules can share string constants efficiently
+
+### String Table Architecture
+```
+Global String Registry:
+├── Hash Table (1024 buckets)
+├── String Entries (global_id, module_id, offset, data, hash)
+└── Module Mappings (module_id → offset_to_global_id[])
+
+Module String Table:
+├── String Data (raw UTF-8 strings)
+├── String Entries (offset, length, hash)
+└── Global ID Mapping (offset → global_string_id)
 ```
 
 ## Security Model

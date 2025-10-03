@@ -17,9 +17,11 @@ The He³ compiler has successfully completed **Phase 2** with a fully functional
 - **Domain Declarations**: `domain app.example;`
 - **Class Definitions**: Basic class syntax and structure
 - **Method Definitions**: Function and method declarations
+- **Static Methods**: Static method calls (e.g., `Sys.print()`)
 - **Variable Declarations**: Local variable support
 - **Return Statements**: Basic return value handling
 - **Arithmetic Operations**: Addition, subtraction, multiplication, division
+- **String Literals**: String constants with proper memory management
 - **Object-Oriented Programming**: Basic class instantiation and method calls
 
 ### Build System
@@ -45,9 +47,9 @@ The He³ compiler has successfully completed **Phase 2** with a fully functional
 ## ❌ **Not Yet Implemented Features**
 
 ### Built-in Functions
-- **Print Function**: Not yet integrated (Sys proxy pending)
-- **String Operations**: Not implemented
-- **System Classes**: Sys proxy not yet integrated
+- **Print Function**: ✅ Complete - Sys.print() and Sys.println() work
+- **String Operations**: ✅ Complete - String literals work correctly
+- **System Classes**: ✅ Complete - Sys proxy integrated with static methods
 
 ### Advanced Language Features
 - **Generics**: Not implemented
