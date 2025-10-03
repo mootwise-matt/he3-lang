@@ -9,7 +9,9 @@ title: design
 - Each frame stores locals + operand stack.
 - **Memory management** with generational garbage collection (✅ **IMPLEMENTED**).
 - **Object system** with classes, methods, and fields (✅ **IMPLEMENTED**).
-- **Bytecode loader** for .bx executable files (✅ **IMPLEMENTED**).
+- **Static method support** with native implementations (✅ **IMPLEMENTED**).
+- **Built-in system functions** via `Sys` class (✅ **IMPLEMENTED**).
+- **Bytecode loader** for .bx and .helium3 files (✅ **IMPLEMENTED**).
 - **Cross-platform execution** on ARM, Apple Silicon, Intel (✅ **IMPLEMENTED**).
 - **Shared architecture** with unified AST and bytecode format (✅ **IMPLEMENTED**).
 - **Comprehensive instruction set** with 100+ opcodes (✅ **IMPLEMENTED**).
@@ -46,6 +48,7 @@ while (1) {
     case OP_ADD: { long b=pop(); long a=pop(); push(a+b); } break;
     case OP_CALL: callMethod(read_u32()); break;
     case OP_CALLV: callVirtual(read_u32()); break;
+    case OP_CALL_STATIC: callStatic(read_u32()); break;  // Static method calls
     case OP_RET: returnFromMethod(); break;
     case OP_SECURE_CALL: secureCall(read_u32()); break;
     case OP_PUBLISH_EVENT: publishEvent(read_u32()); break;
@@ -53,6 +56,22 @@ while (1) {
   }
 }
 ```
+
+## Static Method Support
+
+The VM includes comprehensive support for static method calls:
+
+### **Native Implementations**
+- **`Sys.print(string)`** - Print string without newline
+- **`Sys.println(string)`** - Print string with newline  
+- **`Sys.currentTimeMillis()`** - Get current timestamp
+- **Additional Sys methods** - File I/O, environment, system utilities
+
+### **Method Dispatch**
+- **`OP_CALL_STATIC`** - Direct static method calls
+- **Native method resolution** - Built-in functions executed natively
+- **Stack management** - Proper argument passing and return value handling
+- **Type safety** - Runtime type checking for method arguments
 
 ## Security Manager
 - Validates security keys at module load time.

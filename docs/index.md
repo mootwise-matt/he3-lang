@@ -131,12 +131,12 @@ make
 ### **Your First Program**
 Create `hello.he3`:
 ```he3
-domain app.hello;
-
-class Program {
-    function main(): int64 {
-        print("Hello, He³ World!");
-        return 0;
+domain Program {
+    class Main {
+        function main(): integer {
+            Sys.print("Hello, He³ World!");
+            return 0;
+        }
     }
 }
 ```
@@ -148,6 +148,10 @@ class Program {
 
 # Run the bytecode
 ./he3vm hello.bx
+
+# Or use the build system for projects
+./he3build project.json
+./he3vm build/output.helium3
 
 # Show compilation details
 ./he3 --ast hello.he3
@@ -201,7 +205,9 @@ class Program {
 ### **Standalone Examples**
 - [**Hello World**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/01_hello.he3) - Basic program structure
 - [**Calculator**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/02_calculator.he3) - Object-oriented programming
-- [**Security Events**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/03_security_events.he3) - Module security
+- [**Print Demo**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/standalone/03_print_demo) - Static method calls with `Sys.print()`
+- [**Static Methods Test**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/standalone/04_static_methods_test) - Comprehensive static method testing
+- [**Static Args Test**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/standalone/05_static_args_test) - Static methods with different argument types
 
 ### **Project Examples**
 - [**Hello Project**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/projects/01_hello_project) - Multi-file project structure
@@ -243,6 +249,12 @@ class Program {
   - **Field Access** - Read and write object fields with type safety
   - **Method Calls** - Virtual and static method dispatch
   - **Method Execution** - Complete method execution with bytecode interpretation
+  - **Static Methods** - Static method calls with `Sys.print()`, `Sys.println()`, etc.
+- **Built-in System Functions** - Complete `Sys` class with static methods
+  - **Sys.print()** - Print strings without newline
+  - **Sys.println()** - Print strings with newline
+  - **Sys.currentTimeMillis()** - Get current timestamp
+  - **Additional Sys methods** - File I/O, environment, and system utilities
 - **Type System** - Built-in types and generics
 - **Methods** - Async methods with parameters and return types
 - **Fields** - Mutable and immutable field declarations
@@ -259,6 +271,8 @@ class Program {
 - **Field Access** - Complete field loading and storage with type safety
 - **Method Resolution** - Virtual and static method dispatch
 - **Method Execution** - Complete method execution with bytecode interpretation
+- **Static Methods** - Complete static method infrastructure with native implementations
+- **Built-in System Functions** - Full `Sys` class with static methods for I/O and utilities
 - **Module Registry** - Runtime class, method, and field discovery system
 
 ### 📋 **Next Phase**
@@ -290,8 +304,14 @@ make statement-translation-test
 make method-translation-test
 make error-recovery-test
 
+# Test static method functionality
+./tests/simple_static_test.sh
+./tests/static_methods_test.sh
+
 # Test specific examples
 ./he3 --ast examples/standalone/01_hello.he3
+./he3build examples/standalone/03_print_demo/he3project.json
+./he3vm build/output.helium3
 ```
 
 ## 🤝 Contributing

@@ -36,14 +36,14 @@ The He³ project uses a **shared architecture** where common components are cons
 
 **Features**:
 - UTF-8 string literal support
-- Comprehensive keyword recognition
+- Comprehensive keyword recognition including `static` keyword
 - Operator and delimiter tokenization
 - Line/column tracking for error reporting
 - Comment handling (line and block comments)
 
 **Token Types**:
 - Identifiers and literals (int, float, string, bool, null)
-- Keywords (domain, class, function, async, etc.)
+- Keywords (domain, class, function, async, static, etc.)
 - Operators (arithmetic, comparison, logical, assignment)
 - Delimiters (parentheses, braces, brackets, semicolons)
 - Type keywords (integer, float, boolean, string, void, object)
@@ -71,7 +71,8 @@ The He³ project uses a **shared architecture** where common components are cons
 - Precedence climbing for expressions
 - Error recovery and synchronization
 - Enhanced error reporting with context
-- Support for all He³ language constructs
+- Support for all He³ language constructs including static methods
+- Static method parsing and AST generation
 
 ### 3. Shared Abstract Syntax Tree (`src/shared/ast/`) ✅
 
@@ -124,7 +125,7 @@ The He³ project uses a **shared architecture** where common components are cons
 - Arithmetic operations (add, sub, mul, div, mod, neg)
 - Comparison operations (eq, ne, lt, le, gt, ge)
 - Logical operations (and, or, not)
-- Control flow (jmp, jmpf, jmpt, call, return)
+- Control flow (jmp, jmpf, jmpt, call, call_static, return)
 - Memory operations (new, new_array, load_field, store_field)
 
 ### 5. AST to IR Translation (`src/compiler/emitter/ast_to_ir.c`) ✅
@@ -135,6 +136,7 @@ The He³ project uses a **shared architecture** where common components are cons
 - Expression translation (arithmetic, logical, comparisons)
 - Statement translation (declarations, assignments, control flow)
 - Method/function translation (calls, invocations, parameters)
+- Static method call translation (Sys.print, Sys.println, etc.)
 - Field and array access translation
 - Return value handling
 - Symbol table management

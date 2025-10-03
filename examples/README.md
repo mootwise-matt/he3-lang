@@ -17,12 +17,42 @@ This directory contains working examples that demonstrate the He³ programming l
   ```
 
 #### ✅ `02_arithmetic/`
-- **Description**: Arithmetic operations example (if parser supports)
+- **Description**: Arithmetic operations example
 - **Features**: Variable declarations, arithmetic operations, return statements
-- **Status**: ⚠️ **PARSER LIMITATION** - Complex syntax may cause parser loops
+- **Status**: ✅ **WORKING** - Complete arithmetic functionality
 - **Usage**:
   ```bash
   ./he3build examples/standalone/02_arithmetic/he3project.json
+  ./he3vm ./build/output.helium3
+  ```
+
+#### ✅ `03_print_demo/`
+- **Description**: Static method calls with Sys.print()
+- **Features**: Static method calls, string output, built-in system functions
+- **Status**: ✅ **WORKING** - Complete static method functionality
+- **Usage**:
+  ```bash
+  ./he3build examples/standalone/03_print_demo/he3project.json
+  ./he3vm ./build/output.helium3
+  ```
+
+#### ✅ `04_static_methods_test/`
+- **Description**: Comprehensive static method testing
+- **Features**: Multiple static method calls, Sys.print(), Sys.println()
+- **Status**: ✅ **WORKING** - Complete static method testing
+- **Usage**:
+  ```bash
+  ./he3build examples/standalone/04_static_methods_test/he3project.json
+  ./he3vm ./build/output.helium3
+  ```
+
+#### ✅ `05_static_args_test/`
+- **Description**: Static methods with different argument types
+- **Features**: String literals, different argument types, static method calls
+- **Status**: ✅ **WORKING** - Complete argument type testing
+- **Usage**:
+  ```bash
+  ./he3build examples/standalone/05_static_args_test/he3project.json
   ./he3vm ./build/output.helium3
   ```
 
@@ -45,19 +75,20 @@ This directory contains working examples that demonstrate the He³ programming l
 - **Project Packaging**: Multi-file project compilation and packaging
 - **Module System**: Complete `.helium3` module loading and execution
 - **VM Execution**: Complete bytecode and module execution
-- **Basic Language Features**:
+- **Object-Oriented Features**:
   - Domain declarations
-  - Function definitions
-  - Variable declarations
-  - Return statements
-  - Basic arithmetic operations
+  - Class definitions
+  - Method definitions
+  - Object creation with `new` keyword
+  - Field access and method calls
+  - Static method calls with `Sys.print()`, `Sys.println()`, etc.
+- **Built-in System Functions**: Complete `Sys` class with static methods
 - **Module Registry**: Complete class and method registration
 - **Memory Management**: Garbage collection and reference counting
 - **Build Tools**: Complete compiler, packager, and VM tools
 
 ### ⚠️ **Known Limitations**
-- **Complex Parser**: Some complex OO syntax may cause parser loops
-- **Built-in Functions**: Sys proxy not yet integrated
+- **String Table Loading**: Currently using fallback for string constants
 - **Cross-Module Imports**: Not yet implemented
 - **Advanced OO Features**: Inheritance and interfaces not yet implemented
 
@@ -140,11 +171,11 @@ The He³ language has a **complete, working build and execution system** with fu
 
 To enhance the language further, the following features can be added:
 
-1. **Sys Proxy Integration**: Add built-in function support
-2. **Parser Enhancements**: Fix complex OO syntax issues
-3. **Cross-Module Imports**: Implement module dependencies
-4. **Advanced OO Features**: Add inheritance and interfaces
-5. **String Support**: Implement string operations and literals
+1. **String Table Loading**: Fix string constant loading from module string tables
+2. **Cross-Module Imports**: Implement module dependencies
+3. **Advanced OO Features**: Add inheritance and interfaces
+4. **Additional Sys Methods**: Implement remaining system functions
+5. **Type System**: Add comprehensive type checking and validation
 
 ## Architecture
 

@@ -120,9 +120,10 @@ typedef enum {
     // Method calls
     OP_CALL = 0xA0,          // Call method
     OP_CALLV = 0xA1,         // Virtual method call
-    OP_CALLI = 0xA2,         // Interface method call
-    OP_RETURN = 0xA3,        // Return from method
-    OP_RETURN_VAL = 0xA4,    // Return with value
+    OP_CALL_STATIC = 0xA2,   // Static method call
+    OP_CALLI = 0xA3,         // Interface method call
+    OP_RETURN = 0xA4,        // Return from method
+    OP_RETURN_VAL = 0xA5,    // Return with value
     
     // Object operations
     OP_NEW = 0xB0,           // Create new object
@@ -490,6 +491,58 @@ bool is_truthy(Value value) {
 ### Static Method Calls
 
 ```c
+// Call static method
+void execute_call_static(VM* vm, Instruction* inst) {
+    uint32_t method_id = inst->operands[0];
+    
+    // Check if this is a built-in method that needs native implementation
+    if (method_id == 2) { // Sys.print
+        // Pop the string argument from the stack
+        if (vm->stack->top == 0) {
+            throw_runtime_exception("No argument on stack for Sys.print");
+            return;
+        }
+        Value arg = stack_pop(vm->stack);
+        if (arg.type != VALUE_STRING) {
+            throw_runtime_exception("Sys.print() expects a string argument");
+            return;
+        }
+        printf("%s", arg.data.string_value);
+        fflush(stdout);
+        return;
+    } else if (method_id == 3) { // Sys.println
+        // Pop the string argument from the stack
+        if (vm->stack->top == 0) {
+            throw_runtime_exception("No argument on stack for Sys.println");
+            return;
+        }
+        Value arg = stack_pop(vm->stack);
+        if (arg.type != VALUE_STRING) {
+            throw_runtime_exception("Sys.println() expects a string argument");
+            return;
+        }
+        printf("%s\n", arg.data.string_value);
+        fflush(stdout);
+        return;
+    } else if (method_id == 12) { // Sys.currentTimeMillis
+        // Push current time in milliseconds
+        Value time_value = value_create_i64((int64_t)time(NULL) * 1000);
+        stack_push(vm->stack, time_value);
+        return;
+    }
+    
+    // For other static methods, look up in module registry
+    MethodRegistryEntry* method_entry = method_registry_find_method_by_id(method_id);
+    if (!method_entry) {
+        throw_runtime_exception("Static method not found");
+        return;
+    }
+    
+    // Execute the method bytecode (no object for static methods)
+    Value null_object = value_create_null();
+    execute_method_bytecode(vm, method_entry->method_info, null_object);
+}
+
 // Call method
 void execute_call(VM* vm, Instruction* inst) {
     uint32_t method_id = inst->operands[0];

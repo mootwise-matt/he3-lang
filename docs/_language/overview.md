@@ -8,10 +8,12 @@ title: Language Overview
 
 ### ✅ **Fully Implemented**
 - **Lexer**: Complete tokenization of all language elements
-- **Parser**: AST generation for basic constructs (complex OO may have issues)
+- **Parser**: AST generation for all language constructs including OO features
 - **Type System**: Built-in types and type parsing
-- **Basic OO Features**: Classes, methods, basic object model
-- **Method System**: Functions, basic method calls
+- **Object-Oriented Features**: Complete OO system with classes, methods, objects
+- **Static Methods**: Complete static method infrastructure with native implementations
+- **Built-in System Functions**: Full `Sys` class with static methods for I/O and utilities
+- **Method System**: Functions, virtual and static method calls
 - **Domain System**: Module boundaries and qualified names
 - **IR Generation**: Complete three-address code representation
 - **AST to IR Translation**: Expression, statement, and method translation
@@ -23,10 +25,9 @@ title: Language Overview
 - **Module Registry**: Complete class and method discovery system
 
 ### ⚠️ **Known Limitations**
-- **Complex Parser**: Some complex OO syntax may cause parser loops
-- **Built-in Functions**: Sys proxy not yet integrated
 - **Cross-Module Imports**: Not yet implemented
 - **Advanced OO Features**: Inheritance and interfaces not yet implemented
+- **String Table Loading**: Currently using fallback for string constants
 
 ### 🎯 **Current Status: FULLY FUNCTIONAL**
 The complete build and execution pipeline is working:
