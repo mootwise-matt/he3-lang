@@ -34,10 +34,10 @@ The VM is designed to work seamlessly with the compiler through a **shared archi
 - **Maintainability** - Single source of truth for common definitions
 
 ## Linking & Dynamic Linking
-- `.ohe3` files carry imports.
-- Linker resolves imports across domains.
+- `.bx` files carry basic bytecode and metadata.
+- Packager resolves dependencies and creates modules.
 - Crowds restrict cross-domain calls.
-- `.helium3` modules = prelinked libraries.
+- `.helium3` modules = complete executable modules with Sys integration.
 
 ## Interpreter Loop (C pseudocode)
 ```c

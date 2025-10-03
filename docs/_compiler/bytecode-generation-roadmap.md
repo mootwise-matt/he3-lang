@@ -363,7 +363,7 @@ void test_hello_world_compilation() {
 - [ ] Control flow generates correct IR
 
 ### Phase 3 Complete When:
-- [ ] Can generate valid `.ohe3` object files
+- [ ] Can generate valid `.bx` bytecode files
 - [ ] All basic instructions are implemented
 - [ ] Object file format is correct
 

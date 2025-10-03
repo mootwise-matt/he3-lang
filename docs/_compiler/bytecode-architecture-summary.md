@@ -100,7 +100,7 @@ Source Code (.he3) → Lexer → Tokens → Parser → AST
 
 **Target State:**
 ```
-Source Code (.he3) → Lexer → Tokens → Parser → AST → IR → Bytecode → .ohe3 → .bx
+Source Code (.he3) → Lexer → Tokens → Parser → AST → IR → Bytecode (.bx) → Packager → .helium3
 ```
 
 **Pipeline Stages:**
@@ -109,9 +109,9 @@ Source Code (.he3) → Lexer → Tokens → Parser → AST → IR → Bytecode �
 3. **Semantic Analysis**: AST → Type-checked AST
 4. **IR Generation**: AST → Three-address code IR
 5. **IR Optimization**: IR → Optimized IR
-6. **Bytecode Emission**: IR → Bytecode instructions
-7. **Object File Generation**: Bytecode → .ohe3 object file
-8. **Linking**: .ohe3 files → .bx executable
+6. **Bytecode Emission**: IR → Bytecode instructions (.bx)
+7. **Project Packaging**: .bx files + project config → .helium3 module
+8. **VM Execution**: .helium3 module → execution
 
 ## Implementation Roadmap
 
@@ -242,7 +242,7 @@ Object Data (variable):
 ### Unit Tests
 - **IR Generation**: Test AST to IR translation
 - **Bytecode Emission**: Test IR to bytecode translation
-- **Object File Format**: Test .ohe3 file generation
+- **Module Format**: Test .helium3 file generation
 
 ### Integration Tests
 - **End-to-End**: Source to executable
@@ -257,9 +257,8 @@ Object Data (variable):
 ## File Extensions
 
 - **`.he3`**: Source code files
-- **`.ohe3`**: Object files (compiled modules)
-- **`.helium3`**: Published modules (with metadata)
-- **`.bx`**: Executable bytecode files
+- **`.bx`**: Raw bytecode files (intermediate compilation output)
+- **`.helium3`**: Packaged modules (executable format with metadata)
 
 ## Next Steps
 

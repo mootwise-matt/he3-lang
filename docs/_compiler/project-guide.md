@@ -30,8 +30,8 @@ my-app/
 ├── keys/                     # Security keys (gitignored)
 │   └── payment.key
 ├── build/                    # Generated files
-│   ├── *.ohe3               # Object files
-│   └── my-app.bx            # Final bytecode
+│   ├── *.bx                 # Raw bytecode files
+│   └── my-app.helium3       # Final executable module
 └── he3project.json          # Project configuration
 ```
 
@@ -142,29 +142,28 @@ class Program {
 
 ### 1. Compile Source Files
 ```bash
-# Compile all .he3 files to .ohe3 objects
+# Compile all .he3 files to .bx bytecode
 he3 compile src/**/*.he3 -o build/
 
 # Or compile specific files
 he3 compile src/main.he3 src/domain/app/core/models.he3 -o build/
 ```
 
-### 2. Link Object Files
+### 2. Package Bytecode Files
 ```bash
-# Link objects into executable bytecode
-he3 link build/*.ohe3 -o build/my-app.bx
+# Package bytecode files into executable module
+he3build he3project.json
 
-# Or use project file
-he3 build
+# This creates build/output.helium3
 ```
 
 ### 3. Run Executable
 ```bash
-# Execute bytecode
-he3vm build/my-app.bx
+# Execute module
+he3vm build/output.helium3
 
 # With arguments
-he3vm build/my-app.bx --config=production --debug
+he3vm build/output.helium3 --config=production --debug
 ```
 
 ## Build Commands

@@ -45,6 +45,6 @@ title: roadmap
 - **Status**: Complete Object-Oriented Programming system fully functional
 
 ## Engineering Guidelines (from He3)
-- **Build Process**: modular compilation → `.ohe3` → link → `.bx`.
+- **Build Process**: modular compilation → `.bx` → packager → `.helium3`.
 - **Testing**: golden bytecode tests per opcode; integration via sample projects.
 - **Coding Standards**: clear naming, namespaces via domains, avoid hidden state.

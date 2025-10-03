@@ -101,9 +101,9 @@ Semantic Analysis → Diagnostics
     ↓
 IR Lowering → IR Functions
     ↓
-Emitter → .ohe3 Object
+Bytecode Emitter → .bx Bytecode
     ↓
-Linker → .bx Executable
+Packager → .helium3 Module
 ```
 
 ### **Virtual Machine**
@@ -187,7 +187,7 @@ class Program {
 
 ### **Bytecode Reference**
 - [**Instruction Set**](/bytecode/instruction-set/) - Complete opcode reference
-- [**Object Files**](/bytecode/objects/) - .ohe3 object file format
+- [**Object Files**](/bytecode/objects/) - .bx bytecode file format
 - [**Module Format**](/bytecode/helium-module-format/) - .helium3 module format
 - [**Examples**](/bytecode/examples/) - Bytecode examples and patterns
 

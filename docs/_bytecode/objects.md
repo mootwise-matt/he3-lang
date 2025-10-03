@@ -2,16 +2,32 @@
 layout: page
 title: objects
 ---
-# Object File Format (.ohe3)
-
+# Object File Format (.bx)
 
 ## Purpose
-- Each `.ohe3` = compiled domain/file.
-- Contains local types + unresolved imports.
-- Linker merges `.ohe3` → `.bx` executable.
-- Published modules use `.helium3`.
+- Each `.bx` = compiled domain/file.
+- Contains local types + bytecode instructions.
+- Packager merges `.bx` files → `.helium3` executable modules.
+- Published modules use `.helium3` format.
 
-## ImportEntry
+## Bytecode File Structure
+```
+┌─────────────────────────────────────┐
+│            File Header              │
+├─────────────────────────────────────┤
+│         String Table                │
+├─────────────────────────────────────┤
+│         Constant Table              │
+├─────────────────────────────────────┤
+│         Type Table                  │
+├─────────────────────────────────────┤
+│         Method Table                │
+├─────────────────────────────────────┤
+│         Bytecode Section            │
+└─────────────────────────────────────┘
+```
+
+## ImportEntry (for future cross-module support)
 ```
 nameOffset u32
 kind u16 (0=type,1=method,2=field)

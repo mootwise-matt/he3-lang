@@ -6,9 +6,8 @@ title: syntax
 
 ## Source & Extensions
 - **Source files**: `.he3`
-- **Modules** (published libraries): `.helium3`
-- **Object files** (compiled intermediate): `.ohe3`
-- **Executable bytecode**: `.bx`
+- **Raw bytecode** (compiled intermediate): `.bx`
+- **Modules** (executable libraries): `.helium3`
 
 ## Example Program
 ```he3
