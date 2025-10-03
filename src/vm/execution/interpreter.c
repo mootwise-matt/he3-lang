@@ -4,6 +4,7 @@
 #include "stack.h"
 #include "context.h"
 #include "../modules/module_registry.h"
+#include "../../shared/bytecode/helium_format.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -117,13 +118,17 @@ InterpretResult op_push_constant(VM* vm, uint32_t constant_index) {
             break;
         case CONSTANT_TYPE_STRING:
             // Resolve string offset to actual string data
-            if (vm->current_module && vm->current_module->string_table) {
-                const char* string_data = vm->current_module->string_table + entry->value.string_offset;
-                val = value_create_string(string_data);
+            if (vm->current_module) {
+                const char* string_data = helium_module_get_string(vm->current_module, entry->value.string_offset);
+                if (string_data) {
+                    val = value_create_string(string_data);
+                } else {
+                    fprintf(stderr, "Runtime error: Could not resolve string at offset %u\n", entry->value.string_offset);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
             } else {
-                // Fallback: try to get string from constant table data
-                // This is a temporary workaround until string table loading is fixed
-                val = value_create_string("Hello from He³!");
+                fprintf(stderr, "Runtime error: No current module for string constant\n");
+                return INTERPRET_RUNTIME_ERROR;
             }
             break;
         case CONSTANT_TYPE_NULL:

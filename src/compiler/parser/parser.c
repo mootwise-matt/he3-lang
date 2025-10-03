@@ -1349,9 +1349,7 @@ Ast* parse_constructor_pattern(Parser* parser) { return NULL; }
 
 // Parse new expression (e.g., new Sys())
 Ast* parse_new_expression(Parser* parser) {
-    // Consume the 'new' token
-    parser_advance(parser);
-    
+    // The 'new' token has already been consumed by parse_primary_expression
     // Parse the class name
     Token class_name = parser_consume(parser, TK_IDENTIFIER, "Expected class name after 'new'");
     

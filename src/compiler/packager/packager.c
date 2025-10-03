@@ -289,6 +289,7 @@ bool project_packager_link(ProjectPackager* packager) {
         printf("  Sys class added successfully\n");
     }
     
+    
     // Set module metadata
     packager->final_module->header.module_name_offset = helium_module_add_string(packager->final_module, packager->project->name);
     packager->final_module->header.module_version_offset = helium_module_add_string(packager->final_module, packager->project->version);

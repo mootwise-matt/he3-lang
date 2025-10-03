@@ -301,6 +301,7 @@ HeliumModule* helium_module_load(const char* filename) {
             fclose(file);
             return NULL;
         }
+        
     }
     
     // Load constant table
@@ -479,7 +480,8 @@ const char* helium_module_get_string(HeliumModule* module, uint32_t offset) {
         return NULL;
     }
     
-    return module->string_table_obj->data + offset;
+    const char* result = module->string_table_obj->data + offset;
+    return result;
 }
 
 // Add string to module
@@ -574,6 +576,7 @@ bool helium_module_add_sys_class_from_info(HeliumModule* module) {
         if (method_id == 0) {
             return false;
         }
+        
     }
     return true;
 }
