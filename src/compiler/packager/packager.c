@@ -47,6 +47,20 @@ He3Project* he3_project_load(const char* project_file) {
         *last_slash = '\0';
     }
     
+    // Generate output filename based on project directory name
+    char* dir_name = strrchr(project_dir, '/');
+    if (dir_name) {
+        dir_name++; // Skip the slash
+    } else {
+        dir_name = project_dir;
+    }
+    
+    // Create output path with directory name
+    char output_path[512];
+    snprintf(output_path, sizeof(output_path), "build/%s.helium3", dir_name);
+    free(project->output_path);
+    project->output_path = strdup(output_path);
+    
     // Look for source files in src/ directory
     char src_dir[512];
     snprintf(src_dir, sizeof(src_dir), "%s/src", project_dir);

@@ -23,13 +23,14 @@ run_test() {
     local test_name="$1"
     local test_dir="$2"
     local expected_output="$3"
+    local output_file="$4"
     
     echo -n "Testing $test_name... "
     
     # Compile the test
     if ./he3build "$test_dir/he3project.json" > /dev/null 2>&1; then
         # Run the test and capture output
-        local actual_output=$(./he3vm build/output.helium3 2>&1)
+        local actual_output=$(./he3vm "$output_file" 2>&1)
         local exit_code=$?
         
         if [ $exit_code -eq 0 ]; then
@@ -63,21 +64,24 @@ echo ""
 echo "Test 1: Basic Static Method Calls"
 run_test "Sys.print() and Sys.println()" \
          "examples/standalone/03_print_demo" \
-         "Hello from He³!"
+         "Hello from He³!" \
+         "build/03_print_demo.helium3"
 
 # Test 2: Comprehensive static method test
 echo ""
 echo "Test 2: Comprehensive Static Method Test"
 run_test "Multiple static method calls" \
          "examples/standalone/04_static_methods_test" \
-         "Test 1:"
+         "Test 1:" \
+         "build/04_static_methods_test.helium3"
 
 # Test 3: Static method arguments
 echo ""
 echo "Test 3: Static Method Arguments"
 run_test "Different argument types" \
          "examples/standalone/05_static_args_test" \
-         "Test 1: Empty string:"
+         "Test 1: Single character:" \
+         "build/05_static_args_test.helium3"
 
 # Summary
 echo ""

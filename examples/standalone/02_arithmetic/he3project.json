@@ -3,5 +3,5 @@
     "version": "1.0.0",
     "type": "executable",
     "source_dir": "src",
-    "output": "build/arithmetic.helium3"
+    "output": "build/02_arithmetic.helium3"
 }

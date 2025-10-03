@@ -3,5 +3,6 @@
   "version": "1.0.0",
   "type": "executable",
   "main": "src/main.he3",
-  "description": "Comprehensive test of static method functionality"
+  "description": "Comprehensive test of static method functionality",
+  "output": "build/04_static_methods_test.helium3"
 }

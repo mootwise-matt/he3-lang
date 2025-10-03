@@ -13,7 +13,7 @@ This directory contains working examples that demonstrate the He³ programming l
 - **Usage**:
   ```bash
   ./he3build examples/standalone/01_minimal/he3project.json
-  ./he3vm ./build/output.helium3
+  ./he3vm ./build/01_minimal.helium3
   ```
 
 #### ✅ `02_arithmetic/`
@@ -23,7 +23,7 @@ This directory contains working examples that demonstrate the He³ programming l
 - **Usage**:
   ```bash
   ./he3build examples/standalone/02_arithmetic/he3project.json
-  ./he3vm ./build/output.helium3
+  ./he3vm ./build/02_arithmetic.helium3
   ```
 
 #### ✅ `03_print_demo/`
@@ -33,7 +33,7 @@ This directory contains working examples that demonstrate the He³ programming l
 - **Usage**:
   ```bash
   ./he3build examples/standalone/03_print_demo/he3project.json
-  ./he3vm ./build/output.helium3
+  ./he3vm ./build/03_print_demo.helium3
   ```
 
 #### ✅ `04_static_methods_test/`
@@ -43,7 +43,7 @@ This directory contains working examples that demonstrate the He³ programming l
 - **Usage**:
   ```bash
   ./he3build examples/standalone/04_static_methods_test/he3project.json
-  ./he3vm ./build/output.helium3
+  ./he3vm ./build/04_static_methods_test.helium3
   ```
 
 #### ✅ `05_static_args_test/`
@@ -53,7 +53,7 @@ This directory contains working examples that demonstrate the He³ programming l
 - **Usage**:
   ```bash
   ./he3build examples/standalone/05_static_args_test/he3project.json
-  ./he3vm ./build/output.helium3
+  ./he3vm ./build/05_static_args_test.helium3
   ```
 
 ### Project Examples (`projects/`)
@@ -65,7 +65,7 @@ This directory contains working examples that demonstrate the He³ programming l
 - **Usage**:
   ```bash
   ./he3build examples/projects/01_hello_project/he3project.json
-  ./he3vm ./build/output.helium3
+  ./he3vm ./build/01_hello_project.helium3
   ```
 
 ## Current Working Features
@@ -107,22 +107,22 @@ make clean && make
 
 # Test minimal example
 ./he3build examples/standalone/01_minimal/he3project.json
-./he3vm ./build/output.helium3
+./he3vm ./build/01_minimal.helium3
 
 # Test project example
 ./he3build examples/projects/01_hello_project/he3project.json
-./he3vm ./build/output.helium3
+./he3vm ./build/01_hello_project.helium3
 ```
 
 ### Test Individual Examples
 ```bash
 # Test minimal standalone project
 ./he3build examples/standalone/01_minimal/he3project.json
-./he3vm ./build/output.helium3
+./he3vm ./build/01_minimal.helium3
 
-# Test arithmetic example (if parser supports)
+# Test arithmetic example
 ./he3build examples/standalone/02_arithmetic/he3project.json
-./he3vm ./build/output.helium3
+./he3vm ./build/02_arithmetic.helium3
 ```
 
 ## Example Output
