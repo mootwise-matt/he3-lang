@@ -1,0 +1,6 @@
+domain System;
+
+function main(): integer {
+    print("Hello from He³!");
+    return 0;
+}

@@ -28,6 +28,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    // Disassemble module to show contents
+    vm_disassemble(vm);
+    
     // Execute bytecode
     int result = vm_execute(vm);
     

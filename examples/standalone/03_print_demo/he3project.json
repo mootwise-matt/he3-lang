@@ -1,0 +1,10 @@
+{
+  "name": "print_demo",
+  "version": "1.0.0",
+  "type": "executable",
+  "entry_point": "main",
+  "source_files": [
+    "src/main.he3"
+  ],
+  "output_path": "build/print_demo.helium3"
+}

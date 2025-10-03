@@ -435,12 +435,16 @@ uint32_t ir_to_bytecode_add_method(IRToBytecodeTranslator* translator, const cha
     if (!translator || !name || !signature) return 0;
     
     // Add method name to string table
-    uint32_t name_offset = string_table_add_string(translator->string_table, name);
+    uint32_t name_index = string_table_add_string(translator->string_table, name);
     // Note: 0 is a valid string table index, so we don't check for 0 here
     
     // Add signature to string table
-    uint32_t signature_offset = string_table_add_string(translator->string_table, signature);
+    uint32_t signature_index = string_table_add_string(translator->string_table, signature);
     // Note: 0 is a valid string table index, so we don't check for 0 here
+    
+    // Convert indices to offsets
+    uint32_t name_offset = translator->string_table->entries[name_index].offset;
+    uint32_t signature_offset = translator->string_table->entries[signature_index].offset;
     
     // Get local count from current function if available
     uint32_t local_count = 0;
@@ -476,8 +480,11 @@ uint32_t ir_to_bytecode_add_type(IRToBytecodeTranslator* translator, const char*
     if (!translator || !name) return 0;
     
     // Add type name to string table
-    uint32_t name_offset = string_table_add_string(translator->string_table, name);
+    uint32_t name_index = string_table_add_string(translator->string_table, name);
     // Note: string table indices are 0-based, so 0 is a valid index
+    
+    // Convert index to offset
+    uint32_t name_offset = translator->string_table->entries[name_index].offset;
     
     // Create type entry
     TypeEntry entry;

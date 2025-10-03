@@ -82,5 +82,8 @@ HeliumModule* helium_module_load(const char* filename);
 bool helium_module_validate(HeliumModule* module);
 const char* helium_module_get_string(HeliumModule* module, uint32_t offset);
 uint32_t helium_module_add_string(HeliumModule* module, const char* str);
+uint32_t helium_module_add_type(HeliumModule* module, const char* name, const char* module_name);
+uint32_t helium_module_add_method(HeliumModule* module, const char* name, const char* signature, uint32_t type_id, bool is_static);
+bool helium_module_add_sys_class_from_info(HeliumModule* module);
 bool helium_module_add_sys_class(HeliumModule* module);
 void helium_module_print_info(HeliumModule* module);

@@ -457,8 +457,30 @@ void vm_disassemble(VM* vm) {
         return;
     }
     
-    printf("Bytecode disassembly:\n");
-    // TODO: Implement bytecode disassembly
+    printf("Module disassembly:\n");
+    
+    // Show types
+    if (vm->current_module->type_table && vm->current_module->type_table->count > 0) {
+        printf("  Types (%u):\n", vm->current_module->type_table->count);
+        for (uint32_t i = 0; i < vm->current_module->type_table->count; i++) {
+            TypeEntry* type = &vm->current_module->type_table->entries[i];
+            const char* name = helium_module_get_string(vm->current_module, type->name_offset);
+            printf("    %u: %s (ID: %u)\n", i, name ? name : "NULL", type->type_id);
+        }
+    }
+    
+    // Show methods
+    if (vm->current_module->method_table && vm->current_module->method_table->count > 0) {
+        printf("  Methods (%u):\n", vm->current_module->method_table->count);
+        for (uint32_t i = 0; i < vm->current_module->method_table->count; i++) {
+            MethodEntry* method = &vm->current_module->method_table->entries[i];
+            const char* name = helium_module_get_string(vm->current_module, method->name_offset);
+            const char* signature = helium_module_get_string(vm->current_module, method->signature_offset);
+            printf("    %u: %s %s (ID: %u, Type: %u)\n", 
+                   i, name ? name : "NULL", signature ? signature : "NULL", 
+                   method->method_id, method->type_id);
+        }
+    }
 }
 
 // Heap debugging

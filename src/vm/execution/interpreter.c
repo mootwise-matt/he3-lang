@@ -659,7 +659,7 @@ InterpretResult op_call_builtin(VM* vm) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
-    // For now, we'll handle print function calls
+    // For now, we'll handle basic print function calls
     // In a full implementation, we'd look up the function name and dispatch accordingly
     
     // Pop the string argument from the stack

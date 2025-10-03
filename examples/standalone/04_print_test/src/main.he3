@@ -1,0 +1,6 @@
+domain System {
+    function main(): integer {
+        // Test basic functionality first
+        return 42;
+    }
+}

@@ -416,13 +416,64 @@ Ast* parse_domain_declaration(Parser* parser) {
     
     domain->identifier = qualified_name;
     
-    // Parse semicolon
-    if (parser->current.kind != TK_SEMICOLON) {
-        parser_error_at_current(parser, "Expected ';' after domain declaration");
-        free(qualified_name);
-        return NULL;
+    // Check if there's a domain body (optional)
+    if (parser_match(parser, TK_LBRACE)) {
+        // Parse domain body - declarations inside the domain
+        while (!parser_check(parser, TK_RBRACE) && !parser_is_at_end(parser)) {
+            if (parser_match(parser, TK_CLASS)) {
+                Ast* class = parse_class_declaration(parser);
+                if (class) {
+                    ast_add_child(domain, class);
+                }
+                if (parser->panic_mode) {
+                    parser_synchronize(parser);
+                }
+            } else if (parser_match(parser, TK_RECORD)) {
+                Ast* record = parse_record_declaration(parser);
+                if (record) {
+                    ast_add_child(domain, record);
+                }
+                if (parser->panic_mode) {
+                    parser_synchronize(parser);
+                }
+            } else if (parser_match(parser, TK_ENUM)) {
+                Ast* enum_decl = parse_enum_declaration(parser);
+                if (enum_decl) {
+                    ast_add_child(domain, enum_decl);
+                }
+                if (parser->panic_mode) {
+                    parser_synchronize(parser);
+                }
+            } else if (parser_match(parser, TK_INTERFACE)) {
+                Ast* interface = parse_interface_declaration(parser);
+                if (interface) {
+                    ast_add_child(domain, interface);
+                }
+                if (parser->panic_mode) {
+                    parser_synchronize(parser);
+                }
+            } else if (parser_match(parser, TK_FUNCTION) || parser_match(parser, TK_PROCEDURE)) {
+                // Handle standalone functions/procedures in domain
+                Ast* method = parse_method_declaration(parser);
+                if (method) {
+                    ast_add_child(domain, method);
+                }
+                if (parser->panic_mode) {
+                    parser_synchronize(parser);
+                }
+            } else {
+                // Unexpected token in domain body
+                parser_error_at_current(parser, "Expected class, record, enum, interface, or function declaration");
+                parser_synchronize(parser);
+            }
+        }
+        
+        // Consume closing brace
+        parser_consume(parser, TK_RBRACE, "Expected '}' after domain body");
+    } else {
+        // Parse semicolon for simple domain declaration
+        parser_consume(parser, TK_SEMICOLON, "Expected ';' after domain declaration or '{' for domain body");
     }
-    parser_advance(parser);
     
     return domain;
 }
@@ -575,7 +626,7 @@ Ast* parse_statement(Parser* parser) {
         return parse_return_statement(parser);
     } else if (parser_match(parser, TK_MATCH)) {
         return parse_match_statement(parser);
-        } else {
+    } else {
         // Try to parse as expression statement
         Ast* expr = parse_expression(parser);
         if (expr) {

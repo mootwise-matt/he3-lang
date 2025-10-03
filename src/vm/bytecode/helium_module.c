@@ -1,4 +1,5 @@
 #include "../../shared/bytecode/helium_format.h"
+#include "../../shared/stdlib/sys.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -485,7 +486,96 @@ const char* helium_module_get_string(HeliumModule* module, uint32_t offset) {
 uint32_t helium_module_add_string(HeliumModule* module, const char* str) {
     if (!module || !str) return 0;
     
-    return string_table_add_string(module->string_table_obj, str);
+    uint32_t index = string_table_add_string(module->string_table_obj, str);
+    if (index >= module->string_table_obj->count) {
+        return 0; // Error adding string
+    }
+    
+    // Convert index to offset
+    return module->string_table_obj->entries[index].offset;
+}
+
+// Add type to module
+uint32_t helium_module_add_type(HeliumModule* module, const char* name, const char* module_name) {
+    if (!module || !name || !module->type_table) return 0;
+    
+    TypeEntry type_entry;
+    type_entry.type_id = module->type_table->count + 1; // Assign next available ID
+    type_entry.name_offset = helium_module_add_string(module, name);
+    type_entry.parent_type_id = 0; // Default to System.Object
+    type_entry.size = sizeof(void*); // Default size
+    type_entry.field_count = 0;
+    type_entry.method_count = 0; // Will be updated when methods are added
+    type_entry.interface_count = 0;
+    type_entry.flags = TYPE_FLAG_CLASS;
+    type_entry.vtable_offset = 0;
+    
+    if (!type_table_add_type(module->type_table, &type_entry)) {
+        return 0;
+    }
+    
+    return type_entry.type_id;
+}
+
+// Add method to module
+uint32_t helium_module_add_method(HeliumModule* module, const char* name, const char* signature, uint32_t type_id, bool is_static) {
+    if (!module || !name || !signature || !module->method_table) return 0;
+    
+    MethodEntry method_entry;
+    method_entry.method_id = module->method_table->count + 1; // Assign next available ID
+    method_entry.type_id = type_id;
+    method_entry.name_offset = helium_module_add_string(module, name);
+    method_entry.signature_offset = helium_module_add_string(module, signature);
+    method_entry.bytecode_offset = 0; // Will be set by VM
+    method_entry.bytecode_size = 0; // Will be set by VM
+    method_entry.local_count = 0;
+    method_entry.param_count = 0; // Will be parsed from signature
+    method_entry.return_type_id = 0; // Will be parsed from signature
+    method_entry.flags = is_static ? METHOD_FLAG_STATIC : 0;
+    method_entry.line_number = 0;
+    method_entry.column_number = 0;
+    
+    if (!method_table_add_method(module->method_table, &method_entry)) {
+        return 0;
+    }
+    
+    return method_entry.method_id;
+}
+
+// Add Sys class to module using Sys class information
+bool helium_module_add_sys_class_from_info(HeliumModule* module) {
+    if (!module || !module->type_table || !module->method_table) {
+        return false;
+    }
+    
+    // Get Sys class information
+    const SysClassInfo* sys_info = sys_get_class_info();
+    if (!sys_info) {
+        return false;
+    }
+    
+    // Add Sys class to type table
+    uint32_t sys_type_id = helium_module_add_type(module, sys_info->class_name, sys_info->module_name);
+    if (sys_type_id == 0) {
+        return false;
+    }
+    
+    // Add Sys methods to method table
+    for (uint32_t i = 0; i < sys_info->method_count; i++) {
+        const SysMethodInfo* method_info = &sys_info->methods[i];
+        
+        // Add method to module
+        uint32_t method_id = helium_module_add_method(module, 
+            method_info->name, 
+            method_info->signature, 
+            sys_type_id, 
+            method_info->is_static);
+        
+        if (method_id == 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 // Add Sys class to module manifest (as first entry)
@@ -494,44 +584,8 @@ bool helium_module_add_sys_class(HeliumModule* module) {
         return false;
     }
     
-    // Add Sys class to type table
-    TypeEntry sys_type;
-    sys_type.type_id = 1; // Sys gets type ID 1
-    sys_type.name_offset = helium_module_add_string(module, "Sys");
-    sys_type.parent_type_id = 0; // Sys inherits from System.Object (type ID 0)
-    sys_type.size = sizeof(void*); // Sys is a singleton, just a pointer
-    sys_type.field_count = 0;
-    sys_type.method_count = 1; // println method
-    sys_type.interface_count = 0;
-    sys_type.flags = TYPE_FLAG_CLASS; // Sys is a class
-    sys_type.vtable_offset = 0; // Will be set by VM
-    
-    // Add to type table using the existing function
-    if (!type_table_add_type(module->type_table, &sys_type)) {
-        return false;
-    }
-    
-    // Add println method to method table
-    MethodEntry println_method;
-    println_method.method_id = 1; // println gets method ID 1
-    println_method.type_id = 1; // Belongs to Sys class
-    println_method.name_offset = helium_module_add_string(module, "println");
-    println_method.signature_offset = helium_module_add_string(module, "(System.Object):void");
-    println_method.bytecode_offset = 0; // Will be set by VM
-    println_method.bytecode_size = 0; // Will be set by VM
-    println_method.local_count = 0;
-    println_method.param_count = 1; // Takes one parameter (the value to print)
-    println_method.return_type_id = 0; // Returns void (type ID 0)
-    println_method.flags = METHOD_FLAG_STATIC; // Sys.println() is static
-    println_method.line_number = 0;
-    println_method.column_number = 0;
-    
-    // Add to method table using the existing function
-    if (!method_table_add_method(module->method_table, &println_method)) {
-        return false;
-    }
-    
-    return true;
+    // Use the new function that uses Sys class information
+    return helium_module_add_sys_class_from_info(module);
 }
 
 // Print module information

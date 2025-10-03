@@ -4,6 +4,7 @@
 #include "../emitter/ir_to_bytecode.h"
 #include "../../shared/bytecode/bytecode_format.h"
 #include "../../shared/bytecode/helium_format.h"
+#include "../../shared/stdlib/sys.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -238,6 +239,7 @@ bool project_packager_compile_all(ProjectPackager* packager) {
     return !packager->has_errors;
 }
 
+
 // Link all compilation units into final module
 bool project_packager_link(ProjectPackager* packager) {
     fflush(stdout);
@@ -255,11 +257,7 @@ bool project_packager_link(ProjectPackager* packager) {
         return false;
     }
     
-    // Skip Sys class addition for now - just create a basic working module
-    // TODO: Add Sys class integration later
-    printf("  Skipping Sys class addition (not implemented yet)\n");
-    
-    // Merge all bytecode files
+    // Merge all bytecode files first
     fflush(stdout);
     if (!merge_bytecode_files(packager)) {
         fprintf(stderr, "Error: Failed to merge bytecode files\n");
@@ -268,6 +266,14 @@ bool project_packager_link(ProjectPackager* packager) {
         return false;
     }
     fflush(stdout);
+    
+    // Add Sys class to the module AFTER merging bytecode
+    printf("  Adding Sys class...\n");
+    if (!helium_module_add_sys_class(packager->final_module)) {
+        printf("  Warning: Failed to add Sys class (continuing without it)\n");
+    } else {
+        printf("  Sys class added successfully\n");
+    }
     
     // Set module metadata
     packager->final_module->header.module_name_offset = helium_module_add_string(packager->final_module, packager->project->name);
@@ -537,7 +543,7 @@ bool merge_bytecode_files(ProjectPackager* packager) {
     // For now, just transfer ownership of the first unit's data
     // TODO: Implement proper merging of multiple .bx files
     
-    // Transfer ownership of type table (set to NULL to prevent double-free)
+    // Transfer ownership of type table
     if (first_unit->bytecode->type_table) {
         packager->final_module->type_table = first_unit->bytecode->type_table;
         first_unit->bytecode->type_table = NULL;  // Transfer ownership

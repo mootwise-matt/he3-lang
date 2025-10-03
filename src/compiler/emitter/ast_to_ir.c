@@ -174,6 +174,17 @@ IRFunction* ast_to_ir_translate_compilation_unit(AstToIRTranslator* translator, 
                     return ast_to_ir_translate_function(translator, method);
                 }
             }
+        } else if (child->kind == AST_DOMAIN) {
+            // Look for methods inside the domain
+            for (uint32_t j = 0; j < child->child_count; j++) {
+                Ast* method = child->children[j];
+                if (method->kind == AST_METHOD) {
+                    return ast_to_ir_translate_function(translator, method);
+                }
+            }
+        } else if (child->kind == AST_METHOD) {
+            // Handle standalone methods
+            return ast_to_ir_translate_function(translator, child);
         }
     }
     
