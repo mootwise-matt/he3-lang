@@ -12,7 +12,7 @@ description: A modern, object-oriented programming language with Pascal roots an
 
 ## Navigation
 
-[View on GitHub](https://github.com/mootwise-matt/he3-lang) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [Build History]({{ site.baseurl }}/build-history/) • [Contributing](#-contributing)
+[View on GitHub](https://github.com/mootwise-matt/he3-lang) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [Build History]({{ site.baseurl }}/build-history.html) • [Contributing](#-contributing)
 
 ---
 

@@ -410,7 +410,7 @@ All core He³ language features are working correctly with comprehensive test co
 - **[Language Reference](docs/language/)** - Complete syntax and semantics
 - **[Build System](docs/_development/BUILD.md)** - Compilation and build process
 - **[Virtual Machine](docs/vm/)** - VM architecture and execution
-- **[Build History](docs/build-history/)** - Complete build history and features
+- **[Build History](docs/build-history.html)** - Complete build history and features
 - **[Examples](examples/)** - Sample He³ programs
 
 ## 🤝 **Contributing**
