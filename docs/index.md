@@ -4,9 +4,9 @@ title: He³ (Helium-3) Programming Language
 description: A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax
 ---
 
-# He³ (Helium-3) v0.1.0
+# He³ (Helium-3) v0.1.0-Sirius
 
-**Apache 2.0 License • Cross-Platform**
+**Apache 2.0 License • Cross-Platform • Build: Sirius**
 
 *A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax*
 

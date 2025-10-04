@@ -4,6 +4,8 @@
 
 The He³ build system provides a complete compilation and execution pipeline from source code to VM execution. It supports both single-file compilation and multi-file project builds.
 
+**Current Build:** Sirius (v0.1.0-Sirius) • **Build Date:** 2025-10-04
+
 ## Build Tools
 
 ### 1. Compiler (`he3`)
@@ -388,3 +390,47 @@ fi
 - Build caching
 - Configuration validation
 - Automated testing integration
+
+## Build Names and Version Management
+
+### Build Name System
+He³ uses a build name system to identify different builds and branches:
+
+- **Current Build:** Sirius (v0.1.0-Sirius)
+- **Build Names:** Used for branch identification and version tracking
+- **Version Format:** `v<major>.<minor>.<patch>-<build_name>`
+- **Build Info:** Includes build date and time
+
+### Managing Build Names
+Use the provided script to update build names:
+
+```bash
+# Change build name
+./update_build_name.sh <new_name>
+
+# Rebuild with new name
+make clean && make
+
+# Verify new build name
+./he3 -v
+./he3vm -v
+./he3build -v
+```
+
+### Build Name Examples
+- **Sirius** - Current stable build
+- **Orion** - Development branch
+- **Vega** - Feature branch
+- **Alpha** - Alpha release
+- **Beta** - Beta release
+
+### Version Information
+All He³ tools display comprehensive version information:
+
+```bash
+$ ./he3 -v
+He³ Compiler v0.1.0-Sirius
+A 64-bit, UTF-8, object-oriented programming language
+with Pascal roots and Java/C#-style syntax
+Build: Sirius (2025-10-04 11:09:24)
+```

@@ -1,6 +1,8 @@
-# He³ (Helium-3) Programming Language
+# He³ (Helium-3) Programming Language v0.1.0-Sirius
 
 A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax, featuring async/await, pattern matching, safe error handling, and cross-platform bytecode execution.
+
+**Current Build:** Sirius • **Version:** 0.1.0 • **License:** Apache 2.0
 
 ## 🚀 Current Implementation Status
 
