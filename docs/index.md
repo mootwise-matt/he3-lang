@@ -6,10 +6,8 @@ description: A modern, object-oriented programming language with Pascal roots an
 
 <div align="center">
 
-![He³ Logo](https://img.shields.io/badge/He³-Helium--3-blue?style=for-the-badge&logo=atom&logoColor=white)
-![Version](https://img.shields.io/badge/version-0.1.0-green?style=for-the-badge)
-![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)
-![Platform](https://img.shields.io/badge/platform-cross--platform-lightgrey?style=for-the-badge)
+# He³ (Helium-3) v0.1.0
+**Apache 2.0 License • Cross-Platform**
 
 **A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax**
 
