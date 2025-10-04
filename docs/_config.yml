@@ -10,7 +10,7 @@ github:
   username: mootwise-matt
   repository: he3-lang
 
-# Site settings - FIXED: Correct baseurl for GitHub Pages serving from /docs folder
+# Site settings
 baseurl: "/he3-lang"
 url: "https://mootwise-matt.github.io"
 
@@ -56,36 +56,3 @@ collections:
   development:
     output: true
     permalink: /:collection/:name/
-
-# Defaults
-defaults:
-  - scope:
-      path: ""
-      type: "language"
-    values:
-      layout: "page"
-  - scope:
-      path: ""
-      type: "compiler"
-    values:
-      layout: "page"
-  - scope:
-      path: ""
-      type: "vm"
-    values:
-      layout: "page"
-  - scope:
-      path: ""
-      type: "bytecode"
-    values:
-      layout: "page"
-  - scope:
-      path: ""
-      type: "exporter"
-    values:
-      layout: "page"
-  - scope:
-      path: ""
-      type: "development"
-    values:
-      layout: "page"
