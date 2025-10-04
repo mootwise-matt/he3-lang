@@ -405,8 +405,6 @@ This project is licensed under the **Apache License 2.0** - see the [LICENSE](ht
 
 **He³** - *Where modern language design meets cross-platform execution*
 
-[GitHub Repository](https://github.com/mootwise-matt/he3-lang) • 
-[Report Issues](https://github.com/mootwise-matt/he3-lang/issues) • 
-[Join Discussions](https://github.com/mootwise-matt/he3-lang/discussions)
+[GitHub Repository](https://github.com/mootwise-matt/he3-lang) • [Report Issues](https://github.com/mootwise-matt/he3-lang/issues) • [Join Discussions](https://github.com/mootwise-matt/he3-lang/discussions)
 
 </div>
