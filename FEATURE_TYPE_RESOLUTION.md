@@ -1,7 +1,7 @@
 # Type Resolution Feature Branch
 
 **Branch:** `feature/type-resolution`  
-**Build Name:** Mars (v0.2.0-Mars)  
+**Build Name:** Tatooine (v0.2.0-Tatooine)  
 **Created:** 2025-10-04  
 **Status:** In Development
 
