@@ -1,7 +1,7 @@
 # He³ Compiler Makefile
 
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g -O2
+CFLAGS = -Wall -Wextra -std=c99 -g -O2 -DBUILD_DATE="\"$(shell date +%Y-%m-%d)\"" -DBUILD_TIME="\"$(shell date +%H:%M:%S)\""
 INCLUDES = -Isrc/shared -Isrc/compiler -Isrc/vm
 SRCDIR = src
 BUILDDIR = build

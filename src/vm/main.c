@@ -1,5 +1,6 @@
 #include "vm.h"
 #include "loader/bytecode_loader.h"
+#include "../shared/build_info.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,10 +32,11 @@ void print_usage(const char* program_name) {
 
 // Print version information
 void print_version(void) {
-    printf("He³ Virtual Machine (he3vm) version 0.1.0\n");
+    printf("He³ Virtual Machine (he3vm) v%s\n", HE3_FULL_VERSION_STRING);
     printf("He³ Language Compiler and Runtime\n");
     printf("Copyright (c) 2025 He³ Language Project\n");
     printf("Licensed under the Apache License, Version 2.0\n");
+    printf("%s\n", HE3_BUILD_INFO_STRING);
 }
 
 // Main function

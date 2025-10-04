@@ -8,13 +8,11 @@
 #include "emitter/ir_to_bytecode.h"
 #include "../shared/bytecode/bytecode_format.h"
 #include "../shared/bytecode/helium_format.h"
-
-// Compiler version
-#define HE3_VERSION "0.1.0"
+#include "../shared/build_info.h"
 
 // Print usage information
 void print_usage(const char* program_name) {
-    printf("He³ Compiler v%s\n", HE3_VERSION);
+    printf("He³ Compiler v%s\n", HE3_VERSION_STRING);
     printf("Usage: %s [options] <input_file>\n", program_name);
     printf("\n");
     printf("Options:\n");
@@ -38,9 +36,10 @@ void print_usage(const char* program_name) {
 
 // Print version information
 void print_version() {
-    printf("He³ Compiler v%s\n", HE3_VERSION);
+    printf("He³ Compiler v%s\n", HE3_FULL_VERSION_STRING);
     printf("A 64-bit, UTF-8, object-oriented programming language\n");
     printf("with Pascal roots and Java/C#-style syntax\n");
+    printf("%s\n", HE3_BUILD_INFO_STRING);
 }
 
 // Read file contents

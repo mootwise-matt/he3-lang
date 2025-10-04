@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "packager/packager.h"
+#include "../shared/build_info.h"
 
 // Print usage information
 void print_usage(const char* program_name) {
-    printf("He³ Build System v0.1.0\n");
+    printf("He³ Build System v%s\n", HE3_VERSION_STRING);
     printf("Usage: %s [options] <project_file>\n", program_name);
     printf("\n");
     printf("Options:\n");
@@ -24,9 +25,10 @@ void print_usage(const char* program_name) {
 
 // Print version information
 void print_version() {
-    printf("He³ Build System v0.1.0\n");
+    printf("He³ Build System v%s\n", HE3_FULL_VERSION_STRING);
     printf("A 64-bit, UTF-8, object-oriented programming language\n");
     printf("with Pascal roots and Java/C#-style syntax\n");
+    printf("%s\n", HE3_BUILD_INFO_STRING);
 }
 
 int main(int argc, char* argv[]) {
