@@ -4,21 +4,15 @@ title: He³ (Helium-3) Programming Language
 description: A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax
 ---
 
-<div align="center">
-
 # He³ (Helium-3) v0.1.0
+
 **Apache 2.0 License • Cross-Platform**
 
-**A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax**
+*A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax*
 
-### Navigation
-[View on GitHub](https://github.com/mootwise-matt/he3-lang) • 
-[Quick Start](#-quick-start) • 
-[Documentation](#-documentation) • 
-[Examples](#-examples) • 
-[Contributing](#-contributing)
+## Navigation
 
-</div>
+[View on GitHub](https://github.com/mootwise-matt/he3-lang) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [Contributing](#-contributing)
 
 ---
 
@@ -401,10 +395,6 @@ This project is licensed under the **Apache License 2.0** - see the [LICENSE](ht
 
 ---
 
-<div align="center">
-
 **He³** - *Where modern language design meets cross-platform execution*
 
 [GitHub Repository](https://github.com/mootwise-matt/he3-lang) • [Report Issues](https://github.com/mootwise-matt/he3-lang/issues) • [Join Discussions](https://github.com/mootwise-matt/he3-lang/discussions)
-
-</div>
