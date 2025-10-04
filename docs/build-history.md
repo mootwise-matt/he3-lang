@@ -8,9 +8,10 @@ description: Complete history of He³ builds, versions, and features
 
 This page documents the complete history of He³ builds, including version numbers, build names, and features added in each release.
 
-## Current Build
+## Current Builds
 
-**Sirius (v0.1.0-Sirius)** - *2025-10-04*
+**Stable:** Sirius (v0.1.0-Sirius) - *2025-10-04*  
+**Development:** Mizar (v0.2.0-Mizar) - *2025-10-04*
 
 ## Build Naming Convention
 
@@ -24,10 +25,37 @@ He³ uses astronomical names for build identification:
 
 ## Build History
 
+### v0.2.0-Mizar (2025-10-04)
+**Build Name:** Mizar (Bright star in the Big Dipper constellation)  
+**Type:** Development Build  
+**Status:** Current Development
+
+#### 🎯 **Development Focus**
+- **Type Resolution** - Enhanced semantic analysis and type checking
+- **Library Support** - Multi-module project support improvements
+- **Performance Optimizations** - Compiler and VM performance enhancements
+- **Extended Language Features** - Additional language constructs and improvements
+- **Build System Enhancements** - Advanced build system for complex projects
+
+#### 🔧 **Planned Features**
+- **Enhanced Type System** - More sophisticated type checking and inference
+- **Module Dependencies** - Better dependency resolution and management
+- **Compiler Optimizations** - Code generation improvements
+- **VM Performance** - Runtime performance enhancements
+- **Developer Tools** - Enhanced debugging and development tools
+
+#### 🚧 **In Development**
+- **Feature branches** for individual enhancements
+- **Integration testing** on develop branch
+- **Performance profiling** and optimization
+- **Documentation updates** for new features
+
+---
+
 ### v0.1.0-Sirius (2025-10-04)
 **Build Name:** Sirius (Brightest star in the night sky)  
 **Type:** Stable Release  
-**Status:** Current
+**Status:** Stable
 
 #### 🎯 **Major Features**
 - **Complete Compilation Pipeline** - Full source-to-bytecode compilation
@@ -114,24 +142,17 @@ He³ uses astronomical names for build identification:
 
 ## Planned Future Builds
 
-### v0.2.0-Orion (Planned)
-**Build Name:** Orion (Prominent constellation)  
+### v0.3.0-Vega (Planned)
+**Build Name:** Vega (Bright star in Lyra constellation)  
 **Type:** Development Build  
 **Status:** Planned
 
 #### 🎯 **Planned Features**
-- **Type Resolution** - Complete semantic analysis and type checking
-- **Library Support** - Multi-module project support
-- **Enhanced Build System** - Advanced build system for complex projects
-- **Performance Optimizations** - Compiler and VM optimizations
+- **Advanced Type System** - Complete type inference and checking
+- **Enhanced Library Support** - Full multi-module project support
+- **Advanced Build System** - Complete build system for complex projects
+- **Performance Optimizations** - Significant compiler and VM optimizations
 - **Extended Language Features** - Additional language constructs
-
-### v0.3.0-Vega (Planned)
-**Build Name:** Vega (Bright star in Lyra constellation)  
-**Type:** Feature Build  
-**Status:** Planned
-
-#### 🎯 **Planned Features**
 - **Pattern Matching** - `match` statements with `when` clauses
 - **Error Handling** - `Option<T>` and `Result<T,E>` types
 - **Async/Await** - Concurrency and async programming
