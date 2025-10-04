@@ -12,15 +12,21 @@ This page documents the complete history of He³ builds, including version numbe
 
 **Stable:** Sirius (v0.1.0-Sirius) - *2025-10-04*  
 **Development:** Mizar (v0.2.0-Mizar) - *2025-10-04*  
-**Feature:** Tatooine (v0.2.0-Tatooine) - *2025-10-04* (type-resolution)
+**Feature:** Mizar (v0.2.1-Mizar) - *2025-10-04* (type-resolution)
 
 ## Build Naming Convention
 
 He³ uses themed names for build identification:
 - **Stable builds/Releases** use bright star names (as provided by maintainer)
 - **Development builds** use constellation names (Orion, Cygnus, Lyra)
-- **Feature builds** use science fiction planet names (Tatooine, Coruscant, Alderaan)
+- **Feature branches** use the same build name as the major.minor version, with incremented patch number
 - **Release candidates** use Greek letters (Alpha, Beta, Gamma)
+
+### Version Numbering
+- **Major.Minor.Patch** format (e.g., 0.2.1)
+- **Build names** stay consistent within major.minor versions
+- **Feature branches** increment patch number (e.g., 0.2.0 → 0.2.1)
+- **New major.minor versions** get new build names
 
 ---
 
