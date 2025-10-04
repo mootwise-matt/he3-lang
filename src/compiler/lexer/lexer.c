@@ -177,6 +177,7 @@ Token lexer_make_identifier_token(Lexer* lexer) {
         else if (strncmp(start, "for", 3) == 0) kind = TK_FOR;
         else if (strncmp(start, "new", 3) == 0) kind = TK_NEW;
         else if (strncmp(start, "try", 3) == 0) kind = TK_TRY;
+        else if (strncmp(start, "Err", 3) == 0) kind = TK_ERR;
     } else if (len == 4) {
         if (strncmp(start, "true", 4) == 0) kind = TK_TRUE;
         else if (strncmp(start, "null", 4) == 0) kind = TK_NULL;
@@ -210,6 +211,11 @@ Token lexer_make_identifier_token(Lexer* lexer) {
         else if (strncmp(start, "module", 6) == 0) kind = TK_MODULE;
         else if (strncmp(start, "export", 6) == 0) kind = TK_EXPORT;
         else if (strncmp(start, "static", 6) == 0) kind = TK_STATIC;
+        else if (strncmp(start, "Option", 6) == 0) {
+            printf("DEBUG: Lexer found Option token\n");
+            kind = TK_OPTION;
+        }
+        else if (strncmp(start, "Result", 6) == 0) kind = TK_RESULT;
     } else if (len == 7) {
         if (strncmp(start, "boolean", 7) == 0) kind = TK_BOOLEAN;
         else if (strncmp(start, "integer", 7) == 0) kind = TK_INTEGER;
@@ -322,6 +328,10 @@ Token lexer_make_operator_token(Lexer* lexer, char c) {
             if (lexer_peek(lexer) == '=') {
                 lexer_advance(lexer);
                 return lexer_make_token(lexer, TK_EQUAL);
+            }
+            if (lexer_peek(lexer) == '>') {
+                lexer_advance(lexer);
+                return lexer_make_token(lexer, TK_ARROW);
             }
             return lexer_make_token(lexer, TK_ASSIGN);
         case '!': return lexer_make_token(lexer, TK_NOT);

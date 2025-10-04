@@ -28,7 +28,9 @@ typedef enum {
     VALUE_F64,
     VALUE_STRING,
     VALUE_OBJECT,
-    VALUE_ARRAY
+    VALUE_ARRAY,
+    VALUE_OPTION,
+    VALUE_RESULT
 } ValueType;
 
 // VM Value structure
@@ -41,6 +43,8 @@ typedef struct Value {
         char* string_value;
         struct Object* object_value;
         struct Array* array_value;
+        struct Value* option_value;  // For Option<T>: NULL for None, pointer to Value for Some
+        struct Value* result_value;  // For Result<T,E>: pointer to Value for Ok/Err
     } data;
 } Value;
 
@@ -110,6 +114,23 @@ Value value_create_object(struct Object* object);
 void value_destroy(Value* value);
 Value value_copy(Value value);
 bool value_equals(Value a, Value b);
+
+// Option value operations
+Value value_create_option_some(const Value* value);
+Value value_create_option_none(void);
+bool value_option_is_some(const Value* value);
+bool value_option_is_none(const Value* value);
+Value value_option_unwrap(const Value* value);
+Value value_option_unwrap_or(const Value* value, const Value* default_value);
+
+// Result value operations
+Value value_create_result_ok(const Value* value);
+Value value_create_result_err(const Value* error);
+bool value_result_is_ok(const Value* value);
+bool value_result_is_err(const Value* value);
+Value value_result_unwrap(const Value* value);
+Value value_result_unwrap_or(const Value* value, const Value* default_value);
+Value value_result_unwrap_err(const Value* value);
 const char* value_type_to_string(ValueType type);
 void value_print(Value value);
 

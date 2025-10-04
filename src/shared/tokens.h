@@ -79,6 +79,9 @@ typedef enum {
   // Module system
   TK_MODULE, TK_EXPORT, TK_PUBLIC, TK_PRIVATE, TK_PROTECTED,
   
+  // Error Handling
+  TK_OPTION, TK_RESULT,
+  
   // Debugging
   TK_DEBUG, TK_BREAKPOINT, TK_ASSERT,
   

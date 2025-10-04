@@ -121,6 +121,14 @@ Value value_create_function(void* function);
 // Create type value
 Value value_create_type(void* type);
 
+// Create Option values
+Value value_create_option_some(const Value* value);
+Value value_create_option_none(void);
+
+// Create Result values
+Value value_create_result_ok(const Value* value);
+Value value_create_result_err(const Value* error);
+
 // ============================================================================
 // VALUE DESTRUCTION
 // ============================================================================
@@ -287,6 +295,25 @@ bool value_is_array(const Value* value);
 
 // Check if value is function
 bool value_is_function(const Value* value);
+
+// Check if value is Option
+bool value_is_option(const Value* value);
+
+// Check if value is Result
+bool value_is_result(const Value* value);
+
+// Option operations
+bool value_option_is_some(const Value* value);
+bool value_option_is_none(const Value* value);
+Value value_option_unwrap(const Value* value);
+Value value_option_unwrap_or(const Value* value, const Value* default_value);
+
+// Result operations
+bool value_result_is_ok(const Value* value);
+bool value_result_is_err(const Value* value);
+Value value_result_unwrap(const Value* value);
+Value value_result_unwrap_or(const Value* value, const Value* default_value);
+Value value_result_unwrap_err(const Value* value);
 
 // ============================================================================
 // VALUE COPYING

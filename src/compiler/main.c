@@ -137,12 +137,14 @@ int compile_file(const char* input_filename, const char* output_filename,
     printf("Compiling: %s -> %s\n", input_filename, output_filename);
     
     // Create lexer
+    printf("DEBUG: About to create lexer\n");
     Lexer* lexer = lexer_create(source);
     if (!lexer) {
         fprintf(stderr, "Error: Failed to create lexer\n");
         free(source);
         return 1;
     }
+    printf("DEBUG: Lexer created successfully\n");
     
     // Show tokens if requested
     if (show_tokens || lexer_only) {
@@ -165,7 +167,9 @@ int compile_file(const char* input_filename, const char* output_filename,
     }
     
     // Parse to AST
+    printf("DEBUG: About to call parse_compilation_unit\n");
     Ast* ast = parse_compilation_unit(parser);
+    printf("DEBUG: parse_compilation_unit returned\n");
     if (!ast) {
         fprintf(stderr, "Error: Failed to parse file\n");
         parser_destroy(parser);
@@ -309,6 +313,7 @@ int compile_file(const char* input_filename, const char* output_filename,
         
         // Copy data from bytecode file to helium module
         helium_module->string_table_obj = bytecode_file->string_table;
+        helium_module->constant_table = bytecode_file->constant_table;
         helium_module->type_table = bytecode_file->type_table;
         helium_module->method_table = bytecode_file->method_table;
         helium_module->field_table = bytecode_file->field_table;
@@ -378,6 +383,8 @@ int compile_file(const char* input_filename, const char* output_filename,
 }
 
 int main(int argc, char* argv[]) {
+    printf("DEBUG: main() started with %d arguments\n", argc);
+    
     // Command line options
     bool show_help = false;
     bool show_version = false;

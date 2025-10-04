@@ -177,12 +177,33 @@
 #define OP_ASYNC_CALL         0xE2  // Call async function (4 byte method ID)
 
 // ============================================================================
+// OPTION/RESULT OPERATIONS
+// ============================================================================
+
+#define OP_OPTION_SOME        0xF0  // Create Some(value) option
+#define OP_OPTION_NONE        0xF1  // Create None option
+#define OP_OPTION_IS_SOME     0xF2  // Check if option is Some
+#define OP_OPTION_UNWRAP      0xF3  // Unwrap Some value (panics if None)
+#define OP_OPTION_UNWRAP_OR   0xF4  // Unwrap Some value or return default
+#define OP_RESULT_OK          0xE5  // Create Ok(value) result
+#define OP_RESULT_ERR         0xE6  // Create Err(error) result
+#define OP_RESULT_IS_OK       0xE7  // Check if result is Ok
+#define OP_RESULT_UNWRAP      0xEC  // Unwrap Ok value (panics if Err)
+#define OP_RESULT_UNWRAP_OR   0xED  // Unwrap Ok value or return default
+
+// ============================================================================
 // PATTERN MATCHING
 // ============================================================================
 
-#define OP_MATCH              0xF0  // Pattern matching (4 byte pattern count)
-#define OP_MATCH_CASE         0xF1  // Match case (4 byte case index)
-#define OP_MATCH_WHEN         0xF2  // Match when condition (4 byte condition index)
+#define OP_MATCH              0xE8  // Pattern matching (4 byte pattern count)
+#define OP_MATCH_CASE         0xE9  // Match case (4 byte case index)
+#define OP_MATCH_WHEN         0xEA  // Match when condition (4 byte condition index)
+
+// ============================================================================
+// SPECIAL OPERATIONS
+// ============================================================================
+
+#define OP_NOP                0xEB  // No operation
 
 // ============================================================================
 // SECURITY OPERATIONS

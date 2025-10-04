@@ -33,7 +33,7 @@ void print_usage(const char* program_name) {
 void print_version(void) {
     printf("He³ Virtual Machine (he3vm) version 0.1.0\n");
     printf("He³ Language Compiler and Runtime\n");
-    printf("Copyright (c) 2024 He³ Language Project\n");
+    printf("Copyright (c) 2025 He³ Language Project\n");
     printf("Licensed under the Apache License, Version 2.0\n");
 }
 
@@ -78,7 +78,8 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // Check if bytecode file was provided
+    // Check if bytecode file was provided (only required if not showing help/version)
+    // Note: help and version flags already returned above, so this check is only for normal execution
     if (!bytecode_file) {
         fprintf(stderr, "Error: No bytecode file specified\n");
         print_usage(program_name);
@@ -131,8 +132,8 @@ int main(int argc, char* argv[]) {
     }
     fclose(file);
     
-    // Load bytecode
-    if (!vm_load_bytecode(vm, bytecode_file)) {
+    // Load .helium3 module
+    if (!vm_load_helium3_module(vm, bytecode_file)) {
         fprintf(stderr, "Error: Failed to load bytecode file\n");
         
         // Show memory stats even if bytecode loading fails
@@ -162,7 +163,9 @@ int main(int argc, char* argv[]) {
     
     if (debug_mode) {
         printf("Bytecode loaded successfully\n");
-        bytecode_print_info(vm->bytecode);
+        // Note: bytecode_print_info would need to be implemented for HeliumModule
+        // For now, just print basic module info
+        printf("Module loaded: %s\n", vm->current_module ? "Yes" : "No");
     }
     
     // Show initial state if requested

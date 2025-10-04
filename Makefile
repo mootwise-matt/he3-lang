@@ -155,6 +155,11 @@ $(BUILDDIR)/%.o: $(SRCDIR)/vm/%.c
 	@mkdir -p $(BUILDDIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
+# Special rule for VM main to avoid conflict with compiler main
+$(BUILDDIR)/vm_main.o: $(SRCDIR)/vm/main.c
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
 $(BUILDDIR)/%.o: $(SRCDIR)/vm/bytecode/%.c
 	@mkdir -p $(BUILDDIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
@@ -201,9 +206,18 @@ clean:
 
 # Test targets
 test: test_lexer test_parser
-	@echo "Running tests..."
+	@echo "Running unit tests..."
 	./test_lexer
 	./test_parser
+
+test-examples: he3 he3vm
+	@echo "Running example tests..."
+	@mkdir -p helium3/standalone
+	@bash tests/examples/example_tests.sh
+
+test-all: test test-examples
+	@echo "Running all tests..."
+	@bash tests/run_all_tests.sh
 	@echo "Tests completed!"
 
 # Help target
@@ -212,8 +226,10 @@ help:
 	@echo "  all     - Build compiler and VM"
 	@echo "  he3     - Build compiler only"
 	@echo "  he3vm   - Build VM only"
-	@echo "  test    - Run tests"
+	@echo "  test         - Run unit tests"
+	@echo "  test-examples - Run example tests"
+	@echo "  test-all     - Run all tests"
 	@echo "  clean   - Clean build files"
 	@echo "  help    - Show this help"
 
-.PHONY: all he3 he3vm test clean help
+.PHONY: all he3 he3vm test test-examples test-all clean help

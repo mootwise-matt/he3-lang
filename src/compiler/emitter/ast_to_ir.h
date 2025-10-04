@@ -37,6 +37,10 @@ IRFunction* ast_to_ir_translate_constructor(AstToIRTranslator* translator, Ast* 
 // Expression translation
 IRValue ast_to_ir_translate_expression(AstToIRTranslator* translator, Ast* ast);
 IRValue ast_to_ir_translate_binary_expression(AstToIRTranslator* translator, Ast* ast);
+IRValue ast_to_ir_translate_some_expression(AstToIRTranslator* translator, Ast* ast);
+IRValue ast_to_ir_translate_none_expression(AstToIRTranslator* translator, Ast* ast);
+IRValue ast_to_ir_translate_ok_expression(AstToIRTranslator* translator, Ast* ast);
+IRValue ast_to_ir_translate_err_expression(AstToIRTranslator* translator, Ast* ast);
 IRValue ast_to_ir_translate_unary_expression(AstToIRTranslator* translator, Ast* ast);
 IRValue ast_to_ir_translate_literal(AstToIRTranslator* translator, Ast* ast);
 IRValue ast_to_ir_translate_identifier(AstToIRTranslator* translator, Ast* ast);

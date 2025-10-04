@@ -52,6 +52,7 @@ Ast* parse_if_statement(Parser* parser);
 Ast* parse_while_statement(Parser* parser);
 Ast* parse_for_statement(Parser* parser);
 Ast* parse_match_statement(Parser* parser);
+Ast* parse_case_statement(Parser* parser);
 Ast* parse_return_statement(Parser* parser);
 Ast* parse_expression_statement(Parser* parser);
 

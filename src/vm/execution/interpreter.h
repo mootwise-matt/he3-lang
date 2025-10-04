@@ -53,6 +53,25 @@ InterpretResult op_dec(VM* vm);
 InterpretResult op_ge(VM* vm);
 InterpretResult op_nop(VM* vm);
 
+// Option operations
+InterpretResult op_option_some(VM* vm);
+InterpretResult op_option_none(VM* vm);
+InterpretResult op_option_is_some(VM* vm);
+InterpretResult op_option_unwrap(VM* vm);
+InterpretResult op_option_unwrap_or(VM* vm);
+
+// Result operations
+InterpretResult op_result_ok(VM* vm);
+InterpretResult op_result_err(VM* vm);
+InterpretResult op_result_is_ok(VM* vm);
+InterpretResult op_result_unwrap(VM* vm);
+InterpretResult op_result_unwrap_or(VM* vm);
+
+// Pattern matching operations
+InterpretResult op_match(VM* vm, uint32_t pattern_count);
+InterpretResult op_match_case(VM* vm, uint32_t case_index);
+InterpretResult op_match_when(VM* vm, uint32_t condition_index);
+
 // Local variable operations
 InterpretResult op_load_local(VM* vm, uint32_t local_index);
 InterpretResult op_store_local(VM* vm, uint32_t local_index);

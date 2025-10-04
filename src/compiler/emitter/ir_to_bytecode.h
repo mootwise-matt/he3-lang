@@ -44,6 +44,10 @@ bool ir_to_bytecode_translate_function(IRToBytecodeTranslator* translator, IRFun
 bool ir_to_bytecode_translate_block(IRToBytecodeTranslator* translator, IRBlock* block);
 bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IRInstruction* instruction);
 
+// Block offset calculation
+bool ir_to_bytecode_calculate_block_offsets(IRToBytecodeTranslator* translator, IRFunction* function);
+IRBlock* ir_to_bytecode_find_block_by_id(IRToBytecodeTranslator* translator, uint32_t block_id);
+
 // Bytecode generation
 bool ir_to_bytecode_emit_instruction(IRToBytecodeTranslator* translator, uint8_t opcode, const uint8_t* operands, size_t operand_size);
 bool ir_to_bytecode_emit_push_constant(IRToBytecodeTranslator* translator, int64_t value);

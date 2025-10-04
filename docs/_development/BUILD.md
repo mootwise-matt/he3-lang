@@ -25,10 +25,29 @@ Packages multi-file projects into executable modules.
 **Output**: `build/project_name.helium3` (executable module)
 
 ### 3. Virtual Machine (`he3vm`)
-Executes compiled modules.
+Executes compiled modules with comprehensive command line options.
 
 ```bash
-./he3vm module.helium3
+./he3vm [options] module.helium3
+```
+
+**Command Line Options:**
+- `-h, --help` - Show help message and exit
+- `-v, --version` - Show version information and exit
+- `-d, --debug` - Enable debug output during execution
+- `-s, --stack` - Show stack state before/after execution
+- `-m, --memory` - Show memory statistics
+- `-r, --regions` - Show memory regions
+- `-o, --objects` - Show object system information
+- `-c, --classes` - Show loaded classes
+
+**Examples:**
+```bash
+./he3vm module.helium3                    # Basic execution
+./he3vm -d module.helium3                 # Debug mode
+./he3vm -s -m module.helium3              # Show stack and memory
+./he3vm -h                                # Show help (no file needed)
+./he3vm -v                                # Show version (no file needed)
 ```
 
 ## Project Structure
@@ -293,13 +312,20 @@ Enable optimizations in project configuration:
 ### Debug Commands
 ```bash
 # Compile with debug output
-./he3 -debug source.he3
+./he3 -d source.he3
 
 # Build with verbose output
-./he3build -v project.json
+./he3build project.json
 
 # Execute with debug information
-./he3vm -debug module.helium3
+./he3vm -d module.helium3
+
+# Show help and version (no file required)
+./he3vm -h
+./he3vm -v
+
+# Show diagnostic information
+./he3vm -s -m -o module.helium3  # Stack, memory, objects
 ```
 
 ## Testing Integration

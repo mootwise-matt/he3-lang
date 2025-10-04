@@ -6,5 +6,5 @@
   "source_files": [
     "src/main.he3"
   ],
-  "output_path": "build/03_print_demo.helium3"
+  "output_path": "../../helium3/standalone/03_print_demo.helium3"
 }

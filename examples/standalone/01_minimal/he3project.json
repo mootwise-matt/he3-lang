@@ -5,5 +5,5 @@
   "entryPoint": "src/main.he3",
   "sourceFiles": ["src/main.he3"],
   "dependencies": [],
-  "build": { "output": "build/01_minimal.helium3", "optimize": false, "debug": true }
+  "build": { "output": "../../helium3/standalone/01_minimal.helium3", "optimize": false, "debug": true }
 }

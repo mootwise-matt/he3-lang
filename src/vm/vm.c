@@ -382,6 +382,50 @@ Value value_create_object(struct Object* object) {
     return val;
 }
 
+// Option value creation
+Value value_create_option_some(const Value* value) {
+    if (!value) {
+        return value_create_null();
+    }
+    
+    // Create proper Option value with Some variant
+    // We need to allocate memory for the wrapped value
+    struct Value* wrapped_value = malloc(sizeof(struct Value));
+    if (!wrapped_value) {
+        return value_create_null();
+    }
+    *wrapped_value = *value; // Copy the value
+    Value option = { VALUE_OPTION, { .option_value = wrapped_value } };
+    return option;
+}
+
+Value value_create_option_none(void) {
+    // Create proper Option value with None variant
+    Value option = { VALUE_OPTION, { .option_value = NULL } };
+    return option;
+}
+
+// Result value creation  
+Value value_create_result_ok(const Value* value) {
+    if (!value) {
+        return value_create_null();
+    }
+    
+    // Create proper Result value with Ok variant
+    Value result = { VALUE_RESULT, { .result_value = (struct Value*)value } };
+    return result;
+}
+
+Value value_create_result_err(const Value* error) {
+    if (!error) {
+        return value_create_null();
+    }
+    
+    // Create proper Result value with Err variant
+    Value result = { VALUE_RESULT, { .result_value = (struct Value*)error } };
+    return result;
+}
+
 void value_destroy(Value* value) {
     if (!value) return;
     
@@ -400,6 +444,69 @@ Value value_copy(Value value) {
         }
     }
     return copy;
+}
+
+// Option operations
+bool value_option_is_some(const Value* value) {
+    if (!value || value->type != VALUE_OPTION) return false;
+    return value->data.option_value != NULL;
+}
+
+bool value_option_is_none(const Value* value) {
+    if (!value || value->type != VALUE_OPTION) return true;
+    return value->data.option_value == NULL;
+}
+
+Value value_option_unwrap(const Value* value) {
+    if (!value || value->type != VALUE_OPTION || value->data.option_value == NULL) {
+        // Panic - unwrapping None
+        fprintf(stderr, "Runtime error: Attempted to unwrap None value\n");
+        return value_create_null();
+    }
+    return *(value->data.option_value);
+}
+
+Value value_option_unwrap_or(const Value* value, const Value* default_value) {
+    if (!value || value->type != VALUE_OPTION || value->data.option_value == NULL) {
+        return *default_value;
+    }
+    return *(value->data.option_value);
+}
+
+// Result operations
+bool value_result_is_ok(const Value* value) {
+    if (!value || value->type != VALUE_RESULT) return false;
+    return value->data.result_value != NULL;
+}
+
+bool value_result_is_err(const Value* value) {
+    if (!value || value->type != VALUE_RESULT) return true;
+    return value->data.result_value == NULL;
+}
+
+Value value_result_unwrap(const Value* value) {
+    if (!value || value->type != VALUE_RESULT || value->data.result_value == NULL) {
+        // Panic - unwrapping Err
+        fprintf(stderr, "Runtime error: Attempted to unwrap Err value\n");
+        return value_create_null();
+    }
+    return *(value->data.result_value);
+}
+
+Value value_result_unwrap_or(const Value* value, const Value* default_value) {
+    if (!value || value->type != VALUE_RESULT || value->data.result_value == NULL) {
+        return *default_value;
+    }
+    return *(value->data.result_value);
+}
+
+Value value_result_unwrap_err(const Value* value) {
+    if (!value || value->type != VALUE_RESULT || value->data.result_value != NULL) {
+        // Panic - unwrapping Ok as Err
+        fprintf(stderr, "Runtime error: Attempted to unwrap Ok value as Err\n");
+        return value_create_null();
+    }
+    return value_create_null(); // Err variant has no value
 }
 
 bool value_equals(Value a, Value b) {
@@ -425,6 +532,22 @@ bool value_equals(Value a, Value b) {
             return a.data.object_value == b.data.object_value;
         case VALUE_ARRAY:
             return a.data.array_value == b.data.array_value;
+        case VALUE_OPTION:
+            if (a.data.option_value == NULL && b.data.option_value == NULL) {
+                return true;
+            }
+            if (a.data.option_value == NULL || b.data.option_value == NULL) {
+                return false;
+            }
+            return value_equals(*(a.data.option_value), *(b.data.option_value));
+        case VALUE_RESULT:
+            if (a.data.result_value == NULL && b.data.result_value == NULL) {
+                return true;
+            }
+            if (a.data.result_value == NULL || b.data.result_value == NULL) {
+                return false;
+            }
+            return value_equals(*(a.data.result_value), *(b.data.result_value));
         default:
             return false;
     }
@@ -439,6 +562,8 @@ const char* value_type_to_string(ValueType type) {
         case VALUE_STRING: return "string";
         case VALUE_OBJECT: return "object";
         case VALUE_ARRAY: return "array";
+        case VALUE_OPTION: return "Option";
+        case VALUE_RESULT: return "Result";
         default: return "unknown";
     }
 }
@@ -469,6 +594,24 @@ void value_print(Value value) {
             break;
         case VALUE_ARRAY:
             printf("array@%p", value.data.array_value);
+            break;
+        case VALUE_OPTION:
+            if (value.data.option_value) {
+                printf("Some(");
+                value_print(*(value.data.option_value));
+                printf(")");
+            } else {
+                printf("None");
+            }
+            break;
+        case VALUE_RESULT:
+            if (value.data.result_value) {
+                printf("Ok(");
+                value_print(*(value.data.result_value));
+                printf(")");
+            } else {
+                printf("Err");
+            }
             break;
         default:
             printf("unknown");

@@ -11,6 +11,9 @@
 #include <time.h>
 #include <math.h>
 
+// Debug print macro
+#define DEBUG_PRINT(vm, ...) do { if (vm && vm->debug) printf(__VA_ARGS__); } while(0)
+
 // ============================================================================
 // INTERPRETER IMPLEMENTATION
 // ============================================================================
@@ -20,6 +23,7 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
     
     switch (opcode) {
         case OP_PUSH_CONSTANT:
+            DEBUG_PRINT(vm, "DEBUG: About to execute OP_PUSH_CONSTANT with index %u\n", *(uint32_t*)operands);
             return op_push_constant(vm, *(uint32_t*)operands);
         case OP_PUSH_INT8:
             return op_push_int8(vm, *(int8_t*)operands);
@@ -50,6 +54,7 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
         case OP_POP:
             return op_pop(vm);
         case OP_DUP:
+            DEBUG_PRINT(vm, "DEBUG: Executing OP_DUP\n");
             return op_dup(vm);
         case OP_SWAP:
             return op_swap(vm);
@@ -66,8 +71,10 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
         case OP_NEG:
             return op_neg(vm);
         case OP_LOAD_LOCAL:
+            DEBUG_PRINT(vm, "DEBUG: About to execute OP_LOAD_LOCAL with index %u\n", *(uint32_t*)operands);
             return op_load_local(vm, *(uint32_t*)operands);
         case OP_STORE_LOCAL:
+            DEBUG_PRINT(vm, "DEBUG: About to execute OP_STORE_LOCAL with index %u\n", *(uint32_t*)operands);
             return op_store_local(vm, *(uint32_t*)operands);
         case OP_INC:
             return op_inc(vm);
@@ -92,6 +99,7 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
         case OP_NOT:
             return op_not(vm);
         case OP_RETURN:
+            DEBUG_PRINT(vm, "DEBUG: About to execute OP_RETURN\n");
             return op_ret(vm);
         case OP_NEW_OBJECT:
             return op_new_object(vm, *(uint32_t*)operands);
@@ -108,6 +116,7 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
         case OP_JUMP:
             return op_jmp(vm, *(int32_t*)operands);
         case OP_JUMP_IF_TRUE:
+            DEBUG_PRINT(vm, "DEBUG: Executing OP_JUMP_IF_TRUE\n");
             return op_jmp_if_true(vm, *(int32_t*)operands);
         case OP_JUMP_IF_FALSE:
             return op_jmp_if_false(vm, *(int32_t*)operands);
@@ -115,6 +124,43 @@ InterpretResult interpret_instruction(VM* vm, uint8_t opcode, uint8_t* operands)
             return op_jmp_if_null(vm, *(int32_t*)operands);
         case OP_JUMP_IF_NOT_NULL:
             return op_jmp_if_not_null(vm, *(int32_t*)operands);
+        
+        // Option operations
+        case OP_OPTION_SOME:
+            DEBUG_PRINT(vm, "DEBUG: Executing OP_OPTION_SOME\n");
+            return op_option_some(vm);
+        case OP_OPTION_NONE:
+            return op_option_none(vm);
+        case OP_OPTION_IS_SOME:
+            return op_option_is_some(vm);
+        case OP_OPTION_UNWRAP:
+            return op_option_unwrap(vm);
+        case OP_OPTION_UNWRAP_OR:
+            return op_option_unwrap_or(vm);
+        
+        // Result operations
+        case OP_RESULT_OK:
+            return op_result_ok(vm);
+        case OP_RESULT_ERR:
+            return op_result_err(vm);
+        case OP_RESULT_IS_OK:
+            return op_result_is_ok(vm);
+        case OP_RESULT_UNWRAP:
+            return op_result_unwrap(vm);
+        case OP_RESULT_UNWRAP_OR:
+            return op_result_unwrap_or(vm);
+        
+        // Pattern matching
+        case OP_MATCH:
+            return op_match(vm, *(uint32_t*)operands);
+        case OP_MATCH_CASE:
+            return op_match_case(vm, *(uint32_t*)operands);
+        case OP_MATCH_WHEN:
+            return op_match_when(vm, *(uint32_t*)operands);
+        
+        case OP_NOP:
+            return op_nop(vm);
+        
         default:
             printf("Runtime error: Invalid Opcode 0x%02X\n", opcode);
             return INTERPRET_RUNTIME_ERROR;
@@ -140,6 +186,7 @@ InterpretResult op_push_constant(VM* vm, uint32_t constant_index) {
     switch (entry->type) {
         case CONSTANT_TYPE_INT64:
             val = value_create_i64(entry->value.int_value);
+            DEBUG_PRINT(vm, "DEBUG: Pushing constant %u (int64=%lld)\n", constant_index, entry->value.int_value);
             break;
         case CONSTANT_TYPE_FLOAT64:
             val = value_create_f64(entry->value.float_value);
@@ -286,12 +333,21 @@ InterpretResult op_dup(VM* vm) {
         return INTERPRET_RUNTIME_ERROR;
     }
     
+    DEBUG_PRINT(vm, "DEBUG: op_dup: stack size=%zu, stack capacity=%zu\n", vm->stack->top, vm->stack->capacity);
+    
     if (stack_is_empty(vm->stack)) {
+        printf("ERROR: op_dup: stack is empty!\n");
         return INTERPRET_STACK_UNDERFLOW;
     }
     
     Value val = stack_peek(vm->stack, 0);
-    if (!stack_push(vm->stack, val)) {
+    DEBUG_PRINT(vm, "DEBUG: op_dup: peeked value at index %zu, type=%d\n", vm->stack->top - 1, val.type);
+    
+    bool push_result = stack_push(vm->stack, val);
+    DEBUG_PRINT(vm, "DEBUG: op_dup: push result=%d, stack size after=%zu\n", push_result, vm->stack->top);
+    
+    if (!push_result) {
+        printf("ERROR: op_dup: stack push failed!\n");
         return INTERPRET_STACK_OVERFLOW;
     }
     
@@ -544,11 +600,13 @@ InterpretResult op_load_local(VM* vm, uint32_t local_index) {
     
     // Get local variable value
     Value val = call_frame_get_local(frame, local_index);
+    DEBUG_PRINT(vm, "DEBUG: op_load_local: loaded local %u, type=%d\n", local_index, val.type);
     
     // Push onto stack
     if (!stack_push(vm->stack, val)) {
         return INTERPRET_STACK_OVERFLOW;
     }
+    DEBUG_PRINT(vm, "DEBUG: op_load_local: pushed to stack, stack size=%zu\n", vm->stack->top);
     
     return INTERPRET_OK;
 }
@@ -588,6 +646,23 @@ InterpretResult op_store_local(VM* vm, uint32_t local_index) {
 InterpretResult op_ret(VM* vm) {
     if (!vm || !vm->stack) {
         return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // Check if there's a return value on the stack
+    if (vm->stack->top > 0) {
+        Value return_value = stack_peek(vm->stack, 0);
+        DEBUG_PRINT(vm, "DEBUG: op_ret: stack size=%zu, returning value type=%d\n", vm->stack->top, return_value.type);
+        if (return_value.type == VALUE_I64) {
+            DEBUG_PRINT(vm, "DEBUG: op_ret: i64 value=%lld\n", return_value.data.i64_value);
+        } else if (return_value.type == VALUE_OPTION) {
+            DEBUG_PRINT(vm, "DEBUG: op_ret: Option value (some=%p)\n", return_value.data.option_value);
+        } else {
+            DEBUG_PRINT(vm, "DEBUG: op_ret: other value type\n");
+        }
+        // For now, just print the return value
+        // TODO: Implement proper return value handling
+    } else {
+        DEBUG_PRINT(vm, "DEBUG: op_ret: no return value on stack\n");
     }
     
     // For now, just mark as completed
@@ -648,6 +723,9 @@ InterpretResult interpret_bytecode(VM* vm, uint8_t* bytecode, size_t size) {
             case OP_JUMP_IF_FALSE:
             case OP_JUMP_IF_NULL:
             case OP_JUMP_IF_NOT_NULL:
+            case OP_MATCH:
+            case OP_MATCH_CASE:
+            case OP_MATCH_WHEN:
                 operand_size = 4;
                 break;
             default:
@@ -1431,6 +1509,8 @@ InterpretResult execute_method_bytecode(VM* vm, Method* method, Value object) {
 InterpretResult op_jmp(VM* vm, int32_t offset) {
     if (!vm || !vm->context || !vm->context->current_frame) return INTERPRET_RUNTIME_ERROR;
     
+    DEBUG_PRINT(vm, "DEBUG: op_jmp: offset=%d, current IP=%p, new IP will be %p\n", 
+           offset, (void*)vm->context->current_frame->ip, (void*)(vm->context->current_frame->ip + offset));
     // For now, we'll implement a simple PC modification
     // In a real implementation, this would need to handle block-based jumps
     vm->context->current_frame->ip += offset;
@@ -1441,8 +1521,13 @@ InterpretResult op_jmp_if_true(VM* vm, int32_t offset) {
     if (!vm || !vm->context || !vm->context->current_frame) return INTERPRET_RUNTIME_ERROR;
     
     Value condition = stack_pop(vm->stack);
+    DEBUG_PRINT(vm, "DEBUG: op_jmp_if_true: condition type=%d, value=%d, offset=%d\n", 
+           condition.type, condition.data.bool_value, offset);
     if (condition.type == VALUE_BOOL && condition.data.bool_value) {
+        DEBUG_PRINT(vm, "DEBUG: Taking jump, new IP will be %p\n", vm->context->current_frame->ip + offset);
         vm->context->current_frame->ip += offset;
+    } else {
+        DEBUG_PRINT(vm, "DEBUG: Not taking jump, condition was false or wrong type\n");
     }
     return INTERPRET_OK;
 }
@@ -1451,8 +1536,13 @@ InterpretResult op_jmp_if_false(VM* vm, int32_t offset) {
     if (!vm || !vm->context || !vm->context->current_frame) return INTERPRET_RUNTIME_ERROR;
     
     Value condition = stack_pop(vm->stack);
+    DEBUG_PRINT(vm, "DEBUG: op_jmp_if_false: condition type=%d, value=%d, offset=%d\n", 
+           condition.type, condition.data.bool_value, offset);
     if (condition.type == VALUE_BOOL && !condition.data.bool_value) {
+        DEBUG_PRINT(vm, "DEBUG: Taking jump, new IP will be %p\n", (void*)(vm->context->current_frame->ip + offset));
         vm->context->current_frame->ip += offset;
+    } else {
+        DEBUG_PRINT(vm, "DEBUG: Not taking jump, condition was false or wrong type\n");
     }
     return INTERPRET_OK;
 }
@@ -1474,6 +1564,251 @@ InterpretResult op_jmp_if_not_null(VM* vm, int32_t offset) {
     if (value.type != VALUE_NULL) {
         vm->context->current_frame->ip += offset;
     }
+    return INTERPRET_OK;
+}
+
+// ============================================================================
+// OPTION OPERATIONS
+// ============================================================================
+
+InterpretResult op_option_some(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_is_empty(vm->stack)) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value value = stack_pop(vm->stack);
+    DEBUG_PRINT(vm, "DEBUG: op_option_some: popped value type=%d, value=%lld\n", value.type, value.data.i64_value);
+    Value option = value_create_option_some(&value);
+    DEBUG_PRINT(vm, "DEBUG: op_option_some: created option type=%d\n", option.type);
+    
+    if (!stack_push(vm->stack, option)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    DEBUG_PRINT(vm, "DEBUG: op_option_some: stack size after push=%zu\n", vm->stack->top);
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_option_none(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    Value option = value_create_option_none();
+    
+    if (!stack_push(vm->stack, option)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_option_is_some(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_is_empty(vm->stack)) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    DEBUG_PRINT(vm, "DEBUG: op_option_is_some: stack size before pop=%zu\n", vm->stack->top);
+    Value option = stack_pop(vm->stack);
+    DEBUG_PRINT(vm, "DEBUG: op_option_is_some: popped option type=%d\n", option.type);
+    bool is_some = value_option_is_some(&option);
+    DEBUG_PRINT(vm, "DEBUG: op_option_is_some: option type=%d, is_some=%d\n", option.type, is_some);
+    Value result = value_create_bool(is_some);
+    
+    if (!stack_push(vm->stack, result)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_option_unwrap(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_is_empty(vm->stack)) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value option = stack_pop(vm->stack);
+    Value unwrapped = value_option_unwrap(&option);
+    
+    if (!stack_push(vm->stack, unwrapped)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_option_unwrap_or(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_size(vm->stack) < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value default_value = stack_pop(vm->stack);
+    Value option = stack_pop(vm->stack);
+    Value result = value_option_unwrap_or(&option, &default_value);
+    
+    if (!stack_push(vm->stack, result)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+// ============================================================================
+// RESULT OPERATIONS
+// ============================================================================
+
+InterpretResult op_result_ok(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_is_empty(vm->stack)) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value value = stack_pop(vm->stack);
+    Value result = value_create_result_ok(&value);
+    
+    if (!stack_push(vm->stack, result)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_result_err(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_is_empty(vm->stack)) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value error = stack_pop(vm->stack);
+    Value result = value_create_result_err(&error);
+    
+    if (!stack_push(vm->stack, result)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_result_is_ok(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_is_empty(vm->stack)) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value result = stack_pop(vm->stack);
+    bool is_ok = value_result_is_ok(&result);
+    Value bool_result = value_create_bool(is_ok);
+    
+    if (!stack_push(vm->stack, bool_result)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_result_unwrap(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_is_empty(vm->stack)) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value result = stack_pop(vm->stack);
+    Value unwrapped = value_result_unwrap(&result);
+    
+    if (!stack_push(vm->stack, unwrapped)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_result_unwrap_or(VM* vm) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    if (stack_size(vm->stack) < 2) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value default_value = stack_pop(vm->stack);
+    Value result = stack_pop(vm->stack);
+    Value unwrapped = value_result_unwrap_or(&result, &default_value);
+    
+    if (!stack_push(vm->stack, unwrapped)) {
+        return INTERPRET_STACK_OVERFLOW;
+    }
+    
+    return INTERPRET_OK;
+}
+
+// ============================================================================
+// PATTERN MATCHING OPERATIONS
+// ============================================================================
+
+InterpretResult op_match(VM* vm, uint32_t pattern_count) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, implement a simple match that just pops the value
+    // Full implementation would handle pattern matching logic
+    if (stack_is_empty(vm->stack)) {
+        return INTERPRET_STACK_UNDERFLOW;
+    }
+    
+    Value match_value = stack_pop(vm->stack);
+    // Store the match value for pattern matching
+    // This is a simplified implementation
+    
+    return INTERPRET_OK;
+}
+
+InterpretResult op_match_case(VM* vm, uint32_t case_index) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, implement a simple case that just continues
+    // Full implementation would handle pattern matching logic
+    return INTERPRET_OK;
+}
+
+InterpretResult op_match_when(VM* vm, uint32_t condition_index) {
+    if (!vm || !vm->stack) {
+        return INTERPRET_RUNTIME_ERROR;
+    }
+    
+    // For now, implement a simple when that just continues
+    // Full implementation would handle pattern matching logic
     return INTERPRET_OK;
 }
 

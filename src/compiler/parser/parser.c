@@ -52,8 +52,8 @@ bool parser_check(Parser* parser, TokenKind kind) {
 
 bool parser_match(Parser* parser, TokenKind kind) {
     if (parser_check(parser, kind)) {
-    parser_advance(parser);
-    return true;
+        parser_advance(parser);
+        return true;
     }
     return false;
 }
@@ -131,16 +131,19 @@ void parser_synchronize(Parser* parser) {
             case TK_INTERFACE:
             case TK_FUNCTION:
             case TK_PROCEDURE:
+            case TK_DOMAIN:
+            case TK_IMPORT:
+                return;
             case TK_VAR:
             case TK_LET:
             case TK_NEW:
-            case TK_DOMAIN:
-            case TK_IMPORT:
             case TK_IF:
             case TK_WHILE:
             case TK_FOR:
             case TK_RETURN:
-                return;
+                // These are not top-level declarations, advance past them
+                parser_advance(parser);
+                continue;
             default:
                 break;
         }
@@ -509,7 +512,7 @@ Ast* parse_class_declaration(Parser* parser) {
     }
     
     // Parse optional type parameters
-    if (parser_match(parser, TK_LT)) {
+    if (parser_match(parser, TK_LESS)) {
         Ast* type_params = parse_type_arguments(parser);
         if (type_params) {
             ast_add_child(class, type_params);
@@ -588,7 +591,7 @@ Ast* parse_method_declaration(Parser* parser) {
     method->is_static = is_static;
     
     // Parse optional type parameters
-    if (parser_match(parser, TK_LT)) {
+    if (parser_match(parser, TK_LESS)) {
         Ast* type_params = parse_type_arguments(parser);
         if (type_params) {
             ast_add_child(method, type_params);
@@ -658,7 +661,7 @@ Ast* parse_statement(Parser* parser) {
         return parse_return_statement(parser);
     } else if (parser_match(parser, TK_MATCH)) {
         return parse_match_statement(parser);
-    } else {
+        } else {
         // Try to parse as expression statement
         Ast* expr = parse_expression(parser);
         if (expr) {
@@ -886,6 +889,63 @@ Ast* parse_primary_expression(Parser* parser) {
         return create_ast_literal(TK_NULL, parser->previous);
     }
     
+    // Parse Some(value) constructor
+    if (parser_match(parser, TK_SOME)) {
+        Ast* some_expr = ast_create(AST_SOME, NULL, parser->previous.line, parser->previous.col);
+        if (!some_expr) return NULL;
+        
+        parser_consume(parser, TK_LPAREN, "Expected '(' after Some");
+        Ast* value = parse_expression(parser);
+        if (value) {
+            ast_add_child(some_expr, value);
+        }
+        parser_consume(parser, TK_RPAREN, "Expected ')' after Some value");
+        
+        return some_expr;
+    }
+    
+    // Parse None constructor
+    if (parser_match(parser, TK_NONE)) {
+        Ast* none_expr = ast_create(AST_NONE, NULL, parser->previous.line, parser->previous.col);
+        if (!none_expr) return NULL;
+        return none_expr;
+    }
+    
+    // Parse None constructor (old code)
+    if (false && parser_match(parser, TK_NONE)) {
+        return create_ast_literal(TK_NONE, parser->previous);
+    }
+    
+    // Parse Ok(value) constructor
+    if (parser_match(parser, TK_OK)) {
+        Ast* ok_expr = ast_create(AST_OK, NULL, parser->previous.line, parser->previous.col);
+        if (!ok_expr) return NULL;
+        
+        parser_consume(parser, TK_LPAREN, "Expected '(' after Ok");
+        Ast* value = parse_expression(parser);
+        if (value) {
+            ast_add_child(ok_expr, value);
+        }
+        parser_consume(parser, TK_RPAREN, "Expected ')' after Ok value");
+        
+        return ok_expr;
+    }
+    
+    // Parse Err(error) constructor
+    if (parser_match(parser, TK_ERR)) {
+        Ast* err_expr = ast_create(AST_ERR, NULL, parser->previous.line, parser->previous.col);
+        if (!err_expr) return NULL;
+        
+        parser_consume(parser, TK_LPAREN, "Expected '(' after Err");
+        Ast* error = parse_expression(parser);
+        if (error) {
+            ast_add_child(err_expr, error);
+        }
+        parser_consume(parser, TK_RPAREN, "Expected ')' after Err error");
+        
+        return err_expr;
+    }
+    
     if (parser_match(parser, TK_INT)) {
         return create_ast_literal(TK_INT, parser->previous);
     }
@@ -928,6 +988,60 @@ Ast* parse_type(Parser* parser) {
             }
         }
         return type_node;
+    }
+    
+    // Parse Option<T> type
+    if (parser_match(parser, TK_OPTION)) {
+        Ast* option_type = ast_create(AST_TYPE, NULL, parser->previous.line, parser->previous.col);
+        if (!option_type) return NULL;
+        
+        option_type->identifier = malloc(7); // "Option"
+        if (option_type->identifier) {
+            strcpy(option_type->identifier, "Option");
+        }
+        
+        // Parse type parameter if present
+        if (parser_match(parser, TK_LESS)) {
+            Ast* inner_type = parse_type(parser);
+            if (!inner_type) {
+                ast_destroy(option_type);
+                return NULL;
+            }
+            ast_add_child(option_type, inner_type);
+            parser_consume(parser, TK_GREATER, "Expected '>' after Option type parameter");
+        }
+        
+        return option_type;
+    }
+    
+    // Parse Result<T,E> type
+    if (parser_match(parser, TK_RESULT)) {
+        Ast* result_type = ast_create(AST_TYPE, NULL, parser->previous.line, parser->previous.col);
+        if (!result_type) return NULL;
+        
+        result_type->identifier = malloc(7); // "Result"
+        if (result_type->identifier) {
+            strcpy(result_type->identifier, "Result");
+        }
+        
+        // Parse type parameters
+        parser_consume(parser, TK_LESS, "Expected '<' after Result");
+        Ast* ok_type = parse_type(parser);
+        if (!ok_type) {
+            ast_destroy(result_type);
+            return NULL;
+        }
+        ast_add_child(result_type, ok_type);
+        parser_consume(parser, TK_COMMA, "Expected ',' between Result type parameters");
+        Ast* err_type = parse_type(parser);
+        if (!err_type) {
+            ast_destroy(result_type);
+            return NULL;
+        }
+        ast_add_child(result_type, err_type);
+        parser_consume(parser, TK_GREATER, "Expected '>' after Result type parameters");
+        
+        return result_type;
     }
     
     if (parser_match(parser, TK_NEW)) {
@@ -974,7 +1088,9 @@ Ast* parse_type(Parser* parser) {
         return type_node;
     }
     
-    return NULL;
+    // If we get here, we couldn't parse a valid type
+    parser_error_at_current(parser, "Expected type");
+        return NULL;
 }
 
 // Helper function for parameter list parsing
@@ -1076,7 +1192,7 @@ Ast* parse_record_declaration(Parser* parser) {
     }
     
     // Parse optional type parameters
-    if (parser_match(parser, TK_LT)) {
+    if (parser_match(parser, TK_LESS)) {
         Ast* type_params = parse_type_arguments(parser);
         if (type_params) {
             ast_add_child(record, type_params);
@@ -1129,7 +1245,7 @@ Ast* parse_enum_declaration(Parser* parser) {
     }
     
     // Parse optional type parameters
-    if (parser_match(parser, TK_LT)) {
+    if (parser_match(parser, TK_LESS)) {
         Ast* type_params = parse_type_arguments(parser);
         if (type_params) {
             ast_add_child(enum_decl, type_params);
@@ -1199,7 +1315,7 @@ Ast* parse_interface_declaration(Parser* parser) {
     }
     
     // Parse optional type parameters
-    if (parser_match(parser, TK_LT)) {
+    if (parser_match(parser, TK_LESS)) {
         Ast* type_params = parse_type_arguments(parser);
         if (type_params) {
             ast_add_child(interface, type_params);
@@ -1238,7 +1354,7 @@ Ast* parse_interface_member(Parser* parser) {
         }
         
         // Parse optional type parameters
-        if (parser_match(parser, TK_LT)) {
+        if (parser_match(parser, TK_LESS)) {
             Ast* type_params = parse_type_arguments(parser);
             if (type_params) {
                 ast_add_child(member, type_params);
@@ -1469,7 +1585,78 @@ Ast* parse_for_statement(Parser* parser) {
     
     return for_stmt;
 }
-Ast* parse_match_statement(Parser* parser) { return NULL; }
+Ast* parse_match_statement(Parser* parser) {
+    // Parse: match (expression) { cases }
+    Ast* match_stmt = ast_create(AST_MATCH, NULL, 0, 0);
+    if (!match_stmt) return NULL;
+    
+    // NOTE: 'match' token has already been consumed by parser_match in parse_statement
+    
+    // Parse expression in parentheses
+    parser_consume(parser, TK_LPAREN, "Expected '(' after 'match'");
+    Ast* expression = parse_expression(parser);
+    if (!expression) {
+        ast_destroy(match_stmt);
+        return NULL;
+    }
+    parser_consume(parser, TK_RPAREN, "Expected ')' after match expression");
+    
+    // Add expression as first child
+    ast_add_child(match_stmt, expression);
+    
+    // Parse opening brace
+    parser_consume(parser, TK_LBRACE, "Expected '{' after match expression");
+    
+    // Parse cases
+    while (!parser_check(parser, TK_RBRACE) && !parser_is_at_end(parser)) {
+        Ast* case_stmt = parse_case_statement(parser);
+        if (case_stmt) {
+            ast_add_child(match_stmt, case_stmt);
+        }
+    }
+    
+    // Parse closing brace
+    parser_consume(parser, TK_RBRACE, "Expected '}' after match cases");
+    
+    return match_stmt;
+}
+
+Ast* parse_case_statement(Parser* parser) {
+    // Parse: pattern => expression;
+    Ast* case_stmt = ast_create(AST_CASE, NULL, 0, 0);
+    if (!case_stmt) return NULL;
+    
+    // Parse pattern
+    Ast* pattern = parse_pattern(parser);
+    if (!pattern) {
+        ast_destroy(case_stmt);
+        return NULL;
+    }
+    
+    // Parse arrow
+    parser_consume(parser, TK_ARROW, "Expected '=>' after pattern");
+    
+    // Parse statement (can be expression or return statement)
+    Ast* statement = parse_statement(parser);
+    if (!statement) {
+        ast_destroy(case_stmt);
+        ast_destroy(pattern);
+        return NULL;
+    }
+    
+        // Add pattern and statement as children
+        ast_add_child(case_stmt, pattern);
+        // printf("DEBUG: After adding pattern to case: pattern->identifier='%s' (ptr=%p)\n", pattern->identifier ? pattern->identifier : "NULL", pattern->identifier);
+        ast_add_child(case_stmt, statement);
+    
+    // Parse semicolon (optional for match cases)
+    if (parser_match(parser, TK_SEMICOLON)) {
+        // Semicolon is optional in match cases
+    }
+    
+    return case_stmt;
+}
+
 Ast* parse_return_statement(Parser* parser) {
     if (!parser) return NULL;
     
@@ -1491,7 +1678,117 @@ Ast* parse_return_statement(Parser* parser) {
 }
 Ast* parse_type_arguments(Parser* parser) { return NULL; }
 Ast* parse_qualified_name(Parser* parser) { return NULL; }
-Ast* parse_pattern(Parser* parser) { return NULL; }
+Ast* parse_pattern(Parser* parser) {
+    // Parse pattern: Some(identifier), None, Ok(identifier), Err(identifier), identifier, literal
+    // printf("DEBUG: parse_pattern: current token=%d, TK_SOME=%d\n", parser->current.kind, TK_SOME);
+    if (parser_match(parser, TK_SOME)) {
+        // printf("DEBUG: Matched TK_SOME!\n");
+        Ast* some_pattern = ast_create(AST_CONSTRUCTOR_PATTERN, "Some", parser->previous.line, parser->previous.col);
+        if (!some_pattern) return NULL;
+        
+        // printf("DEBUG: Created some_pattern with identifier='%s' (ptr=%p)\n", some_pattern->identifier, some_pattern->identifier);
+        
+        parser_consume(parser, TK_LPAREN, "Expected '(' after Some");
+        Ast* inner_pattern = parse_pattern(parser);
+        if (inner_pattern) {
+            ast_add_child(some_pattern, inner_pattern);
+        }
+        parser_consume(parser, TK_RPAREN, "Expected ')' after Some pattern");
+        
+        return some_pattern;
+    }
+    
+    if (parser_match(parser, TK_NONE)) {
+        Ast* none_pattern = ast_create(AST_CONSTRUCTOR_PATTERN, "None", parser->previous.line, parser->previous.col);
+        if (!none_pattern) return NULL;
+        // printf("DEBUG: Created none_pattern with identifier='%s' (ptr=%p)\n", none_pattern->identifier, none_pattern->identifier);
+        return none_pattern;
+    }
+    
+    // Parse None constructor (old code)
+    if (false && parser_match(parser, TK_NONE)) {
+        Ast* none_pattern = ast_create(AST_LITERAL_PATTERN, NULL, parser->previous.line, parser->previous.col);
+        if (!none_pattern) return NULL;
+        
+        none_pattern->identifier = malloc(5); // "None"
+        if (none_pattern->identifier) {
+            strcpy(none_pattern->identifier, "None");
+        }
+        
+        return none_pattern;
+    }
+    
+    if (parser_match(parser, TK_OK)) {
+        Ast* ok_pattern = ast_create(AST_CONSTRUCTOR_PATTERN, NULL, parser->previous.line, parser->previous.col);
+        if (!ok_pattern) return NULL;
+        
+        ok_pattern->identifier = malloc(3); // "Ok"
+        if (ok_pattern->identifier) {
+            strcpy(ok_pattern->identifier, "Ok");
+        }
+        
+        parser_consume(parser, TK_LPAREN, "Expected '(' after Ok");
+        Ast* inner_pattern = parse_pattern(parser);
+        if (inner_pattern) {
+            ast_add_child(ok_pattern, inner_pattern);
+        }
+        parser_consume(parser, TK_RPAREN, "Expected ')' after Ok pattern");
+        
+        return ok_pattern;
+    }
+    
+    if (parser_match(parser, TK_ERR)) {
+        Ast* err_pattern = ast_create(AST_CONSTRUCTOR_PATTERN, NULL, parser->previous.line, parser->previous.col);
+        if (!err_pattern) return NULL;
+        
+        err_pattern->identifier = malloc(4); // "Err"
+        if (err_pattern->identifier) {
+            strcpy(err_pattern->identifier, "Err");
+        }
+        
+        parser_consume(parser, TK_LPAREN, "Expected '(' after Err");
+        Ast* inner_pattern = parse_pattern(parser);
+        if (inner_pattern) {
+            ast_add_child(err_pattern, inner_pattern);
+        }
+        parser_consume(parser, TK_RPAREN, "Expected ')' after Err pattern");
+        
+        return err_pattern;
+    }
+    
+    // Parse identifier pattern
+    if (parser_match(parser, TK_IDENTIFIER)) {
+        Ast* id_pattern = ast_create(AST_IDENTIFIER_PATTERN, NULL, parser->previous.line, parser->previous.col);
+        if (!id_pattern) return NULL;
+        
+        id_pattern->identifier = malloc(parser->previous.len + 1);
+        if (id_pattern->identifier) {
+            strncpy(id_pattern->identifier, parser->previous.start, parser->previous.len);
+            id_pattern->identifier[parser->previous.len] = '\0';
+        }
+        
+        return id_pattern;
+    }
+    
+    // Parse literal pattern
+    if (parser_match(parser, TK_INT) || parser_match(parser, TK_FLOAT) || 
+        parser_match(parser, TK_STRING) || parser_match(parser, TK_TRUE) || 
+        parser_match(parser, TK_FALSE)) {
+        Ast* literal_pattern = ast_create(AST_LITERAL_PATTERN, NULL, parser->previous.line, parser->previous.col);
+        if (!literal_pattern) return NULL;
+        
+        literal_pattern->identifier = malloc(parser->previous.len + 1);
+        if (literal_pattern->identifier) {
+            strncpy(literal_pattern->identifier, parser->previous.start, parser->previous.len);
+            literal_pattern->identifier[parser->previous.len] = '\0';
+        }
+        
+        return literal_pattern;
+    }
+    
+    parser_error_at_current(parser, "Expected pattern");
+    return NULL;
+}
 Ast* parse_literal_pattern(Parser* parser) { return NULL; }
 Ast* parse_identifier_pattern(Parser* parser) { return NULL; }
 Ast* parse_constructor_pattern(Parser* parser) { return NULL; }

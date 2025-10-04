@@ -55,6 +55,17 @@ He3Project* he3_project_load(const char* project_file) {
     char* dir_name = strrchr(project_dir, '/');
     if (dir_name) {
         dir_name++; // Skip the slash
+        // If the string is empty (ends with slash), go back one more
+        if (*dir_name == '\0') {
+            // Find the previous slash
+            *dir_name = '\0'; // Null terminate at the last slash
+            dir_name = strrchr(project_dir, '/');
+            if (dir_name) {
+                dir_name++; // Skip the slash
+            } else {
+                dir_name = project_dir;
+            }
+        }
     } else {
         dir_name = project_dir;
     }
@@ -64,9 +75,9 @@ He3Project* he3_project_load(const char* project_file) {
         dir_name = "output";
     }
     
-    // Create output path with directory name
+    // Create output path with directory name in helium3/standalone/
     char output_path[512];
-    snprintf(output_path, sizeof(output_path), "build/%s.helium3", dir_name);
+    snprintf(output_path, sizeof(output_path), "helium3/standalone/%s.helium3", dir_name);
     free(project->output_path);
     project->output_path = strdup(output_path);
     

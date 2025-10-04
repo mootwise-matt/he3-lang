@@ -4,5 +4,5 @@
   "type": "executable",
   "main": "src/main.he3",
   "description": "Test static methods with different argument types",
-  "output": "build/05_static_args_test.helium3"
+  "output": "../../helium3/standalone/05_static_args_test.helium3"
 }

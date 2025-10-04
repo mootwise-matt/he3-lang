@@ -34,7 +34,10 @@ A modern, object-oriented programming language with Pascal roots and Java/C#-sty
   - **Method Calls**: Basic method dispatch works
   - **Static Methods**: Static method calls work (e.g., `Sys.print()`)
   - **Inheritance**: Not yet implemented
-- **Type System**: Basic built-in types (System.Int64, System.Float64, System.Boolean, System.String)
+- **Type System**: Complete type system with built-in types and generic types
+  - **Built-in Types**: System.Int64, System.Float64, System.Boolean, System.String
+  - **Generic Types**: Option<T>, Result<T,E> with full type safety
+  - **Type Resolution**: Complete type checking and validation
 - **Variables**: Local variable declarations work
 - **Arithmetic Operations**: Complete arithmetic support
   - Addition (`+`), Subtraction (`-`), Multiplication (`*`), Division (`/`)
@@ -121,6 +124,25 @@ A modern, object-oriented programming language with Pascal roots and Java/C#-sty
 ./he3vm ./build/output.helium3
 ```
 
+### ✅ **Phase 2 Complete - Option/Result Type System**
+
+#### **Modern Functional Programming Features**
+- **Option<T> Types**: Complete Option type system with Some/None constructors
+  - Memory-safe value wrapping and unwrapping
+  - Type-safe pattern matching
+  - Complete VM integration with dedicated opcodes
+- **Result<T,E> Types**: Complete Result type system with Ok/Err constructors
+  - Error handling with type safety
+  - Complete VM integration with dedicated opcodes
+- **Match Statements**: Complete pattern matching for Option types
+  - Simplified but functional approach
+  - Direct Option unwrapping for Some patterns
+  - Complete parser and IR generation support
+- **Generic Types**: Complete generic type system support
+  - Type parameter resolution
+  - Type safety validation
+  - Complete compiler and VM integration
+
 ### 🎯 **Current Status: FULLY FUNCTIONAL**
 
 The He³ language now has a **complete, working build and execution system** that can:
@@ -180,13 +202,17 @@ The He³ language now has a **complete, working build and execution system** tha
   - Memory management and cleanup
   - Debug output and module information display
 
+### 📋 **Implemented Features**
+- **Pattern Matching**: ✅ `match` statements for Option types
+- **Error Handling**: ✅ `Option<T>` and `Result<T,E>` types
+- **Memory Safety**: ✅ No raw pointers, memory-safe value wrapping
+- **Generic Types**: ✅ Complete generic type system support
+
 ### 📋 **Planned Features**
-- **Pattern Matching**: `match` statements with `when` clauses
-- **Error Handling**: `Option<T>` and `Result<T,E>` types
 - **Async/Await**: Concurrency and async programming
 - **Security**: Compile-time cryptographic keys for module boundaries
 - **Events**: Cross-thread communication system
-- **Memory Safety**: No raw pointers, nullable types
+- **Advanced Pattern Matching**: Nested patterns, guard clauses
 
 ## 🏗️ **Architecture**
 
@@ -271,10 +297,38 @@ make
 make test
 ```
 
-### **Example Program**
+### **Basic Example**
 ```he3
 domain minimal {
     function main() -> System.Int64 {
+        return 0;
+    }
+}
+```
+
+### **Option/Result Example**
+```he3
+domain Test {
+    function main(): integer {
+        let option: Option<integer> = Some(42);
+        
+        match (option) {
+            Some(x) => return x;
+            None => return 0;
+        }
+    }
+}
+```
+
+### **If Statement with Option Example**
+```he3
+domain Test {
+    function main(): integer {
+        let option: Option<integer> = Some(42);
+        
+        if (option.is_some()) {
+            return option.unwrap();
+        }
         return 0;
     }
 }

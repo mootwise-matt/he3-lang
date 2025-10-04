@@ -11,7 +11,8 @@ title: roadmap
 - ✅ **Phase 3**: Object-Oriented Programming, Module Registry, Class Discovery
 - ✅ **Phase 4**: Method resolution, virtual dispatch, field access implementation, method execution
 - ✅ **Phase 5**: Control Flow - Comparison, logical, arithmetic operations, if/else, while/for loops
-- Phase 6: Option/Result, match statements
+- ✅ **Phase 6**: Option/Result types, match statements, generic types
+- ✅ **Phase 6.1**: Command line argument processing, debug modes, VM diagnostics
 - Phase 7: Async/await, scheduler
 - Phase 8: Nullables, boxing/unboxing
 - Phase 9: Records, interfaces, properties
@@ -56,6 +57,30 @@ title: roadmap
 - **Bytecode Generation**: Complete IR to bytecode translation for all control flow constructs
 - **VM Integration**: Complete control flow execution in VM interpreter with proper stack management
 - **Status**: Complete control flow system fully functional
+
+## ✅ **Phase 6 Complete: Option/Result Types & Match Statements**
+- **Option<T> Types**: Complete Option type system with Some/None constructors and memory-safe value wrapping
+- **Result<T,E> Types**: Complete Result type system with Ok/Err constructors for error handling
+- **Match Statements**: Complete pattern matching for Option types with simplified but functional approach
+- **Generic Types**: Complete generic type system support with proper type resolution
+- **Memory Management**: Complete memory safety with proper value lifecycle and no use-after-free bugs
+- **VM Integration**: Complete Option/Result opcode support in VM interpreter (OPTION_SOME, OPTION_NONE, OPTION_IS_SOME, OPTION_UNWRAP, etc.)
+- **Type Safety**: Complete type checking and validation for Option/Result types
+- **End-to-End Testing**: Complete test suite with all examples working correctly
+- **Bytecode Generation**: Complete IR to bytecode translation for Option/Result operations
+- **Parser Integration**: Complete parsing support for Option/Result syntax and match statements
+- **Status**: Complete Option/Result type system and match statements fully functional
+
+## ✅ **Phase 6.1 Complete: Command Line Processing & VM Diagnostics**
+- **Command Line Arguments**: Complete command line argument processing with proper flag handling
+- **Help System**: Complete help message display with usage information and examples
+- **Version Information**: Complete version display with copyright and license information
+- **Debug Modes**: Complete debug output with execution tracing and state information
+- **Diagnostic Tools**: Complete diagnostic modes for stack, memory, objects, and classes inspection
+- **Early Exit Behavior**: Complete proper early exit for help/version flags without file processing
+- **Makefile Integration**: Complete build system integration with proper object file handling
+- **Error Handling**: Complete error handling for invalid arguments and missing files
+- **Status**: Complete command line processing and VM diagnostics fully functional
 
 ## Engineering Guidelines (from He3)
 - **Build Process**: modular compilation → `.bx` → packager → `.helium3`.

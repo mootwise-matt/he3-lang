@@ -76,12 +76,96 @@ void ir_to_bytecode_translator_destroy(IRToBytecodeTranslator* translator) {
     free(translator);
 }
 
+// Find a block by its ID
+IRBlock* ir_to_bytecode_find_block_by_id(IRToBytecodeTranslator* translator, uint32_t block_id) {
+    if (!translator || !translator->current_function) return NULL;
+    
+    IRFunction* function = translator->current_function;
+    for (size_t i = 0; i < function->block_count; i++) {
+        if (function->blocks[i] && function->blocks[i]->id == block_id) {
+            return function->blocks[i];
+        }
+    }
+    return NULL;
+}
+
+// Calculate byte offsets for each block in the function
+bool ir_to_bytecode_calculate_block_offsets(IRToBytecodeTranslator* translator, IRFunction* function) {
+    if (!translator || !function) return false;
+    
+    // Reset current bytecode position
+    translator->current_bytecode_size = 0;
+    
+    // Calculate offsets for each block
+    for (size_t i = 0; i < function->block_count; i++) {
+        IRBlock* block = function->blocks[i];
+        if (!block) continue;
+        
+        // Store the current bytecode position as this block's offset
+        block->bytecode_offset = translator->current_bytecode_size;
+        
+        // Calculate the size this block will take
+        size_t block_size = 0;
+        for (size_t j = 0; j < block->instruction_count; j++) {
+            IRInstruction* instruction = block->instructions[j];
+            if (!instruction) continue;
+            
+            // Calculate instruction size (opcode + operands)
+            size_t instruction_size = 1; // opcode
+            switch (instruction->op) {
+                case IR_LOAD_CONST:
+                case IR_LOAD_LOCAL:
+                case IR_LOAD_STATIC:
+                case IR_STORE_LOCAL:
+                case IR_STORE_STATIC:
+                case IR_CALL:
+                case IR_CALL_STATIC:
+                case IR_CALLV:
+                case IR_CALLI:
+                case IR_JMP:
+                case IR_JMPT:
+                case IR_JMPF:
+                case IR_NEW:
+                case IR_NEW_ARRAY:
+                case IR_LOAD_FIELD:
+                case IR_STORE_FIELD:
+                case IR_LOAD_ARRAY:
+                case IR_STORE_ARRAY:
+                case IR_CAST:
+                case IR_INSTANCEOF:
+                case IR_GET_TYPE:
+                case IR_LOAD_ARG:
+                case IR_MATCH_SOME:
+                case IR_MATCH_NONE:
+                case IR_MATCH_OK:
+                case IR_MATCH_ERR:
+                    instruction_size += 4; // 4-byte operand
+                    break;
+                default:
+                    // No operands
+                    break;
+            }
+            block_size += instruction_size;
+        }
+        
+        // Update the current bytecode position
+        translator->current_bytecode_size += block_size;
+    }
+    
+    return true;
+}
+
 bool ir_to_bytecode_translate_function(IRToBytecodeTranslator* translator, IRFunction* function) {
     if (!translator || !function) return false;
     
     translator->current_function = function;
     
-    // Translate all blocks in the function
+    // First pass: Calculate byte offsets for each block
+    if (!ir_to_bytecode_calculate_block_offsets(translator, function)) {
+        return false;
+    }
+    
+    // Second pass: Translate all blocks in the function
     for (size_t i = 0; i < function->block_count; i++) {
         if (!ir_to_bytecode_translate_block(translator, function->blocks[i])) {
             return false;
@@ -215,30 +299,60 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
         
         case IR_JMP: {
             // Unconditional jump
-            if (instruction->operand_count > 0) {
-                uint32_t target_block_id = instruction->operands[0].data.temp_id;
+            if (instruction->target > 0) {
+                uint32_t target_block_id = instruction->target;
+                // Find the target block and calculate byte offset
+                IRBlock* target_block = ir_to_bytecode_find_block_by_id(translator, target_block_id);
+                if (!target_block) {
+                    ir_to_bytecode_translator_set_error(translator, "Target block not found for jump");
+                    return false;
+                }
+                
+                // Calculate relative offset from position after jump instruction to target
+                // Jump instruction is 5 bytes: 1 byte opcode + 4 bytes offset
+                int32_t offset = (int32_t)(target_block->bytecode_offset - (translator->current_bytecode_size + 5));
                 return ir_to_bytecode_emit_instruction(translator, OP_JUMP, 
-                                                     (uint8_t*)&target_block_id, sizeof(uint32_t));
+                                                     (uint8_t*)&offset, sizeof(int32_t));
             }
             return ir_to_bytecode_emit_instruction(translator, OP_JUMP, NULL, 0);
         }
         
         case IR_JMPF: {
             // Jump if false
-            if (instruction->operand_count > 0) {
-                uint32_t target_block_id = instruction->operands[0].data.temp_id;
+            if (instruction->target > 0) {
+                uint32_t target_block_id = instruction->target;
+                // Find the target block and calculate byte offset
+                IRBlock* target_block = ir_to_bytecode_find_block_by_id(translator, target_block_id);
+                if (!target_block) {
+                    ir_to_bytecode_translator_set_error(translator, "Target block not found for jump if false");
+                    return false;
+                }
+                
+                // Calculate relative offset from position after jump instruction to target
+                // Jump instruction is 5 bytes: 1 byte opcode + 4 bytes offset
+                int32_t offset = (int32_t)(target_block->bytecode_offset - (translator->current_bytecode_size + 5));
                 return ir_to_bytecode_emit_instruction(translator, OP_JUMP_IF_FALSE, 
-                                                     (uint8_t*)&target_block_id, sizeof(uint32_t));
+                                                     (uint8_t*)&offset, sizeof(int32_t));
             }
             return ir_to_bytecode_emit_instruction(translator, OP_JUMP_IF_FALSE, NULL, 0);
         }
         
         case IR_JMPT: {
             // Jump if true
-            if (instruction->operand_count > 0) {
-                uint32_t target_block_id = instruction->operands[0].data.temp_id;
+            if (instruction->target > 0) {
+                uint32_t target_block_id = instruction->target;
+                // Find the target block and calculate byte offset
+                IRBlock* target_block = ir_to_bytecode_find_block_by_id(translator, target_block_id);
+                if (!target_block) {
+                    ir_to_bytecode_translator_set_error(translator, "Target block not found for jump if true");
+                    return false;
+                }
+                
+                // Calculate relative offset from position after jump instruction to target
+                // Jump instruction is 5 bytes: 1 byte opcode + 4 bytes offset
+                int32_t offset = (int32_t)(target_block->bytecode_offset - (translator->current_bytecode_size + 5));
                 return ir_to_bytecode_emit_instruction(translator, OP_JUMP_IF_TRUE, 
-                                                     (uint8_t*)&target_block_id, sizeof(uint32_t));
+                                                     (uint8_t*)&offset, sizeof(int32_t));
             }
             return ir_to_bytecode_emit_instruction(translator, OP_JUMP_IF_TRUE, NULL, 0);
         }
@@ -343,6 +457,61 @@ bool ir_to_bytecode_translate_instruction(IRToBytecodeTranslator* translator, IR
             return ir_to_bytecode_emit_instruction(translator, OP_LOAD_FIELD, 
                                                  (uint8_t*)&field_id, sizeof(uint32_t));
         }
+        
+        // Pattern matching
+        case IR_MATCH_SOME:
+            return ir_to_bytecode_emit_instruction(translator, OP_OPTION_IS_SOME, NULL, 0);
+        
+        case IR_MATCH_NONE:
+            return ir_to_bytecode_emit_instruction(translator, OP_OPTION_IS_SOME, NULL, 0);
+        
+        case IR_MATCH_OK:
+            return ir_to_bytecode_emit_instruction(translator, OP_RESULT_IS_OK, NULL, 0);
+        
+        case IR_MATCH_ERR:
+            return ir_to_bytecode_emit_instruction(translator, OP_RESULT_IS_OK, NULL, 0);
+        
+        // Option operations
+        case IR_OPTION_SOME:
+            return ir_to_bytecode_emit_instruction(translator, OP_OPTION_SOME, NULL, 0);
+        
+        case IR_OPTION_NONE:
+            return ir_to_bytecode_emit_instruction(translator, OP_OPTION_NONE, NULL, 0);
+        
+        case IR_OPTION_IS_SOME:
+            return ir_to_bytecode_emit_instruction(translator, OP_OPTION_IS_SOME, NULL, 0);
+        
+        case IR_OPTION_UNWRAP:
+            return ir_to_bytecode_emit_instruction(translator, OP_OPTION_UNWRAP, NULL, 0);
+        
+        case IR_OPTION_UNWRAP_OR:
+            return ir_to_bytecode_emit_instruction(translator, OP_OPTION_UNWRAP_OR, NULL, 0);
+        
+        // Result operations
+        case IR_RESULT_OK:
+            return ir_to_bytecode_emit_instruction(translator, OP_RESULT_OK, NULL, 0);
+        
+        case IR_RESULT_ERR:
+            return ir_to_bytecode_emit_instruction(translator, OP_RESULT_ERR, NULL, 0);
+        
+        case IR_RESULT_IS_OK:
+            return ir_to_bytecode_emit_instruction(translator, OP_RESULT_IS_OK, NULL, 0);
+        
+        case IR_RESULT_UNWRAP:
+            return ir_to_bytecode_emit_instruction(translator, OP_RESULT_UNWRAP, NULL, 0);
+        
+        case IR_RESULT_UNWRAP_OR:
+            return ir_to_bytecode_emit_instruction(translator, OP_RESULT_UNWRAP_OR, NULL, 0);
+        
+        // Special operations
+        case IR_DUP:
+            return ir_to_bytecode_emit_instruction(translator, OP_DUP, NULL, 0);
+        
+        case IR_COPY:
+            return ir_to_bytecode_emit_instruction(translator, OP_DUP, NULL, 0);
+        
+        case IR_NOP:
+            return ir_to_bytecode_emit_instruction(translator, OP_NOP, NULL, 0);
         
         default:
             ir_to_bytecode_translator_set_error(translator, "Unknown instruction type");

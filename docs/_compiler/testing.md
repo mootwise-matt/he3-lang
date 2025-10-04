@@ -76,11 +76,19 @@ make method-translation-test
 - **Memory management** testing
 - **Module loading** verification
 - **System function** testing
+- **Command line argument** processing
+- **Debug mode** functionality
 
 ```bash
 # Test VM execution
 ./working_tests.sh
 ./quick_test.sh
+
+# Test command line options
+./he3vm -h                    # Help (should exit immediately)
+./he3vm -v                    # Version (should exit immediately)
+./he3vm -d module.helium3     # Debug mode
+./he3vm -s -m module.helium3  # Diagnostic modes
 ```
 
 ## Test Categories
@@ -92,6 +100,8 @@ make method-translation-test
 - ✅ **Control flow** - if/else, while, for loops
 - ✅ **Object-oriented** - Classes, methods, fields
 - ✅ **System functions** - Sys.print(), Sys.println()
+- ✅ **Command line processing** - Help, version, debug flags
+- ✅ **VM diagnostics** - Stack, memory, object inspection
 
 ### **Integration Tests**
 - ✅ **End-to-end pipeline** - Source → .helium3

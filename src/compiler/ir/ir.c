@@ -114,6 +114,7 @@ IRBlock* ir_builder_create_block(IRBuilder* builder, const char* label) {
     block->is_entry = false;
     block->is_exit = false;
     block->is_reachable = false;
+    block->bytecode_offset = 0;
     
     // Add block to current function
     if (builder->current_function) {
@@ -217,6 +218,20 @@ void ir_builder_add_instruction(IRBuilder* builder, IRInstruction* instruction) 
     block->instructions[block->instruction_count++] = instruction;
 }
 
+void ir_builder_add_instruction_with_operands(IRBuilder* builder, IROp op, IRValue* operands, uint32_t operand_count) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, op);
+    if (!instruction) return;
+    
+    // Add operands
+    for (uint32_t i = 0; i < operand_count; i++) {
+        ir_instruction_add_operand(instruction, operands[i]);
+    }
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
 // Value creation
 IRValue ir_builder_create_i64_value(int64_t value) {
     IRValue val;
@@ -315,6 +330,108 @@ void ir_builder_add_conditional_jump(IRBuilder* builder, IRValue condition, IRBl
     ir_instruction_add_operand(jump_false, condition);
     ir_instruction_set_target(jump_false, false_target->id);
     ir_builder_add_instruction(builder, jump_false);
+}
+
+void ir_builder_add_conditional_jump_op(IRBuilder* builder, IROp op, IRBlock* target) {
+    if (!builder || !target) return;
+    
+    IRInstruction* jump = ir_builder_create_instruction(builder, op);
+    if (!jump) return;
+    
+    ir_instruction_set_target(jump, target->id);
+    ir_builder_add_instruction(builder, jump);
+}
+
+// Option operations
+void ir_builder_add_option_some(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_OPTION_SOME);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
+void ir_builder_add_option_none(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_OPTION_NONE);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
+void ir_builder_add_option_is_some(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_OPTION_IS_SOME);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
+void ir_builder_add_option_unwrap(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_OPTION_UNWRAP);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
+void ir_builder_add_option_unwrap_or(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_OPTION_UNWRAP_OR);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
+// Result operations
+void ir_builder_add_result_ok(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_RESULT_OK);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
+void ir_builder_add_result_err(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_RESULT_ERR);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
+void ir_builder_add_result_is_ok(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_RESULT_IS_OK);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
+void ir_builder_add_result_unwrap(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_RESULT_UNWRAP);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
+}
+
+void ir_builder_add_result_unwrap_or(IRBuilder* builder) {
+    if (!builder) return;
+    
+    IRInstruction* instruction = ir_builder_create_instruction(builder, IR_RESULT_UNWRAP_OR);
+    if (!instruction) return;
+    
+    ir_builder_add_instruction(builder, instruction);
 }
 
 // Error handling
@@ -498,8 +615,19 @@ const char* ir_op_to_string(IROp op) {
         case IR_MATCH_NONE: return "MATCH_NONE";
         case IR_MATCH_OK: return "MATCH_OK";
         case IR_MATCH_ERR: return "MATCH_ERR";
+        case IR_OPTION_SOME: return "OPTION_SOME";
+        case IR_OPTION_NONE: return "OPTION_NONE";
+        case IR_OPTION_IS_SOME: return "OPTION_IS_SOME";
+        case IR_OPTION_UNWRAP: return "OPTION_UNWRAP";
+        case IR_OPTION_UNWRAP_OR: return "OPTION_UNWRAP_OR";
+        case IR_RESULT_OK: return "RESULT_OK";
+        case IR_RESULT_ERR: return "RESULT_ERR";
+        case IR_RESULT_IS_OK: return "RESULT_IS_OK";
+        case IR_RESULT_UNWRAP: return "RESULT_UNWRAP";
+        case IR_RESULT_UNWRAP_OR: return "RESULT_UNWRAP_OR";
         case IR_PHI: return "PHI";
         case IR_COPY: return "COPY";
+        case IR_DUP: return "DUP";
         case IR_NOP: return "NOP";
         default: return "UNKNOWN";
     }

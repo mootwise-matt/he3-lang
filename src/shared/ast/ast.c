@@ -186,6 +186,10 @@ const char* ast_kind_to_string(AstKind kind) {
         case AST_IDENTIFIER: return "IDENTIFIER";
         case AST_LAMBDA: return "LAMBDA";
         case AST_ARGUMENTS: return "ARGUMENTS";
+        case AST_SOME: return "SOME";
+        case AST_NONE: return "NONE";
+        case AST_OK: return "OK";
+        case AST_ERR: return "ERR";
         case AST_TYPE: return "TYPE";
         case AST_TYPE_ARGS: return "TYPE_ARGS";
         case AST_NULLABLE_TYPE: return "NULLABLE_TYPE";
