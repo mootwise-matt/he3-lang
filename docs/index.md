@@ -198,14 +198,14 @@ domain Program {
 ### **Standalone Examples**
 - [**Hello World**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/01_minimal/src/main.he3) - Basic program structure
 - [**Arithmetic**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/02_arithmetic/src/main.he3) - Arithmetic operations
-- [**Print Demo**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/standalone/03_print_demo) - Static method calls with `Sys.print()`
-- [**Static Methods Test**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/standalone/04_static_methods_test) - Comprehensive static method testing
-- [**Static Args Test**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/standalone/05_static_args_test) - Static methods with different argument types
+- [**Print Demo**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/03_print_demo/src/main.he3) - Static method calls with `Sys.print()`
+- [**Static Methods Test**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/04_static_methods_test/src/main.he3) - Comprehensive static method testing
+- [**Static Args Test**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/05_static_args_test/src/main.he3) - Static methods with different argument types
 
 ### **Project Examples**
 - [**Hello Project**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/projects/01_minimal_project) - Multi-file project structure
-  - [main.he3](https://github.com/matthewwhite/Code/he3/examples/projects/01_minimal_project/src/main.he3) - Main program entry point
-  - `he3project.json` - Project configuration
+  - [main.he3](https://github.com/mootwise-matt/he3-lang/blob/main/examples/projects/01_minimal_project/src/main.he3) - Main program entry point
+  - [he3project.json](https://github.com/mootwise-matt/he3-lang/blob/main/examples/projects/01_minimal_project/he3project.json) - Project configuration
 
 ## 🛠️ Development Status
 
