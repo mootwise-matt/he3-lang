@@ -14,7 +14,7 @@ description: A modern, object-oriented programming language with Pascal roots an
 **A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax**
 
 ### Navigation
-[![View on GitHub](https://img.shields.io/badge/View%20on-GitHub-black?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang) • 
+[View on GitHub](https://github.com/mootwise-matt/he3-lang) • 
 [Quick Start](#-quick-start) • 
 [Documentation](#-documentation) • 
 [Examples](#-examples) • 
@@ -407,8 +407,8 @@ This project is licensed under the **Apache License 2.0** - see the [LICENSE](ht
 
 **He³** - *Where modern language design meets cross-platform execution*
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang)
-[![Issues](https://img.shields.io/badge/Issues-Report%20Bug-red?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang/issues)
-[![Discussions](https://img.shields.io/badge/Discussions-Community-blue?style=for-the-badge&logo=github)](https://github.com/mootwise-matt/he3-lang/discussions)
+[GitHub Repository](https://github.com/mootwise-matt/he3-lang) • 
+[Report Issues](https://github.com/mootwise-matt/he3-lang/issues) • 
+[Join Discussions](https://github.com/mootwise-matt/he3-lang/discussions)
 
 </div>
