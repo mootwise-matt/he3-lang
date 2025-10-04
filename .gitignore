@@ -47,3 +47,4 @@ coverage/
 # Backup files
 *.bak
 *.backup
+_site/

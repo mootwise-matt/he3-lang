@@ -10,8 +10,8 @@ github:
   username: mootwise-matt
   repository: he3-lang
 
-# Site settings - FIXED: Empty baseurl for GitHub Pages serving from root
-baseurl: ""
+# Site settings - FIXED: Correct baseurl for GitHub Pages serving from /docs folder
+baseurl: "/he3-lang"
 url: "https://mootwise-matt.github.io"
 
 # Build settings
@@ -36,11 +36,7 @@ exclude:
   - .jekyll-cache
   - .jekyll-metadata
 
-# Include files
-include:
-  - _pages
-
-# Collections - FIXED: Added missing development collection
+# Collections
 collections:
   language:
     output: true
@@ -60,17 +56,9 @@ collections:
   development:
     output: true
     permalink: /:collection/:name/
-  pages:
-    output: true
-    permalink: /:name/
 
 # Defaults
 defaults:
-  - scope:
-      path: ""
-      type: "pages"
-    values:
-      layout: "default"
   - scope:
       path: ""
       type: "language"
@@ -101,23 +89,3 @@ defaults:
       type: "development"
     values:
       layout: "page"
-
-# Navigation - FIXED: Added development section
-navigation:
-  - title: Home
-    url: /
-  - title: Language
-    url: /language/
-  - title: Compiler
-    url: /compiler/
-  - title: VM
-    url: /vm/
-  - title: Bytecode
-    url: /bytecode/
-  - title: Exporters
-    url: /exporter/
-  - title: Development
-    url: /development/
-  - title: GitHub
-    url: https://github.com/mootwise-matt/he3-lang
-    external: true
