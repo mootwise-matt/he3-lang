@@ -105,9 +105,9 @@
     
     <div class="content">
         <nav class="breadcrumb">
-            <a href="/">Home</a> 
+            <a href="{{ site.baseurl }}/">Home</a> 
             {% if page.collection %}
-                > <a href="/{{ page.collection }}/">{{ page.collection | capitalize }}</a>
+                > <a href="{{ site.baseurl }}/{{ page.collection }}/">{{ page.collection | capitalize }}</a>
             {% endif %}
             {% if page.title %}
                 > {{ page.title }}
