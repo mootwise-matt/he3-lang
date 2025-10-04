@@ -1,10 +1,8 @@
 ---
-layout: default
+layout: page
 title: He³ (Helium-3) Programming Language
 description: A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax
 ---
-
-# He³ (Helium-3) Programming Language
 
 <div align="center">
 
@@ -134,11 +132,9 @@ make
 Create `hello.he3`:
 ```he3
 domain Program {
-    class Main {
-        function main(): integer {
-            Sys.print("Hello, He³ World!");
-            return 0;
-        }
+    function main(): System.Int64 {
+        Sys.print("Hello, He³ World!");
+        return 0;
     }
 }
 ```
@@ -156,8 +152,8 @@ domain Program {
 ./he3vm build/output.helium3
 
 # Show compilation details
-./he3 --ast hello.he3
-./he3 --tokens hello.he3
+./he3 -d hello.he3
+./he3 -t hello.he3
 ```
 
 ## 📚 Documentation
@@ -181,11 +177,6 @@ domain Program {
 ### **Virtual Machine Documentation**
 - [**VM Design**]({{ site.baseurl }}/vm/design/) - Virtual machine architecture
 - [**Module Registry**]({{ site.baseurl }}/vm/module-registry/) - Runtime class discovery and registration system
-
-### **Source Code**
-- [**GitHub Repository**](https://github.com/mootwise-matt/he3-lang) - Complete source code
-- [**Browse Source**](https://github.com/mootwise-matt/he3-lang/tree/main/src) - Source code structure
-- [**Issues & Discussions**](https://github.com/mootwise-matt/he3-lang/issues) - Bug reports and feature requests
 - [**Memory Management**]({{ site.baseurl }}/vm/memory-management/) - Heap, GC, and memory safety
 - [**Object Model**]({{ site.baseurl }}/vm/object-model/) - Object system and method dispatch
 - [**Bytecode Format**]({{ site.baseurl }}/bytecode/format/) - Instruction set and file format
@@ -205,16 +196,15 @@ domain Program {
 ## 🧪 Examples
 
 ### **Standalone Examples**
-- [**Hello World**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/01_hello.he3) - Basic program structure
-- [**Calculator**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/02_calculator.he3) - Object-oriented programming
+- [**Hello World**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/01_minimal/src/main.he3) - Basic program structure
+- [**Arithmetic**](https://github.com/mootwise-matt/he3-lang/blob/main/examples/standalone/02_arithmetic/src/main.he3) - Arithmetic operations
 - [**Print Demo**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/standalone/03_print_demo) - Static method calls with `Sys.print()`
 - [**Static Methods Test**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/standalone/04_static_methods_test) - Comprehensive static method testing
 - [**Static Args Test**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/standalone/05_static_args_test) - Static methods with different argument types
 
 ### **Project Examples**
-- [**Hello Project**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/projects/01_hello_project) - Multi-file project structure
-  - [main.he3](https://github.com/mootwise-matt/he3-lang/blob/main/examples/projects/01_hello_project/src/main.he3) - Main program entry point
-  - [utils.he3](https://github.com/mootwise-matt/he3-lang/blob/main/examples/projects/01_hello_project/src/utils.he3) - Utility functions
+- [**Hello Project**](https://github.com/mootwise-matt/he3-lang/tree/main/examples/projects/01_minimal_project) - Multi-file project structure
+  - [main.he3](https://github.com/matthewwhite/Code/he3/examples/projects/01_minimal_project/src/main.he3) - Main program entry point
   - `he3project.json` - Project configuration
 
 ## 🛠️ Development Status
@@ -349,13 +339,13 @@ make error-recovery-test
 ### **Example Testing** (End-to-end)
 ```bash
 # Test specific examples
-./he3 --ast examples/standalone/01_minimal/src/main.he3
+./he3 -d examples/standalone/01_minimal/src/main.he3
 ./he3build examples/standalone/03_print_demo/he3project.json
-./he3vm build/03_print_demo.helium3
+./he3vm helium3/standalone/03_print_demo.helium3
 
 # Test project builds
 ./he3build examples/projects/01_minimal_project/he3project.json
-./he3vm build/01_minimal_project.helium3
+./he3vm helium3/standalone/01_minimal_project.helium3
 ```
 
 ### **Test Coverage**

@@ -1,40 +1,23 @@
-# GitHub Pages Configuration for He³ Documentation
-
-title: He³ (Helium-3) Programming Language
-description: A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax
-author: He³ Development Team
-email: mootwise-matt@github.com
-
-# GitHub repository
-github:
-  username: mootwise-matt
-  repository: he3-lang
+# He³ (Helium-3) Programming Language Documentation
+# Jekyll configuration for GitHub Pages
 
 # Site settings
-baseurl: "/he3-lang"
+title: "He³ (Helium-3) Programming Language"
+description: "A modern, object-oriented programming language with Pascal roots and Java/C#-style syntax"
 url: "https://mootwise-matt.github.io"
+baseurl: "/he3-lang"
 
-# Build settings
-markdown: kramdown
-highlighter: rouge
-theme: minima
-
-# Plugins
+# GitHub Pages settings
+github: [metadata]
 plugins:
   - jekyll-feed
   - jekyll-sitemap
   - jekyll-seo-tag
 
-# Exclude files from processing
-exclude:
-  - README.md
-  - Gemfile
-  - Gemfile.lock
-  - node_modules
-  - vendor
-  - .sass-cache
-  - .jekyll-cache
-  - .jekyll-metadata
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
 
 # Collections
 collections:
@@ -56,3 +39,54 @@ collections:
   development:
     output: true
     permalink: /:collection/:name/
+
+# Default layouts
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "language"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "compiler"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "vm"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "bytecode"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "exporter"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "development"
+    values:
+      layout: "page"
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - README.md
+  - test.md
+  - index_simple.md
